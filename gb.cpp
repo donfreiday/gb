@@ -2,7 +2,6 @@
    Author: Don Freiday
    todo: everything */
 
-#include <iostream>
 #include <fstream>
 #include <SDL2/SDL.h>
 #include <stdio.h>
@@ -29,12 +28,30 @@ bool init() {
 }
 
 int loop() {
-  std::ifstream rom;
-  rom.open("tetris.gb");
-  if(!rom.is_open()) {
-    printf("Failed to open ROM: tetris.gb!");
+  // Open file
+  std::ifstream file;
+  file.open("tetris.gb", std::ios::binary | std::ios::ate);
+  if(!file.is_open()) {
+    printf("Failed to open ROM: %s!", "tetris.gb");
     return -1;
   }
+
+  // Get file size
+  int filesize = file.tellg();
+  file.seekg(file.beg);
+  printf("Filesize: %d\n", filesize);
+
+  // Copy file to buffer and close file
+  unsigned char buffer[filesize];
+  file.read((char*)(&buffer[0]), filesize);
+  file.close();
+
+  for (int i=0x104; i<=0x133; i++) {
+    printf("%02X ", buffer[i]);
+  }
+
+  printf("\n");
+
 
   // Run until X is pressed on window
   bool quit = false;
@@ -76,7 +93,6 @@ int loop() {
       }
     }
   }
-  rom.close();
   return 0;
 }
 
