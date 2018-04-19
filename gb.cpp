@@ -2,9 +2,10 @@
    Author: Don Freiday
    todo: everything */
 
-#include <fstream>
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#include "cpu.h"
+#include "mmu.h"
 
 const int SCREEN_WIDTH = 166;
 const int SCREEN_HEIGHT = 144;
@@ -28,30 +29,10 @@ bool init() {
 }
 
 int loop() {
-  // Open file
-  std::ifstream file;
-  file.open("tetris.gb", std::ios::binary | std::ios::ate);
-  if(!file.is_open()) {
-    printf("Failed to open ROM: %s!", "tetris.gb");
-    return -1;
-  }
-
-  // Get file size
-  int filesize = file.tellg();
-  file.seekg(file.beg);
-  printf("Filesize: %d\n", filesize);
-
-  // Copy file to buffer and close file
-  unsigned char buffer[filesize];
-  file.read((char*)(&buffer[0]), filesize);
-  file.close();
-
-  for (int i=0x104; i<=0x133; i++) {
-    printf("%02X ", buffer[i]);
-  }
-
-  printf("\n");
-
+  CPU cpu;
+  MMU mmu;
+  mmu.load("tetris.gb");
+  cpu.memory = mmu.memory;
 
   // Run until X is pressed on window
   bool quit = false;
@@ -84,7 +65,8 @@ int loop() {
           break;
 
           case SDLK_x:
-          printf("B\n");
+          // Fetch the next opcode and increment pc
+          cpu.execute(mmu.read_byte(cpu.reg.pc++));
           break;
 
           default:
@@ -92,6 +74,7 @@ int loop() {
         }
       }
     }
+
   }
   return 0;
 }
