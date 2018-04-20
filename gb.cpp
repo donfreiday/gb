@@ -31,7 +31,7 @@ bool init() {
 int loop() {
   CPU cpu;
   cpu.mmu.load("tetris.gb");
-
+  printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
   // Run until X is pressed on window
   bool quit = false;
   SDL_Event e;
@@ -65,6 +65,7 @@ int loop() {
           case SDLK_x:
           // Fetch the next opcode and increment pc
           cpu.execute(cpu.mmu.read_byte(cpu.reg.pc++));
+          printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
           break;
 
           default:

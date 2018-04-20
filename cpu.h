@@ -9,16 +9,39 @@ class CPU {
 
 public:
   struct registers {
-    u8 a;
-    u8 b;
-    u8 c;
-    u8 d;
-    u8 e;
-    u8 h;
-    u8 l;
-    u8 f;
-    u16 pc;
-    u16 sp;
+		union {
+			struct {
+				u8 f;
+				u8 a;
+			};
+			u16 af;
+		};
+
+		union {
+			struct {
+				u8 c;
+				u8 b;
+			};
+			u16 bc;
+		};
+
+		union {
+			struct {
+				u8 e;
+				u8 d;
+			};
+			u16 de;
+		};
+
+		union {
+			struct {
+				u8 l;
+				u8 h;
+			};
+			u16 hl;
+		};
+
+		u16 pc, sp;
   } reg;
 
   u32 clock_m, clock_t;
