@@ -29,12 +29,46 @@ void CPU::execute(u8 op) {
     cycles += 4;
     break;
 
+    //LD b n
+    case 0x06:
+    printf("LD b %02X\n", mmu.read_byte(reg.pc));
+    reg.b = mmu.read_byte(reg.pc);
+    reg.pc += 1;
+    cycles += 8;
+    break;
+
+
+    // LD c n
+    case 0x0E:
+    printf("LD c %02X\n", mmu.read_byte(reg.pc));
+    reg.c = mmu.read_byte(reg.pc);
+    reg.pc += 1;
+    cycles += 8;
+    break;
+
+    // LD l n
+    case 0x2E:
+    printf("LD l %02X", mmu.read_byte(reg.pc));
+    reg.l = mmu.read_byte(reg.pc);
+    reg.pc += 1;
+    cycles += 8;
+    break;
+
     // LD hl nn
     case 0x21:
     printf("LD hl %04X\n", mmu.read_word(reg.pc));
-    reg.hl=mmu.read_word(reg.pc);
-    reg.pc+=2;
-    cycles+=12;
+    reg.hl = mmu.read_word(reg.pc);
+    reg.pc += 2;
+    cycles += 12;
+    break;
+
+    // LDD (hl) a
+    // Save a to address pointed to by hl and decrement hl
+    case 0x32:
+    printf("LDD (hl) a\n");
+    mmu.write_byte(reg.hl--, reg.a);
+    printf("%02X\n", mmu.read_byte(++reg.hl));
+    cycles += 8;
     break;
 
     // XOR a

@@ -33,9 +33,9 @@ u16 MMU::read_word(u16 address) {
 }
 
 void MMU::write_byte(u16 address, u8 value) {
-
+  memory[address] = value;
 }
 
 void MMU::write_word(u16 address, u16 value) {
-
+  *(u16*)(memory+address) = value;
 }
