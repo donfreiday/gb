@@ -29,6 +29,25 @@ void CPU::execute(u8 op) {
     cycles += 4;
     break;
 
+    // DEC b
+    case 0x05:
+    printf("DEC b\n");
+    reg.b--;
+    if ((reg.f & 0x10) == 1) {
+      reg.f |= 0x10; // carry flag
+    }
+    reg.f = 0;
+    if (reg.b==0) {
+      reg.f |= 0x80; // zero flag
+    }
+    reg.f |= 0x40; // add/sub flag
+
+    if((reg.b & 0xF) == 0xF) {
+      reg.f |= 0x20;
+    }
+    cycles+=4;
+    break;
+
     //LD b n
     case 0x06:
     printf("LD b %02X\n", mmu.read_byte(reg.pc));
@@ -46,9 +65,25 @@ void CPU::execute(u8 op) {
     cycles += 8;
     break;
 
+    // JR nz n
+    // Relative jump by signed immediate if last result was not zero (zero flag = 0)
+    // todo: figure this out
+    case 0x20:
+    printf("JR nz %02X\n", mmu.read_byte(reg.pc));
+    if (!(reg.f & 0x80)) {
+      printf("here\n");
+      reg.pc+=(s8)(mmu.read_byte(reg.pc));
+      cycles+=12;
+    }
+    else {
+      cycles+=8;
+    }
+    reg.pc++;
+    break;
+
     // LD l n
     case 0x2E:
-    printf("LD l %02X", mmu.read_byte(reg.pc));
+    printf("LD l %02X\n", mmu.read_byte(reg.pc));
     reg.l = mmu.read_byte(reg.pc);
     reg.pc += 1;
     cycles += 8;
@@ -67,7 +102,6 @@ void CPU::execute(u8 op) {
     case 0x32:
     printf("LDD (hl) a\n");
     mmu.write_byte(reg.hl--, reg.a);
-    printf("%02X\n", mmu.read_byte(++reg.hl));
     cycles += 8;
     break;
 
