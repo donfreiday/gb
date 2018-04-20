@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "common.h"
+#include "mmu.h"
 
 class CPU {
 
@@ -18,11 +19,12 @@ public:
     u8 f;
     u16 pc;
     u16 sp;
-    u8 m;
-    u8 t;
   } reg;
 
-  u8* memory;
+  u32 clock_m, clock_t;
+  u32 cycles;
+
+  MMU mmu;
 
   CPU();
   void reset();

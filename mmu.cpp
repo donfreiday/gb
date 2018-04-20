@@ -29,7 +29,7 @@ u8 MMU::read_byte(u16 address) {
 }
 
 u16 MMU::read_word(u16 address) {
-  return 0;
+  return *(u16*)(memory+address);
 }
 
 void MMU::write_byte(u16 address, u8 value) {

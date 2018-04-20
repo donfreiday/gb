@@ -30,9 +30,7 @@ bool init() {
 
 int loop() {
   CPU cpu;
-  MMU mmu;
-  mmu.load("tetris.gb");
-  cpu.memory = mmu.memory;
+  cpu.mmu.load("tetris.gb");
 
   // Run until X is pressed on window
   bool quit = false;
@@ -66,7 +64,7 @@ int loop() {
 
           case SDLK_x:
           // Fetch the next opcode and increment pc
-          cpu.execute(mmu.read_byte(cpu.reg.pc++));
+          cpu.execute(cpu.mmu.read_byte(cpu.reg.pc++));
           break;
 
           default:
