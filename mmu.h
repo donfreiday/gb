@@ -16,10 +16,10 @@ public:
   MMU();
   int load(std::string filename);
 
-  u8 read_byte(u16 address);
-  u16 read_word(u16 address);
-  void write_byte(u16 address, u8 value);
-  void write_word(u16 address, u16 value);
+  u8 read_u8(u16 address);
+  u16 read_u16(u16 address);
+  void write_u8(u16 address, u8 value);
+  void write_u16(u16 address, u16 value);
 
 };
 

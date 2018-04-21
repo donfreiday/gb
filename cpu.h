@@ -44,7 +44,7 @@ public:
 		u16 pc, sp;
   } reg;
 
-  u32 clock_m, clock_t;
+  u32 cpu_clock_m, cpu_clock_t;
   u32 cycles;
 
   MMU mmu;

@@ -16,8 +16,8 @@ void CPU::reset() {
   reg.f = 0xB0;
   reg.pc = 0x100;
   reg.sp = 0xFFFE;
-  clock_m = 0;
-  clock_t = 0;
+  cpu_clock_m = 0;
+  cpu_clock_t = 0;
   cycles = 0;
 }
 
@@ -50,8 +50,8 @@ void CPU::execute(u8 op) {
 
     //LD b n
     case 0x06:
-    printf("LD b %02X\n", mmu.read_byte(reg.pc));
-    reg.b = mmu.read_byte(reg.pc);
+    printf("LD b %02X\n", mmu.read_u8(reg.pc));
+    reg.b = mmu.read_u8(reg.pc);
     reg.pc += 1;
     cycles += 8;
     break;
@@ -59,8 +59,8 @@ void CPU::execute(u8 op) {
 
     // LD c n
     case 0x0E:
-    printf("LD c %02X\n", mmu.read_byte(reg.pc));
-    reg.c = mmu.read_byte(reg.pc);
+    printf("LD c %02X\n", mmu.read_u8(reg.pc));
+    reg.c = mmu.read_u8(reg.pc);
     reg.pc += 1;
     cycles += 8;
     break;
@@ -69,10 +69,9 @@ void CPU::execute(u8 op) {
     // Relative jump by signed immediate if last result was not zero (zero flag = 0)
     // todo: figure this out
     case 0x20:
-    printf("JR nz %02X\n", mmu.read_byte(reg.pc));
+    printf("JR nz %02X\n", mmu.read_u8(reg.pc));
     if (!(reg.f & 0x80)) {
-      printf("here\n");
-      reg.pc+=(s8)(mmu.read_byte(reg.pc));
+      reg.pc+=(s8)(mmu.read_u8(reg.pc));
       cycles+=12;
     }
     else {
@@ -83,16 +82,16 @@ void CPU::execute(u8 op) {
 
     // LD l n
     case 0x2E:
-    printf("LD l %02X\n", mmu.read_byte(reg.pc));
-    reg.l = mmu.read_byte(reg.pc);
+    printf("LD l %02X\n", mmu.read_u8(reg.pc));
+    reg.l = mmu.read_u8(reg.pc);
     reg.pc += 1;
     cycles += 8;
     break;
 
     // LD hl nn
     case 0x21:
-    printf("LD hl %04X\n", mmu.read_word(reg.pc));
-    reg.hl = mmu.read_word(reg.pc);
+    printf("LD hl %04X\n", mmu.read_u16(reg.pc));
+    reg.hl = mmu.read_u16(reg.pc);
     reg.pc += 2;
     cycles += 12;
     break;
@@ -101,7 +100,7 @@ void CPU::execute(u8 op) {
     // Save a to address pointed to by hl and decrement hl
     case 0x32:
     printf("LDD (hl) a\n");
-    mmu.write_byte(reg.hl--, reg.a);
+    mmu.write_u8(reg.hl--, reg.a);
     cycles += 8;
     break;
 
@@ -121,8 +120,8 @@ void CPU::execute(u8 op) {
 
     // JP nn
     case 0xC3:
-    printf("JP %04X\n", mmu.read_word(reg.pc));
-    reg.pc = mmu.read_word(reg.pc);
+    printf("JP %04X\n", mmu.read_u16(reg.pc));
+    reg.pc = mmu.read_u16(reg.pc);
     cycles += 16;
     break;
 
