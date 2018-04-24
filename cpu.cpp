@@ -21,7 +21,8 @@ void CPU::reset() {
   cycles = 0;
 }
 
-void CPU::execute(u8 op) {
+// Returns false for unimplemented opcodes
+bool CPU::execute(u8 op) {
   switch(op) {
     // NOP
     case 0x00:
@@ -127,5 +128,8 @@ void CPU::execute(u8 op) {
 
     default:
     printf("Unimplemented opcode: %02X\n", op);
+    return false;
+    break;
   }
+  return true;
 }

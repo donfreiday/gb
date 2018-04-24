@@ -51,7 +51,7 @@ public:
 
   CPU();
   void reset();
-  void execute(u8 op);
+  bool execute(u8 op);
 };
 
 #endif

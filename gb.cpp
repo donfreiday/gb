@@ -59,7 +59,9 @@ int loop() {
           break;
 
           case SDLK_z:
-          printf("A\n");
+          while (cpu.execute(cpu.mmu.read_u8(cpu.reg.pc++))) {
+            printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
+          }
           break;
 
           case SDLK_x:
