@@ -19,6 +19,23 @@ void CPU::reset() {
   cpu_clock_m = 0;
   cpu_clock_t = 0;
   cycles = 0;
+  interrupt = true;
+}
+
+void CPU::decrement_reg(u8 &reg1) {
+  reg1--;
+  if ((reg.f & 0x10) == 1) {
+    reg.f |= 0x10; // carry flag
+  }
+  reg.f = 0;
+  if (reg1==0) {
+    reg.f |= 0x80; // zero flag
+  }
+  reg.f |= 0x40; // add/sub flag
+
+  if((reg1 & 0xF) == 0xF) {
+    reg.f |= 0x20;
+  }
 }
 
 // Returns false for unimplemented opcodes
@@ -33,19 +50,7 @@ bool CPU::execute(u8 op) {
     // DEC b
     case 0x05:
     printf("DEC b\n");
-    reg.b--;
-    if ((reg.f & 0x10) == 1) {
-      reg.f |= 0x10; // carry flag
-    }
-    reg.f = 0;
-    if (reg.b==0) {
-      reg.f |= 0x80; // zero flag
-    }
-    reg.f |= 0x40; // add/sub flag
-
-    if((reg.b & 0xF) == 0xF) {
-      reg.f |= 0x20;
-    }
+    decrement_reg(reg.b);
     cycles+=4;
     break;
 
@@ -57,6 +62,12 @@ bool CPU::execute(u8 op) {
     cycles += 8;
     break;
 
+    // DEC c
+    case 0x0D:
+    printf("DEC c\n");
+    decrement_reg(reg.c);
+    cycles+=4;
+    break;
 
     // LD c n
     case 0x0E:
@@ -105,6 +116,13 @@ bool CPU::execute(u8 op) {
     cycles += 8;
     break;
 
+    // LD a n
+    case 0x3E:
+    printf("LD a %02X", mmu.read_u8(reg.pc));
+    reg.a = mmu.read_u8(reg.pc++);
+    cycles+=8;
+    break;
+
     // XOR a
     /* Compares each bit of its first operand to the corresponding bit of its second operand.
     If one bit is 0 and the other bit is 1, the corresponding result bit is set to 1.
@@ -124,6 +142,14 @@ bool CPU::execute(u8 op) {
     printf("JP %04X\n", mmu.read_u16(reg.pc));
     reg.pc = mmu.read_u16(reg.pc);
     cycles += 16;
+    break;
+
+    // DI
+    // Disable interrupts
+    case 0xF3:
+    printf("DI\n");
+    interrupt = false;
+    cycles+=4;
     break;
 
     default:

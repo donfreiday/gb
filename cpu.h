@@ -47,10 +47,15 @@ public:
   u32 cpu_clock_m, cpu_clock_t;
   u32 cycles;
 
+  bool interrupt;
+
   MMU mmu;
 
   CPU();
   void reset();
+
+  void decrement_reg(u8 &reg1);
+
   bool execute(u8 op);
 };
 
