@@ -118,7 +118,7 @@ bool CPU::execute(u8 op) {
 
     // LD a n
     case 0x3E:
-    printf("LD a %02X", mmu.read_u8(reg.pc));
+    printf("LD a %02X\n", mmu.read_u8(reg.pc));
     reg.a = mmu.read_u8(reg.pc++);
     cycles+=8;
     break;
@@ -142,6 +142,22 @@ bool CPU::execute(u8 op) {
     printf("JP %04X\n", mmu.read_u16(reg.pc));
     reg.pc = mmu.read_u16(reg.pc);
     cycles += 16;
+    break;
+
+    // LDH n a
+    // Write value in reg.a at address pointed to by 0xFF00+n
+    case 0xE0:
+    printf("LDH %04X a\n",0xFF00+mmu.read_u8(reg.pc));
+    mmu.write_u8(0xFF00+mmu.read_u8(reg.pc), reg.a);
+    cycles+=12;
+    break;
+
+    // LDH a n
+    // Store value at 0xFF00+n in reg.a
+    case 0xF0:
+    printf("LDH %04X a\n", mmu.read_u8(0xFF00+mmu.read_u8(reg.pc)));
+    reg.a = mmu.read_u8(mmu.read_u8(0xFF00+mmu.read_u8(reg.pc++)));
+    cycles+=12;
     break;
 
     // DI
