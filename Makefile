@@ -1,5 +1,5 @@
 # OBJS: files to compile as part of the project
-OBJS = gb.cpp cpu.h cpu.cpp mmu.h mmu.cpp
+OBJS = gb.cpp cpu.h cpu.cpp mmu.h mmu.cpp gpu.h gpu.cpp
 
 # CC: compiler we're using
 CC = g++
