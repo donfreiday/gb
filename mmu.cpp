@@ -5,13 +5,13 @@ MMU::MMU() {
 
 }
 
-int MMU::load(std::string filename) {
+bool MMU::load(std::string filename) {
   // Open file
   std::ifstream file;
   file.open(filename, std::ios::binary | std::ios::ate);
   if(!file.is_open()) {
     //printf("Failed to open ROM: %s!", filename);
-    return -1;
+    return false;
   }
 
   // Get file size
@@ -22,6 +22,7 @@ int MMU::load(std::string filename) {
   file.seekg(filesize - 0x8000);
   file.read((char*)(memory), 0x8000);
   file.close();
+  return true;
 }
 
 u8 MMU::read_u8(u16 address) {

@@ -8,12 +8,17 @@
 #include "mmu.h"
 #include "gpu.h"
 
-int loop(); // Event loop
-
-int loop() {
+int main(int argc, char* args[]) {
+  if (argc<2) {
+    printf("Usage: gb <rom.gb>\n");
+    return 0;
+  }
   CPU cpu;
   GPU gpu;
-  cpu.mmu.load("tetris.gb");
+  if (!cpu.mmu.load(args[1])) {
+    printf("Couldn't load %s\n", args[1]);
+    return -1;
+  }
   printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
   // Run until X is pressed on window
   bool quit = false;
@@ -62,8 +67,4 @@ int loop() {
     }
   }
   return 0;
-}
-
-int main(int argc, char* args[]) {
-  return loop();
 }
