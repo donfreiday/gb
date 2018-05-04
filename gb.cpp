@@ -9,7 +9,7 @@
 #include "gpu.h"
 
 int main(int argc, char* args[]) {
-  if (argc<2) {
+  if (argc < 2) {
     printf("Usage: gb <rom.gb>\n");
     return 0;
   }

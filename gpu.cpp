@@ -38,7 +38,7 @@ void GPU::close() {
 
 // Clock step
 void GPU::step(int cpu_clock) {
-  modeclock+=cpu_clock;
+  modeclock += cpu_clock;
   switch(mode) {
     // OAM read mode, scanline active
     case 2:
@@ -51,7 +51,7 @@ void GPU::step(int cpu_clock) {
 
     // VRAM read mode, scanline active
     case 3:
-    if(modeclock>=172) {
+    if(modeclock >= 172) {
       // hblank
       modeclock = 0;
       mode = 0;
@@ -63,7 +63,7 @@ void GPU::step(int cpu_clock) {
 
     // hblank, swap surfaces after last hblank
     case 0:
-    if (modeclock>=204) {
+    if (modeclock >= 204) {
       modeclock = 0;
       line++;
       if (line == 143) {
