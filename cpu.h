@@ -44,6 +44,8 @@ public:
 		u16 pc, sp;
   } reg;
 
+  // cpu_clock_m: machine cycles, fetch->decode->execute->store; one m time is 4 t time
+  // cpu_clock_t: cpu cycles; the gb cpu runs at 4194304 Hz
   u32 cpu_clock_m, cpu_clock_t;
   u32 cycles;
 
