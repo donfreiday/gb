@@ -19,7 +19,7 @@ int main(int argc, char* args[]) {
     printf("Couldn't load %s\n", args[1]);
     return -1;
   }
-  printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
+
   // Run until X is pressed on window
   bool quit = false;
   SDL_Event e;
@@ -50,6 +50,7 @@ int main(int argc, char* args[]) {
           while (cpu.execute(cpu.mmu.read_u8(cpu.reg.pc++))) {
             printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
             gpu.step(cpu.cpu_clock_t);
+            
           }
           break;
 

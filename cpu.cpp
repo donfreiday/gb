@@ -87,6 +87,25 @@ bool CPU::execute(u8 op) {
     cycles += 8;
     break;
 
+    // RRC A
+    // Performs a RRC A faster and modifies the flags differently.
+    case 0x0F:
+    printf("RRC a\n");
+    reg.f = 0;
+    if (reg.a & 1) {
+      reg.f |= 0x10; // Set carry flag
+    }
+    reg.a >>= 1; // Shift A right, high bit becomes 0
+    reg.a += (reg.f & 0x10 << 7); // Carry flag becomes high bit of A
+    if (reg.a == 0) {
+      reg.f |= 0x80;
+    }
+    cpu_clock_m = 2;
+    cpu_clock_t = 8;
+    cycles += 8;
+    return false;
+    break;
+
     // JR nz n
     // Relative jump by signed immediate if last result was not zero (zero flag = 0)
     // todo: figure this out
@@ -173,8 +192,9 @@ bool CPU::execute(u8 op) {
     // LDH n a
     // Write value in reg.a at address pointed to by 0xFF00+n
     case 0xE0:
-    printf("LDH %04X a\n",0xFF00+mmu.read_u8(reg.pc));
+    printf("LDH 0xFF00+%02X a\n",mmu.read_u8(reg.pc));
     mmu.write_u8(0xFF00+mmu.read_u8(reg.pc), reg.a);
+    reg.pc++;
     cpu_clock_m = 3;
     cpu_clock_t = 12;
     cycles += 12;
@@ -198,6 +218,11 @@ bool CPU::execute(u8 op) {
     cpu_clock_m = 3;
     cpu_clock_t = 12;
     cycles += 4;
+    break;
+
+    // CP a
+    // CP is a subtraction from A that doesn't update A, only the flags it would have set/reset if it really was subtracted.
+    case 0xFE:
     break;
 
     default:
