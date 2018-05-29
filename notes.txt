@@ -1,0 +1,43 @@
+GB
+
+Hardware Overview:
+CPU: 1mhz, 8bit (clocked at 4mhz but bound by memory which is clocked at 1mhz)
+RAM: 8kb, 1mhz
+VRAM: 8kb, 4mhz
+PPU: 4 mhz
+Resolution: 160x144
+Colors: 4
+Sprites/Line: 10
+
+Machine Cycle: 1mhz
+
+DMG CPU: 
+Sharp LR35902
+Subset of features from Intel 8080 and Zilog Z80 with some new features
+
+Bank switching MBC on cartridge to support ROM > 32kb
+
+CPU
+Interrupt Controller
+Timer
+Memory
+Boot ROM
+Joypad Input
+Serial Data Transfer
+Sound Controller
+Pixel Processing Unit
+
+Boot ROM: 0x00 - 0xFF
+Built into dmg
+Init RAM
+Init Sound
+Set Up Logo
+Decode Logo
+Scroll Logo
+Play sound
+Compares logo
+Checksum header
+Turn off bootrom (map 0x00 to 0xFF to be cartridge rom rather than bootrom)
+
+
+PPU: Pixel Processing Unit  

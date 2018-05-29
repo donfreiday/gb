@@ -79,7 +79,7 @@ void GPU::step(int cpu_clock) {
 
 // Write scanline to framebuffer
 void GPU::renderscan() {
-
+  
 }
 
 // Swap SDL buffers
