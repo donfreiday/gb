@@ -26,6 +26,8 @@ bool GPU::init() {
   window = SDL_CreateWindow("gb", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
   screenSurface = SDL_GetWindowSurface(window);
   backSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0);
+  SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) ); // Fill the screen with white
+  SDL_UpdateWindowSurface( window );
   return true;
 }
 
