@@ -333,7 +333,7 @@ bool CPU::execute(u8 op) {
 
     //LD B, nn
     case 0x06:
-    reg.b = mmu.read_u8(reg.pc);
+    reg.b = operand;
     break;
 
     // DEC C
@@ -343,7 +343,7 @@ bool CPU::execute(u8 op) {
 
     // LD C, nn
     case 0x0E:
-    reg.c = mmu.read_u8(reg.pc);
+    reg.c = operand;
     break;
 
     // RRC A
@@ -362,29 +362,28 @@ bool CPU::execute(u8 op) {
 
     // JR nz nn
     // Relative jump by signed immediate if last result was not zero (zero flag = 0)
-    // todo: figure this out
     case 0x20:
     if (!(reg.f & 0x80)) {
-      reg.pc+=(s8)(mmu.read_u8(reg.pc));
+      reg.pc += (s8)(operand);
     }
     break;
 
     // LD L, n
     case 0x2E:
-    reg.l = mmu.read_u8(reg.pc);
+    reg.l = operand;
     break;
 
     // LD hl, nn
     case 0x21:
-    reg.hl = mmu.read_u16(reg.pc);
+    reg.hl = operand;
     break;
 
     // LD SP, nnnn
     case 0x31:
-    reg.sp = mmu.read_u16(reg.pc);
+    reg.sp = operand;
     break;
 
-    // LDD (hl), a
+    // LDD (hl--), a
     // Save a to address pointed to by hl and decrement hl
     case 0x32:
     mmu.write_u8(reg.hl--, reg.a);
@@ -392,7 +391,7 @@ bool CPU::execute(u8 op) {
 
     // LD A, nn
     case 0x3E:
-    reg.a = mmu.read_u8(reg.pc++);
+    reg.a = operand;
     break;
 
     // XOR A
@@ -400,28 +399,28 @@ bool CPU::execute(u8 op) {
     If one bit is 0 and the other bit is 1, the corresponding result bit is set to 1.
     Otherwise, the corresponding result bit is set to 0.*/
     case 0xAF:
-      reg.a^=reg.a;
+      reg.a ^= reg.a;
     reg.f = 0;
-    if(reg.a==0) {
+    if(reg.a == 0) {
       reg.f |= 0x80;
     }
     break;
 
     // JP nn
     case 0xC3:
-    reg.pc = mmu.read_u16(reg.pc);
+    reg.pc = operand;
     break;
 
     // LDH (0xFF00 + nn), A
     // Write value in reg.a at address pointed to by 0xFF00+nn
     case 0xE0:
-    mmu.write_u8(0xFF00+mmu.read_u8(reg.pc), reg.a);
+    mmu.write_u8(0xFF00 + operand, reg.a);
     break;
 
     // LDH A, (0xFF00 + nn)
-    // Store value at 0xFF00+n in reg.a
+    // Store value at 0xFF00+nn in reg.a
     case 0xF0:
-    reg.a = mmu.read_u8(mmu.read_u8(0xFF00+mmu.read_u8(reg.pc++)));
+    reg.a = mmu.read_u8(0xFF00 + operand);
     break;
 
     // DI
@@ -432,6 +431,7 @@ bool CPU::execute(u8 op) {
 
     // CP A
     // CP is a subtraction from A that doesn't update A, only the flags it would have set/reset if it really was subtracted.
+    // todo: unfinished opcode
     case 0xFE:
     break;
 
