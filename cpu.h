@@ -60,6 +60,13 @@ public:
   void rotate_right_carry(u8 & reg1);
 
   bool execute(u8 op);
+
+  struct instruction { // thx to cinoop
+    char const *disassembly;
+    u8 operandLength;
+    u8 cycles;
+  };
+
 };
 
 #endif
