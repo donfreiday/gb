@@ -16,10 +16,10 @@ bool MMU::load(std::string filename) {
 
   // Get file size
   int filesize = file.tellg();
-  file.seekg(file.beg);
-
+  
   // We're going to work with 32KByte only for now; no MBC
-  file.seekg(filesize - 0x8000);
+  //file.seekg(filesize - 0x8000);
+  file.seekg(file.beg);
   file.read((char*)(memory), 0x8000);
   file.close();
   return true;

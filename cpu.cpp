@@ -14,7 +14,7 @@ void CPU::reset() {
   reg.h = 0x01;
   reg.l = 0x4D;
   reg.f = 0xB0;
-  reg.pc = 0x100;
+  reg.pc = 0x00; // 0x100 is end of 256byte ROM header
   reg.sp = 0xFFFE;
   cpu_clock_m = 0;
   cpu_clock_t = 0;
