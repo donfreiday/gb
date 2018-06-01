@@ -301,6 +301,7 @@ void CPU::decrement_reg(u8 &reg1) {
 }
 
 bool CPU::execute(u8 op) {
+  // Parse operand and print disassembly of instruction
   u16 operand;
   if (instructions[op].operandLength == 1) {
     operand = mmu.read_u8(reg.pc);
@@ -315,12 +316,15 @@ bool CPU::execute(u8 op) {
   }
   printf("\n");
 
+  // Adjust PC
   reg.pc += instructions[op].operandLength;
 
+  // Update clocks and cycle count
   cpu_clock_t = instructions[op].cycles;
   cpu_clock_m = instructions[op].cycles / 4; // 4 CPU cycles is one machine cycles
   cycles += instructions[op].cycles;
 
+  // Go go go!
   switch(op) {
     // NOP
     case 0x00:
