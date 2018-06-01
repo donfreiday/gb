@@ -145,6 +145,13 @@ bool CPU::execute(u8 op) {
     cycles += 12;
     break;
 
+    // LD SP, nnnn
+    case 0x31:
+    printf("LD SP %04X", mmu.read_u16(reg.pc));
+    reg.sp = mmu.read_u16(reg.pc);
+    reg.pc += 2;
+    break;
+
     // LDD (hl) a
     // Save a to address pointed to by hl and decrement hl
     case 0x32:
