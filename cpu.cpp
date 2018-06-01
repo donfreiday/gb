@@ -462,7 +462,7 @@ bool CPU::execute() {
 
 // extended instruction set via 0xCB prefix
 bool CPU::execute_CB() {
-	u8 op = mmu.read_u8(reg.pc++);
+	u8 op = mmu.read_u8(reg.pc);
 	switch(op) {
 		// BIT 7, H
 		case 0x7C:
