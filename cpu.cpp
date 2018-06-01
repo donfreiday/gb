@@ -440,6 +440,7 @@ bool CPU::execute(u8 op) {
     break;
 
     default:
+		printf("^^^ Unimplemented instruction! ^^^\n");
     return false;
     break;
   }
