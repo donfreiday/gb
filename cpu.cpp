@@ -147,7 +147,7 @@ bool CPU::execute(u8 op) {
 
     // LD SP, nnnn
     case 0x31:
-    printf("LD SP %04X", mmu.read_u16(reg.pc));
+    printf("LD SP %04X\n", mmu.read_u16(reg.pc));
     reg.sp = mmu.read_u16(reg.pc);
     reg.pc += 2;
     break;
