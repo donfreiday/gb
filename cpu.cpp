@@ -54,7 +54,7 @@ CPU::instruction instructions[256] = {
 	{ "CPL", 0, 4 },                      // 0x2f
 	{ "JR NC, 0x%02X", 1, 8 },            // 0x30
 	{ "LD SP, 0x%04X", 2, 12 },           // 0x31
-	{ "LDD (HL), A", 0, 8 },              // 0x32
+	{ "LDD (HL--), A", 0, 8 },            // 0x32
 	{ "INC SP", 0, 8 },                   // 0x33
 	{ "INC (HL)", 0, 12 },                // 0x34
 	{ "DEC (HL)", 0, 12 },                // 0x35
@@ -420,6 +420,14 @@ bool CPU::execute() {
     reg.pc = operand;
     break;
 
+		// CB is a prefix
+		case 0xCB:
+			if (!execute_CB()) {
+				printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
+		    return false;
+			}
+		break;
+
     // LDH (0xFF00 + nn), A
     // Write value in reg.a at address pointed to by 0xFF00+nn
     case 0xE0:
@@ -445,9 +453,31 @@ bool CPU::execute() {
     break;
 
     default:
-		printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
+		printf("^^^ Unimplemented instruction: 0x%02X ^^^\n", op);
     return false;
     break;
   }
   return true;
+}
+
+// extended instruction set via 0xCB prefix
+bool CPU::execute_CB() {
+	u8 op = mmu.read_u8(reg.pc++);
+	switch(op) {
+		// BIT 7, H
+		case 0x7C:
+		u8 carry = (reg.f & 0x10) ? 1 : 0;
+		reg.f = 0;
+		if (carry) {
+			reg.f |= 0x10;
+		}
+		reg.f |= 0x20;
+		if (!(reg.h & 0x80)) {
+			reg.f |= 0x80;
+		}
+		cpu_clock_t = 8;
+		cpu_clock_m = 2;
+		cycles += 8;
+	}
+	return true;
 }
