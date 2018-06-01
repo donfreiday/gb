@@ -300,7 +300,6 @@ void CPU::decrement_reg(u8 &reg1) {
   }
 }
 
-// Returns false for unimplemented opcodes
 bool CPU::execute(u8 op) {
   u16 operand;
   if (instructions[op].operandLength == 1) {
@@ -315,48 +314,36 @@ bool CPU::execute(u8 op) {
     printf("%s", instructions[op].disassembly);
   }
   printf("\n");
+
   reg.pc += instructions[op].operandLength;
+
+  cpu_clock_t = instructions[op].cycles;
+  cpu_clock_m = instructions[op].cycles / 4; // 4 CPU cycles is one machine cycles
+  cycles += instructions[op].cycles;
 
   switch(op) {
     // NOP
     case 0x00:
-    cpu_clock_m = 1;
-    cpu_clock_t = 4;
-    cycles += 4;
     break;
 
     // DEC B
     case 0x05:
     decrement_reg(reg.b);
-    cpu_clock_m = 1;
-    cpu_clock_t = 4;
-    cycles += 4;
     break;
 
     //LD B, nn
     case 0x06:
     reg.b = mmu.read_u8(reg.pc);
-    reg.pc += 1;
-    cpu_clock_m = 2;
-    cpu_clock_t = 8;
-    cycles += 8;
     break;
 
     // DEC C
     case 0x0D:
     decrement_reg(reg.c);
-    cpu_clock_m = 1;
-    cpu_clock_t = 4;
-    cycles+=4;
     break;
 
     // LD C, nn
     case 0x0E:
     reg.c = mmu.read_u8(reg.pc);
-    reg.pc += 1;
-    cpu_clock_m = 2;
-    cpu_clock_t = 8;
-    cycles += 8;
     break;
 
     // RRC A
@@ -371,10 +358,6 @@ bool CPU::execute(u8 op) {
     if (reg.a == 0) {
       reg.f |= 0x80;
     }
-    cpu_clock_m = 2;
-    cpu_clock_t = 8;
-    cycles += 8;
-    return false;
     break;
 
     // JR nz nn
@@ -383,57 +366,33 @@ bool CPU::execute(u8 op) {
     case 0x20:
     if (!(reg.f & 0x80)) {
       reg.pc+=(s8)(mmu.read_u8(reg.pc));
-      cpu_clock_m = 3;
-      cpu_clock_t = 12;
-      cycles+=12;
     }
-    else {
-      cpu_clock_m = 2;
-      cpu_clock_t = 8;
-      cycles+=8;
-    }
-    reg.pc++;
     break;
 
     // LD L, n
     case 0x2E:
     reg.l = mmu.read_u8(reg.pc);
-    reg.pc += 1;
-    cpu_clock_m = 2;
-    cpu_clock_t = 8;
-    cycles += 8;
     break;
 
     // LD hl, nn
     case 0x21:
     reg.hl = mmu.read_u16(reg.pc);
-    reg.pc += 2;
-    cpu_clock_m = 3;
-    cpu_clock_t = 12;
-    cycles += 12;
     break;
 
     // LD SP, nnnn
     case 0x31:
     reg.sp = mmu.read_u16(reg.pc);
-    reg.pc += 2;
     break;
 
     // LDD (hl), a
     // Save a to address pointed to by hl and decrement hl
     case 0x32:
     mmu.write_u8(reg.hl--, reg.a);
-    cpu_clock_m = 2;
-    cpu_clock_t = 8;
-    cycles += 8;
     break;
 
     // LD A, nn
     case 0x3E:
     reg.a = mmu.read_u8(reg.pc++);
-    cpu_clock_m = 2;
-    cpu_clock_t = 8;
-    cycles+=8;
     break;
 
     // XOR A
@@ -446,45 +405,29 @@ bool CPU::execute(u8 op) {
     if(reg.a==0) {
       reg.f |= 0x80;
     }
-    cpu_clock_m = 1;
-    cpu_clock_t = 4;
-    cycles += 4;
     break;
 
     // JP nn
     case 0xC3:
     reg.pc = mmu.read_u16(reg.pc);
-    cpu_clock_m = 4;
-    cpu_clock_t = 16;
-    cycles += 16;
     break;
 
     // LDH (0xFF00 + nn), A
     // Write value in reg.a at address pointed to by 0xFF00+nn
     case 0xE0:
     mmu.write_u8(0xFF00+mmu.read_u8(reg.pc), reg.a);
-    reg.pc++;
-    cpu_clock_m = 3;
-    cpu_clock_t = 12;
-    cycles += 12;
     break;
 
     // LDH A, (0xFF00 + nn)
     // Store value at 0xFF00+n in reg.a
     case 0xF0:
     reg.a = mmu.read_u8(mmu.read_u8(0xFF00+mmu.read_u8(reg.pc++)));
-    cpu_clock_m = 3;
-    cpu_clock_t = 12;
-    cycles += 12;
     break;
 
     // DI
     // Disable interrupts
     case 0xF3:
     interrupt = false;
-    cpu_clock_m = 3;
-    cpu_clock_t = 12;
-    cycles += 4;
     break;
 
     // CP A
