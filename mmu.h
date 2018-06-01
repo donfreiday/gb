@@ -14,7 +14,7 @@ public:
   unsigned char memory[0xFFFF]; // 16bit address bus
 
   MMU();
-  bool load(std::string filename);
+  bool load(char* filename);
 
   u8 read_u8(u16 address);
   u16 read_u16(u16 address);

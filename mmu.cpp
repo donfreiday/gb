@@ -5,14 +5,15 @@ MMU::MMU() {
 
 }
 
-bool MMU::load(std::string filename) {
+bool MMU::load(char* filename) {
   // Open file
   std::ifstream file;
   file.open(filename, std::ios::binary | std::ios::ate);
   if(!file.is_open()) {
-    //printf("Failed to open ROM: %s!", filename);
+    printf("Failed to open ROM: %s!\n", filename);
     return false;
   }
+  printf("Loaded ROM: %s\n", filename);
 
   // Get file size
   //int filesize = file.tellg();
