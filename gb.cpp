@@ -9,7 +9,7 @@
 #include "gpu.h"
 
 int main(int argc, char* args[]) {
-  printf("gb: A Gameboy Emulator\n\n");
+  printf("\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n");
   if (argc < 2) {
     printf("Usage: gb <rom.gb>\n");
     return 0;
