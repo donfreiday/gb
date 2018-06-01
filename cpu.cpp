@@ -300,7 +300,12 @@ void CPU::decrement_reg(u8 &reg1) {
   }
 }
 
-bool CPU::execute(u8 op) {
+bool CPU::execute() {
+	printf("%04X: ", reg.pc);
+
+	// Fetch the opcode from MMU and increment PC
+	u8 op = mmu.read_u8(reg.pc++);
+
   // Parse operand and print disassembly of instruction
   u16 operand;
   if (instructions[op].operandLength == 1) {
@@ -440,7 +445,7 @@ bool CPU::execute(u8 op) {
     break;
 
     default:
-		printf("^^^ Unimplemented instruction! ^^^\n");
+		printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
     return false;
     break;
   }
