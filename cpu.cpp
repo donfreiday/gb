@@ -54,7 +54,7 @@ CPU::instruction instructions[256] = {
 	{ "CPL", 0, 4 },                      // 0x2f
 	{ "JR NC, 0x%02X", 1, 8 },            // 0x30
 	{ "LD SP, 0x%04X", 2, 12 },           // 0x31
-	{ "LDD (HL--), A", 0, 8 },            // 0x32
+	{ "LDD (HL), A", 0, 8 },            // 0x32
 	{ "INC SP", 0, 8 },                   // 0x33
 	{ "INC (HL)", 0, 12 },                // 0x34
 	{ "DEC (HL)", 0, 12 },                // 0x35
@@ -738,7 +738,6 @@ bool CPU::execute_CB(u8 op) {
 		break;
 
 		default:
-		printf("^^^ Unimplemented instruction: 0x%02X ^^^\n", op);
 		return false;
 		break;
 	}
