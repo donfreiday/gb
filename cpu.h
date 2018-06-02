@@ -60,7 +60,7 @@ public:
   void rotate_right_carry(u8 & reg1);
 
   bool execute();
-  bool execute_CB(); // execute extended instruction set
+  bool execute_CB(u8 op); // execute extended instruction set
 
   struct instruction { // thx to cinoop
     char const *disassembly;

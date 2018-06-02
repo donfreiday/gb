@@ -681,7 +681,7 @@ bool CPU::execute() {
 
 		// CB is a prefix
 		case 0xCB:
-			if (!execute_CB()) {
+			if (!execute_CB(operand)) {
 				printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
 		    return false;
 			}
@@ -720,23 +720,27 @@ bool CPU::execute() {
 }
 
 // extended instruction set via 0xCB prefix
-bool CPU::execute_CB() {
-	u8 op = mmu.read_u8(reg.pc);
+bool CPU::execute_CB(u8 op) {
+	printf("%s\n", instructions_CB[op].disassembly);
 	switch(op) {
 		// BIT 7, H
-		case 0x7C:
-		u8 carry = (reg.f & 0x10) ? 1 : 0;
-		reg.f = 0;
-		if (carry) {
-			reg.f |= 0x10;
-		}
-		reg.f |= 0x20;
-		if (!(reg.h & 0x80)) {
-			reg.f |= 0x80;
-		}
-		cpu_clock_t = 8;
-		cpu_clock_m = 2;
-		cycles += 8;
+		case 0x7C: {
+			u8 carry = (reg.f & 0x10) ? 1 : 0;
+			reg.f = 0;
+			if (carry) {
+				reg.f |= 0x10;
+			}
+			reg.f |= 0x20;
+			if (!(reg.h & 0x80)) {
+				reg.f |= 0x80;
+			}
+	  }
+		break;
+
+		default:
+		printf("^^^ Unimplemented instruction: 0x%02X ^^^\n", op);
+		return false;
+		break;
 	}
 	return true;
 }
