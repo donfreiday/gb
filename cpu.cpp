@@ -54,7 +54,7 @@ CPU::instruction instructions[256] = {
 	{ "CPL", 0, 4 },                      // 0x2f
 	{ "JR NC, 0x%02X", 1, 8 },            // 0x30
 	{ "LD SP, 0x%04X", 2, 12 },           // 0x31
-	{ "LDD (HL), A", 0, 8 },            // 0x32
+	{ "LDD (HL), A", 0, 8 },              // 0x32
 	{ "INC SP", 0, 8 },                   // 0x33
 	{ "INC (HL)", 0, 12 },                // 0x34
 	{ "DEC (HL)", 0, 12 },                // 0x35
@@ -333,7 +333,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "BIT 0, E", 0, 8 },                 // 0x43
 	{ "BIT 0, H", 0, 8 },                 // 0x44
 	{ "BIT 0, L", 0, 8 },                 // 0x45
-	{ "BIT 0, (HL)", 0, 16 },             // 0x46
+	{ "BIT 0, (HL)", 0, 12 },             // 0x46
 	{ "BIT 0, A", 0, 8 },                 // 0x47
 	{ "BIT 1, B", 0, 8 },                 // 0x48
 	{ "BIT 1, C", 0, 8 },                 // 0x49
@@ -341,7 +341,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "BIT 1, E", 0, 8 },                 // 0x4b
 	{ "BIT 1, H", 0, 8 },                 // 0x4c
 	{ "BIT 1, L", 0, 8 },                 // 0x4d
-	{ "BIT 1, (HL)", 0, 16 },             // 0x4e
+	{ "BIT 1, (HL)", 0, 12 },             // 0x4e
 	{ "BIT 1, A", 0, 8 },                 // 0x4f
 	{ "BIT 2, B", 0, 8 },                 // 0x50
 	{ "BIT 2, C", 0, 8 },                 // 0x51
@@ -349,7 +349,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "BIT 2, E", 0, 8 },                 // 0x53
 	{ "BIT 2, H", 0, 8 },                 // 0x54
 	{ "BIT 2, L", 0, 8 },                 // 0x55
-	{ "BIT 2, (HL)", 0, 16 },             // 0x56
+	{ "BIT 2, (HL)", 0, 12 },             // 0x56
 	{ "BIT 2, A", 0, 8 },                 // 0x57
 	{ "BIT 3, B", 0, 8 },                 // 0x58
 	{ "BIT 3, C", 0, 8 },                 // 0x59
@@ -357,7 +357,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "BIT 3, E", 0, 8 },                 // 0x5b
 	{ "BIT 3, H", 0, 8 },                 // 0x5c
 	{ "BIT 3, L", 0, 8 },                 // 0x5d
-	{ "BIT 3, (HL)", 0, 16 },             // 0x5e
+	{ "BIT 3, (HL)", 0, 12 },             // 0x5e
 	{ "BIT 3, A", 0, 8 },                 // 0x5f
 	{ "BIT 4, B", 0, 8 },                 // 0x60
 	{ "BIT 4, C", 0, 8 },                 // 0x61
@@ -365,7 +365,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "BIT 4, E", 0, 8 },                 // 0x63
 	{ "BIT 4, H", 0, 8 },                 // 0x64
 	{ "BIT 4, L", 0, 8 },                 // 0x65
-	{ "BIT 4, (HL)", 0, 16 },             // 0x66
+	{ "BIT 4, (HL)", 0, 12 },             // 0x66
 	{ "BIT 4, A", 0, 8 },                 // 0x67
 	{ "BIT 5, B", 0, 8 },                 // 0x68
 	{ "BIT 5, C", 0, 8 },                 // 0x69
@@ -373,7 +373,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "BIT 5, E", 0, 8 },                 // 0x6b
 	{ "BIT 5, H", 0, 8 },                 // 0x6c
 	{ "BIT 5, L", 0, 8 },                 // 0x6d
-	{ "BIT 5, (HL)", 0, 16 },             // 0x6e
+	{ "BIT 5, (HL)", 0, 12 },             // 0x6e
 	{ "BIT 5, A", 0, 8 },                 // 0x6f
 	{ "BIT 6, B", 0, 8 },                 // 0x70
 	{ "BIT 6, C", 0, 8 },                 // 0x71
@@ -381,7 +381,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "BIT 6, E", 0, 8 },                 // 0x73
 	{ "BIT 6, H", 0, 8 },                 // 0x74
 	{ "BIT 6, L", 0, 8 },                 // 0x75
-	{ "BIT 6, (HL)", 0, 16 },             // 0x76
+	{ "BIT 6, (HL)", 0, 12 },             // 0x76
 	{ "BIT 6, A", 0, 8 },                 // 0x77
 	{ "BIT 7, B", 0, 8 },                 // 0x78
 	{ "BIT 7, C", 0, 8 },                 // 0x79
@@ -389,7 +389,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "BIT 7, E", 0, 8 },                 // 0x7b
 	{ "BIT 7, H", 0, 8 },                 // 0x7c
 	{ "BIT 7, L", 0, 8 },                 // 0x7d
-	{ "BIT 7, (HL)", 0, 16 },             // 0x7e
+	{ "BIT 7, (HL)", 0, 12 },             // 0x7e
 	{ "BIT 7, A", 0, 8 },                 // 0x7f
 	{ "RES 0, B", 0, 8 },                 // 0x80
 	{ "RES 0, C", 0, 8 },                 // 0x81
@@ -397,7 +397,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 0, E", 0, 8 },                 // 0x83
 	{ "RES 0, H", 0, 8 },                 // 0x84
 	{ "RES 0, L", 0, 8 },                 // 0x85
-	{ "RES 0, (HL)", 0, 16 },             // 0x86
+	{ "RES 0, (HL)", 0, 12 },             // 0x86
 	{ "RES 0, A", 0, 8 },                 // 0x87
 	{ "RES 1, B", 0, 8 },                 // 0x88
 	{ "RES 1, C", 0, 8 },                 // 0x89
@@ -405,7 +405,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 1, E", 0, 8 },                 // 0x8b
 	{ "RES 1, H", 0, 8 },                 // 0x8c
 	{ "RES 1, L", 0, 8 },                 // 0x8d
-	{ "RES 1, (HL)", 0, 16 },             // 0x8e
+	{ "RES 1, (HL)", 0, 12 },             // 0x8e
 	{ "RES 1, A", 0, 8 },                 // 0x8f
 	{ "RES 2, B", 0, 8 },                 // 0x90
 	{ "RES 2, C", 0, 8 },                 // 0x91
@@ -413,7 +413,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 2, E", 0, 8 },                 // 0x93
 	{ "RES 2, H", 0, 8 },                 // 0x94
 	{ "RES 2, L", 0, 8 },                 // 0x95
-	{ "RES 2, (HL)", 0, 16 },             // 0x96
+	{ "RES 2, (HL)", 0, 12 },             // 0x96
 	{ "RES 2, A", 0, 8 },                 // 0x97
 	{ "RES 3, B", 0, 8 },                 // 0x98
 	{ "RES 3, C", 0, 8 },                 // 0x99
@@ -421,7 +421,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 3, E", 0, 8 },                 // 0x9b
 	{ "RES 3, H", 0, 8 },                 // 0x9c
 	{ "RES 3, L", 0, 8 },                 // 0x9d
-	{ "RES 3, (HL)", 0, 16 },             // 0x9e
+	{ "RES 3, (HL)", 0, 12 },             // 0x9e
 	{ "RES 3, A", 0, 8 },                 // 0x9f
 	{ "RES 4, B", 0, 8 },                 // 0xa0
 	{ "RES 4, C", 0, 8 },                 // 0xa1
@@ -429,7 +429,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 4, E", 0, 8 },                 // 0xa3
 	{ "RES 4, H", 0, 8 },                 // 0xa4
 	{ "RES 4, L", 0, 8 },                 // 0xa5
-	{ "RES 4, (HL)", 0, 16 },             // 0xa6
+	{ "RES 4, (HL)", 0, 12 },             // 0xa6
 	{ "RES 4, A", 0, 8 },                 // 0xa7
 	{ "RES 5, B", 0, 8 },                 // 0xa8
 	{ "RES 5, C", 0, 8 },                 // 0xa9
@@ -437,7 +437,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 5, E", 0, 8 },                 // 0xab
 	{ "RES 5, H", 0, 8 },                 // 0xac
 	{ "RES 5, L", 0, 8 },                 // 0xad
-	{ "RES 5, (HL)", 0, 16 },             // 0xae
+	{ "RES 5, (HL)", 0, 12 },             // 0xae
 	{ "RES 5, A", 0, 8 },                 // 0xaf
 	{ "RES 6, B", 0, 8 },                 // 0xb0
 	{ "RES 6, C", 0, 8 },                 // 0xb1
@@ -445,7 +445,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 6, E", 0, 8 },                 // 0xb3
 	{ "RES 6, H", 0, 8 },                 // 0xb4
 	{ "RES 6, L", 0, 8 },                 // 0xb5
-	{ "RES 6, (HL)", 0, 16 },             // 0xb6
+	{ "RES 6, (HL)", 0, 12 },             // 0xb6
 	{ "RES 6, A", 0, 8 },                 // 0xb7
 	{ "RES 7, B", 0, 8 },                 // 0xb8
 	{ "RES 7, C", 0, 8 },                 // 0xb9
@@ -453,7 +453,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 7, E", 0, 8 },                 // 0xbb
 	{ "RES 7, H", 0, 8 },                 // 0xbc
 	{ "RES 7, L", 0, 8 },                 // 0xbd
-	{ "RES 7, (HL)", 0, 16 },             // 0xbe
+	{ "RES 7, (HL)", 0, 12 },             // 0xbe
 	{ "RES 7, A", 0, 8 },                 // 0xbf
 	{ "SET 0, B", 0, 8 },                 // 0xc0
 	{ "SET 0, C", 0, 8 },                 // 0xc1
@@ -461,7 +461,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 0, E", 0, 8 },                 // 0xc3
 	{ "SET 0, H", 0, 8 },                 // 0xc4
 	{ "SET 0, L", 0, 8 },                 // 0xc5
-	{ "SET 0, (HL)", 0, 16 },             // 0xc6
+	{ "SET 0, (HL)", 0, 12 },             // 0xc6
 	{ "SET 0, A", 0, 8 },                 // 0xc7
 	{ "SET 1, B", 0, 8 },                 // 0xc8
 	{ "SET 1, C", 0, 8 },                 // 0xc9
@@ -469,7 +469,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 1, E", 0, 8 },                 // 0xcb
 	{ "SET 1, H", 0, 8 },                 // 0xcc
 	{ "SET 1, L", 0, 8 },                 // 0xcd
-	{ "SET 1, (HL)", 0, 16 },             // 0xce
+	{ "SET 1, (HL)", 0, 12 },             // 0xce
 	{ "SET 1, A", 0, 8 },                 // 0xcf
 	{ "SET 2, B", 0, 8 },                 // 0xd0
 	{ "SET 2, C", 0, 8 },                 // 0xd1
@@ -477,7 +477,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 2, E", 0, 8 },                 // 0xd3
 	{ "SET 2, H", 0, 8 },                 // 0xd4
 	{ "SET 2, L", 0, 8 },                 // 0xd5
-	{ "SET 2, (HL)", 0, 16 },             // 0xd6
+	{ "SET 2, (HL)", 0, 12 },             // 0xd6
 	{ "SET 2, A", 0, 8 },                 // 0xd7
 	{ "SET 3, B", 0, 8 },                 // 0xd8
 	{ "SET 3, C", 0, 8 },                 // 0xd9
@@ -485,7 +485,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 3, E", 0, 8 },                 // 0xdb
 	{ "SET 3, H", 0, 8 },                 // 0xdc
 	{ "SET 3, L", 0, 8 },                 // 0xdd
-	{ "SET 3, (HL)", 0, 16 },             // 0xde
+	{ "SET 3, (HL)", 0, 12 },             // 0xde
 	{ "SET 3, A", 0, 8 },                 // 0xdf
 	{ "SET 4, B", 0, 8 },                 // 0xe0
 	{ "SET 4, C", 0, 8 },                 // 0xe1
@@ -493,7 +493,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 4, E", 0, 8 },                 // 0xe3
 	{ "SET 4, H", 0, 8 },                 // 0xe4
 	{ "SET 4, L", 0, 8 },                 // 0xe5
-	{ "SET 4, (HL)", 0, 16 },             // 0xe6
+	{ "SET 4, (HL)", 0, 12 },             // 0xe6
 	{ "SET 4, A", 0, 8 },                 // 0xe7
 	{ "SET 5, B", 0, 8 },                 // 0xe8
 	{ "SET 5, C", 0, 8 },                 // 0xe9
@@ -501,7 +501,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 5, E", 0, 8 },                 // 0xeb
 	{ "SET 5, H", 0, 8 },                 // 0xec
 	{ "SET 5, L", 0, 8 },                 // 0xed
-	{ "SET 5, (HL)", 0, 16 },             // 0xee
+	{ "SET 5, (HL)", 0, 12 },             // 0xee
 	{ "SET 5, A", 0, 8 },                 // 0xef
 	{ "SET 6, B", 0, 8 },                 // 0xf0
 	{ "SET 6, C", 0, 8 },                 // 0xf1
@@ -509,7 +509,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 6, E", 0, 8 },                 // 0xf3
 	{ "SET 6, H", 0, 8 },                 // 0xf4
 	{ "SET 6, L", 0, 8 },                 // 0xf5
-	{ "SET 6, (HL)", 0, 16 },             // 0xf6
+	{ "SET 6, (HL)", 0, 12 },             // 0xf6
 	{ "SET 6, A", 0, 8 },                 // 0xf7
 	{ "SET 7, B", 0, 8 },                 // 0xf8
 	{ "SET 7, C", 0, 8 },                 // 0xf9
@@ -517,10 +517,9 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 7, E", 0, 8 },                 // 0xfb
 	{ "SET 7, H", 0, 8 },                 // 0xfc
 	{ "SET 7, L", 0, 8 },                 // 0xfd
-	{ "SET 7, (HL)", 0, 16 },             // 0xfe
+	{ "SET 7, (HL)", 0, 12 },             // 0xfe
 	{ "SET 7, A", 0, 8 },                 // 0xff
 };
-
 
 CPU::CPU() {
   reset();
