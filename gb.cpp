@@ -49,8 +49,9 @@ int main(int argc, char* args[]) {
 
           case SDLK_z:
           while (cpu.execute()) {
-            printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
+            printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
             gpu.step(cpu.cpu_clock_t);
+            cpu.checkInterrupts();
 
           }
           break;
@@ -58,8 +59,9 @@ int main(int argc, char* args[]) {
           case SDLK_x:
           // Fetch the next opcode and increment pc
           cpu.execute();
-          printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
+          printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
           gpu.step(cpu.cpu_clock_t);
+          cpu.checkInterrupts();
           break;
 
           default:

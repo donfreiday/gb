@@ -742,3 +742,56 @@ bool CPU::execute_CB(u8 op) {
 	}
 	return true;
 }
+
+/* Check interrupts
+Bit 0: V-Blank Interupt
+Bit 1: LCD Interupt
+Bit 2: Timer Interupt
+Bit 4: Joypad Interupt
+Interrupt request register: 0xFF0F
+Interrupt enable register: 0xFFFF allows disabling/enabling specific registers
+*/
+
+void CPU::checkInterrupts() {
+	if (!interrupt) { // IME disabled
+		return;
+	}
+	u8 requested = mmu.read_u8(0xFF0F);
+	if (requested > 0) {
+		u8 enabled = mmu.read_u8(0xFFFF);
+		for (u8 i = 0; i < 5; i++) {
+			if(requested & (1 << i)) {
+				if (enabled & (1 << i)) {
+					doInterrupt(i);
+				}
+			}
+		}
+	}
+}
+
+void CPU::doInterrupt(u8 interrupt) {
+	interrupt = false; // IME = disabled
+	mmu.write_u8(0xFF0F, (mmu.read_u8(0xFF0F)& ~interrupt)); // Reset bit in Interrupt Request Register
+	mmu.write_u16(reg.sp+=2, reg.pc); // Push PC to the stack
+	// Interrupts have specific service routines at defined memory locations
+	switch(interrupt) {
+		case 0:
+		reg.pc = 0x40;
+		break;
+
+		case 1:
+		reg.pc = 0x48;
+		break;
+
+		case 2:
+		reg.pc = 0x50;
+		break;
+
+		case 4:
+		reg.pc = 0x60;
+		break;
+
+		default: break;
+
+	}
+}
