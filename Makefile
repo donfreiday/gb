@@ -5,6 +5,7 @@ OBJS = gb.cpp cpu.h cpu.cpp mmu.h mmu.cpp gpu.h gpu.cpp
 CC = g++
 
 # COMPILER_FLAGS =
+COMPILER_FLAGS = -g -Wall
 
 LINKER_FLAGS = -lSDL2
 
