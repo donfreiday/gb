@@ -3,15 +3,18 @@
 
 #include <SDL2/SDL.h>
 #include "common.h"
+#include "mmu.h"
 
 class GPU {
   public:
-    GPU();
+    GPU(MMU &mem);
     ~GPU();
     void reset();
     void step(int cpu_clock); // clock step
 
   private:
+    MMU mmu;
+
     int width;
     int height;
     int mode;

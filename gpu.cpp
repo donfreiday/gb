@@ -1,6 +1,7 @@
 #include "gpu.h"
 
-GPU::GPU() {
+GPU::GPU(MMU &mem) {
+  mmu = mem;
   reset();
 }
 
@@ -79,7 +80,7 @@ void GPU::step(int cpu_clock) {
 
 // Write scanline to framebuffer
 void GPU::renderscan() {
-  
+
 }
 
 // Swap SDL buffers

@@ -15,7 +15,7 @@ int main(int argc, char* args[]) {
     return 0;
   }
   CPU cpu;
-  GPU gpu;
+  GPU gpu(cpu.mmu);
   if (!cpu.mmu.load(args[1])) {
     printf("Couldn't load %s\n", args[1]);
     return -1;
