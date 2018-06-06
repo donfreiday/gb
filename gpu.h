@@ -17,8 +17,6 @@ class GPU {
 
     int width;
     int height;
-    int mode;
-    int modeclock;
     int lines;
 
     SDL_Window* window;
@@ -27,6 +25,8 @@ class GPU {
     bool init(); // Starts up SDL and creates window
     void close(); // Shuts down SDL and frees resources
     void renderScanline(); // write scanline to surface
+    void renderBackground();
+    void renderSprites();
     void swapsurface(); // swap SDL surfaces
 
     // LCD

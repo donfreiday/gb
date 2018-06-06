@@ -2,7 +2,11 @@
 
 #define LCD_CONTROL_REGISTER 0xFF40
 #define LCD_STATUS_REGISTER 0xFF41
+#define LCD_SCROLLY 0xFF42
+#define LCD_SCROLLX 0xFF43
 #define LCD_CURRENT_SCANLINE 0xFF44
+#define LCD_WINDOWY 0xFF4A
+#define LCD_WINDOWX 0xFF4B
 
 #define CPU_INTERRUPT_REQUEST 0xFF0F
 
@@ -133,6 +137,70 @@ bool GPU::lcdEnabled() {
 
 // Write scanline to framebuffer
 void GPU::renderScanline() {
+  u8 control = mmu.read_u8(LCD_CONTROL_REGISTER);
+
+  // Bit 0: BG Display enable
+  if (control & 1) {
+    renderBackground();
+  }
+
+  // Bit 1: OBJ (Sprite) display enable
+  if (control & 2) {
+    renderSprites();
+  }
+
+}
+
+/* Background is 256x256 pixels or 32x32 tiles, of which only 160x144 pixels are visible
+
+  Visible area is determined by SCROLLX and SCROLLY (0xFF42 and 0xFF43)
+
+  Background layout is between 0x9800-0x9BFF and 0x9C00-0x9FFF, which is shared with the window layer
+  Bit 3 of the LCD control register determines which region to use for background,
+  Bit 6 determines the region for the window.
+
+  Tile identifier from background layout is different for each region:
+  0x9800-0x9BFF: unsigned byte
+  0x9C00-0x9FFF: signed byte
+
+  Tile data is either between 0x8000-0x8FFF or 0x9C00-0x9FFF, depending on bit 4 of the LCD control registers
+
+  Each tile is 8x8 pixels or 16 bytes.
+
+  LCD_CONTROL_REGISTER
+  Bit 7 - LCD Display Enable (0=Off, 1=On)
+  Bit 6 - Window Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
+  Bit 5 - Window Display Enable (0=Off, 1=On)
+  Bit 4 - BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
+  Bit 3 - BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
+  Bit 2 - OBJ (Sprite) Size (0=8x8, 1=8x16)
+  Bit 1 - OBJ (Sprite) Display Enable (0=Off, 1=On)
+  Bit 0 - BG Display (for CGB see below) (0=Off, 1=On)
+*/
+void GPU::renderBackground() {
+  u16 tileData = mmu.read_u8(LCD_CONTROL_REGISTER) & (1 << 4) ? 0x8000 : 0x8800;
+  u16 bgTileMap = mmu.read_u8(LCD_CONTROL_REGISTER) & (1 << 3) ? 0x9C00 : 0x9800;
+
+  // yPos calculates which of 32 vertical tiles the current scanline is drawing
+  u8 yPos = mmu.read_u8(LCD_SCROLLY) + mmu.read_u8(LCD_CURRENT_SCANLINE);
+
+  // Determine which of the 8 vertical pixels of the current tile the scanline is on
+  u16 tileRow = (((u8)(yPos/8))*32);
+
+  for (int pixel = 0; pixel < 160; pixel++) {
+    u8 xPos = pixel + mmu.read_u8(LCD_SCROLL_X);
+
+    // Determine which of the 32 horizontal tiles this xPos falls within
+    u16 tileCol = (xPos/8);
+
+    u16 tileAddress = bgTileMap + tileRow + tileCol;
+
+    // Tile ID can be signed or unsigned depending on tile data memory region
+    s16 tileNum = (tileData == 0x8800) ? mmu.read_s8(tileAddress) : mmu.read_u8(tileAddress);
+  }
+}
+
+void GPU::renderSprites() {
 
 }
 
