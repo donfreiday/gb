@@ -10,7 +10,7 @@ class GPU {
     GPU(MMU &mem);
     ~GPU();
     void reset();
-    void step(int cpu_clock); // clock step
+    void step(int cycles); // clock step
 
   private:
     MMU mmu;
@@ -19,14 +19,14 @@ class GPU {
     int height;
     int mode;
     int modeclock;
-    int line;
+    int lines;
 
     SDL_Window* window;
     SDL_Surface* screenSurface;
     SDL_Surface* backSurface;
     bool init(); // Starts up SDL and creates window
     void close(); // Shuts down SDL and frees resources
-    void renderscan(); // write scanline to surface
+    void renderScanline(); // write scanline to surface
     void swapsurface(); // swap SDL surfaces
 
     // LCD
