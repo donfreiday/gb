@@ -28,6 +28,11 @@ class GPU {
     void close(); // Shuts down SDL and frees resources
     void renderscan(); // write scanline to surface
     void swapsurface(); // swap SDL surfaces
+
+    // LCD
+    void updateLCD();
+    bool lcdEnabled();
+
 };
 
 #endif

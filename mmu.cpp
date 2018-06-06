@@ -35,9 +35,17 @@ u16 MMU::read_u16(u16 address) {
 }
 
 void MMU::write_u8(u16 address, u8 value) {
+  // Reset the current scanline if the game tries to write to it
+  if (address == 0xFF44) {
+   memory[address] = 0 ;
+  }
   memory[address] = value;
 }
 
 void MMU::write_u16(u16 address, u16 value) {
+  // Reset the current scanline if the game tries to write to it
+  if (address == 0xFF44) {
+   *(u16*)(memory+address) = 0;
+  }
   *(u16*)(memory+address) = value;
 }

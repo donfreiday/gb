@@ -1,5 +1,9 @@
 #include "gpu.h"
 
+#define LCD_CONTROL_REGISTER 0xFF40
+#define LCD_STATUS_REGISTER 0xFF41
+#define LCD_CURRENT_SCANLINE 0xFF44
+
 GPU::GPU(MMU &mem) {
   mmu = mem;
   reset();
@@ -86,4 +90,26 @@ void GPU::renderscan() {
 // Swap SDL buffers
 void GPU::swapsurface() {
 
+}
+
+/* The lower two bits of the LCD status register are the modes:
+00: H-Blank
+01: V-Blank
+10: Searching Sprites Atts
+11: Transferring Data to LCD Driver */
+void GPU::updateLCD() {
+  u8 status = mmu.read_u8(LCD_STATUS_REGISTER);
+
+  if (!lcdEnabled()) {
+    line = 456;
+    mmu.write_u8(LCD_CURRENT_SCANLINE, 0);
+    status &= 0xFC; // clear lower two bits (mode)
+    status |= 1; // mode 1
+    mmu.write_u8(LCD_STATUS_REGISTER, status);
+    return;
+  }
+}
+
+bool GPU::lcdEnabled() {
+  return (mmu.read_u8(0xFF40) & (1 << 7)); // Bit 7 of the LCD control register
 }
