@@ -595,95 +595,95 @@ bool CPU::execute() {
 
     // DEC B
     case 0x05:
-    decrement_reg(reg.b);
+    	decrement_reg(reg.b);
     break;
 
     // LD B, nn
     case 0x06:
-    reg.b = operand;
+    	reg.b = operand;
     break;
 
 		// LD DE, nnnn
 		case 0x11:
-		reg.de = mmu.read_u16(operand);
+			reg.de = mmu.read_u16(operand);
 		break;
 
 		// LD A, (DE)
 		case 0x1A:
-		reg.a = mmu.read_u8(reg.de);
+			reg.a = mmu.read_u8(reg.de);
 		break;
 
 		// INC C
 		case 0x0C:
-		reg.c++;
+			reg.c++;
 		break;
 
     // DEC C
     case 0x0D:
-    decrement_reg(reg.c);
+    	decrement_reg(reg.c);
     break;
 
     // LD C, nn
     case 0x0E:
-    reg.c = operand;
+	    reg.c = operand;
     break;
 
     // RRC A
     // Performs a RRC A faster and modifies the flags differently.
     case 0x0F:
-    reg.f = 0;
-    if (reg.a & 1) {
-      reg.f |= 0x10; // Set carry flag
-    }
-    reg.a >>= 1; // Shift A right, high bit becomes 0
-    reg.a += (reg.f & 0x10 << 7); // Carry flag becomes high bit of A
-    if (reg.a == 0) {
-      reg.f |= 0x80;
-    }
+	    reg.f = 0;
+	    if (reg.a & 1) {
+	      reg.f |= 0x10; // Set carry flag
+	    }
+	    reg.a >>= 1; // Shift A right, high bit becomes 0
+	    reg.a += (reg.f & 0x10 << 7); // Carry flag becomes high bit of A
+	    if (reg.a == 0) {
+	      reg.f |= 0x80;
+	    }
     break;
 
     // JR nz nn
     // Relative jump by signed immediate if last result was not zero (zero flag = 0)
     case 0x20:
-    if (!(reg.f & 0x80)) {
-      reg.pc += (s8)(operand);
-    }
+    	if (!(reg.f & 0x80)) {
+      	reg.pc += (s8)(operand);
+    	}
     break;
 
     // LD L, n
     case 0x2E:
-    reg.l = operand;
+    	reg.l = operand;
     break;
 
     // LD hl, nn
     case 0x21:
-    reg.hl = operand;
+    	reg.hl = operand;
     break;
 
     // LD SP, nnnn
     case 0x31:
-    reg.sp = operand;
+    	reg.sp = operand;
     break;
 
     // LDD (hl--), a
     // Save a to address pointed to by hl and decrement hl
     case 0x32:
-    mmu.write_u8(reg.hl--, reg.a);
+    	mmu.write_u8(reg.hl--, reg.a);
     break;
 
     // LD A, nn
     case 0x3E:
-    reg.a = operand;
+    	reg.a = operand;
     break;
 
 		// LD C, A
 		case 0x4F:
-		reg.c = reg.a;
+			reg.c = reg.a;
 		break;
 
 		// LD (HL), A
 		case 0x77:
-		mmu.write_u8(reg.hl, reg.a);
+			mmu.write_u8(reg.hl, reg.a);
 		break;
 
     // XOR A
@@ -692,21 +692,21 @@ bool CPU::execute() {
     Otherwise, the corresponding result bit is set to 0.*/
     case 0xAF:
       reg.a ^= reg.a;
-    reg.f = 0;
-    if(reg.a == 0) {
-      reg.f |= 0x80;
-    }
+    	reg.f = 0;
+    	if(reg.a == 0) {
+      	reg.f |= 0x80;
+    	}
     break;
 
     // JP nn
     case 0xC3:
-    reg.pc = operand;
+    	reg.pc = operand;
     break;
 
 		// PUSH BC
 		case 0xC5:
-		reg.sp-=4;
-		mmu.write_u16(reg.sp, reg.bc);
+			reg.sp-=4;
+			mmu.write_u16(reg.sp, reg.bc);
 		break;
 
 		// CB is a prefix
@@ -719,43 +719,37 @@ bool CPU::execute() {
 
 		// CALL nnnn
 		case 0xCD:
-		reg.sp -= 2;
-		mmu.write_u16(reg.sp, reg.pc+2);
-		reg.pc = operand;
+			reg.sp -= 2;
+			mmu.write_u16(reg.sp, reg.pc+2);
+			reg.pc = operand;
 		break;
 
     // LDH (0xFF00 + nn), A
     // Write value in reg.a at address pointed to by 0xFF00+nn
     case 0xE0:
-    mmu.write_u8(0xFF00 + operand, reg.a);
+    	mmu.write_u8(0xFF00 + operand, reg.a);
     break;
 
     // LDH A, (0xFF00 + nn)
     // Store value at 0xFF00+nn in reg.a
     case 0xF0:
-    reg.a = mmu.read_u8(0xFF00 + operand);
+    	reg.a = mmu.read_u8(0xFF00 + operand);
     break;
 
 		// LD (0xFF00 + C), A
 		case 0xE2:
-		mmu.write_u8((0xFF00 + reg.c), reg.a);
+			mmu.write_u8((0xFF00 + reg.c), reg.a);
 		break;
 
     // DI
     // Disable interrupts
     case 0xF3:
-    interrupt = false;
-    break;
-
-    // CP A
-    // CP is a subtraction from A that doesn't update A, only the flags it would have set/reset if it really was subtracted.
-    // todo: unfinished opcode
-    case 0xFE:
+	    interrupt = false;
     break;
 
     default:
-		printf("^^^ Unimplemented instruction: 0x%02X ^^^\n", op);
-    return false;
+			printf("^^^ Unimplemented instruction: 0x%02X ^^^\n", op);
+	    return false;
     break;
   }
   return true;
