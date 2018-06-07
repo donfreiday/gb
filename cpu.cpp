@@ -558,6 +558,21 @@ void CPU::decrement_reg(u8 &reg1) {
   }
 }
 
+void CPU::increment_reg(u8 &reg1) {
+	u8 carry = (reg.f & 0x10) ? 1 : 0;
+	reg1++;
+	reg.f = 0;
+	if (carry==1) {
+		reg.f |= 0x10;
+	}
+	if((reg1 & 0xF)==0) {
+		reg.f |= 0x20; // half carry
+	}
+	if (reg1 == 0) {
+		reg.f |= 0x80; // zero
+	}
+}
+
 bool CPU::execute() {
 	printf("%04X: ", reg.pc);
 
@@ -595,7 +610,7 @@ bool CPU::execute() {
 
 		// INC B
 		case 0x04:
-			reg.b++;
+			increment_reg(reg.b);
 		break;
 
     // DEC B
@@ -610,7 +625,7 @@ bool CPU::execute() {
 
 		// INC C
 		case 0x0C:
-			reg.c++;
+			increment_reg(reg.c);
 		break;
 
 		// DEC C
@@ -647,6 +662,11 @@ bool CPU::execute() {
 			reg.de++;
 		break;
 
+		// DEC D
+		case 0x15:
+			decrement_reg(reg.d);
+		break;
+
 		// RL A
 		case 0x17: {
 			u8 prevCarry = (reg.f & 0x10) ? 1 : 0;
@@ -668,6 +688,12 @@ bool CPU::execute() {
 			reg.a = mmu.read_u8(reg.de);
 		break;
 
+		// DEC E
+		case 0x1D:
+			decrement_reg(reg.e);
+		break;
+
+
 		// LD E, nn
 		case 0x1E:
 			reg.e = operand;
@@ -685,6 +711,11 @@ bool CPU::execute() {
       	reg.pc += (s8)(operand);
     	}
     break;
+
+		// INC H
+		case 0x24:
+			increment_reg(reg.h);
+		break;
 
     // LD L, n
     case 0x2E:
@@ -758,6 +789,17 @@ bool CPU::execute() {
 		case 0x7B:
 			reg.a = reg.e;
 		break;
+
+		// LD A, H
+		case 0x7C:
+			reg.a = reg.h;
+		break;
+
+		// SUB B
+		case 0x90:
+			reg.a-=reg.b;
+		break;
+
 
     // XOR A
     /* Compares each bit of its first operand to the corresponding bit of its second operand.

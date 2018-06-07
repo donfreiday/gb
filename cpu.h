@@ -57,6 +57,7 @@ public:
   void reset();
 
   void decrement_reg(u8 &reg1);
+  void increment_reg(u8 &reg1);
   void rotate_right_carry(u8 &reg1);
 
   bool execute();
