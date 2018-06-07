@@ -24,6 +24,7 @@ int main(int argc, char* args[]) {
   // Run until X is pressed on window
   bool quit = false;
   SDL_Event e;
+
   while(!quit) {
     while(SDL_PollEvent(&e) != 0) {
       if(e.type == SDL_QUIT) {
@@ -52,7 +53,7 @@ int main(int argc, char* args[]) {
             printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
             gpu.step(cpu.cpu_clock_t);
             cpu.checkInterrupts();
-
+            //gpu.renderScreen();
           }
           break;
 
@@ -62,12 +63,15 @@ int main(int argc, char* args[]) {
           printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
           gpu.step(cpu.cpu_clock_t);
           cpu.checkInterrupts();
+          gpu.renderScreen();
           break;
 
           default:
           break;
         }
       }
+
+
     }
   }
   return 0;

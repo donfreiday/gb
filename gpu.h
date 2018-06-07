@@ -12,6 +12,7 @@ class GPU {
     ~GPU();
     void reset();
     void step(int cycles); // clock step
+    void renderScreen();
 
   private:
     MMU mmu;
@@ -19,8 +20,6 @@ class GPU {
     int width;
     int height;
     int lines;
-
-
 
     bool initSDL(); // Starts up SDL and creates window
     void initGL();

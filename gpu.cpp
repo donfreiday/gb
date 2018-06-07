@@ -295,6 +295,15 @@ void GPU::renderSprites() {
 
 }
 
+void GPU::renderScreen() {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+ 	glLoadIdentity();
+ 	glRasterPos2i(-1, 1);
+	glPixelZoom(1, -1);
+ 	glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
+	SDL_GL_SwapBuffers( ) ;
+}
+
 // Swap SDL buffers
 void GPU::swapsurface() {
 
