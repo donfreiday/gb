@@ -686,6 +686,11 @@ bool CPU::execute() {
     	reg.hl = operand;
     break;
 
+		// LDI (HL), A
+		case 0x22:
+			mmu.write_u8(reg.hl++, reg.a);
+		break;
+
 		// INC HL
 		case 0x23:
 			reg.hl++;
@@ -729,9 +734,9 @@ bool CPU::execute() {
 			mmu.write_u8(reg.hl, reg.a);
 		break;
 
-		// LDI (HL), A
-		case 0x22:
-			mmu.write_u8(reg.hl++, reg.a);
+		// LD A, E
+		case 0x7B:
+			reg.a = reg.e;
 		break;
 
     // XOR A
@@ -745,11 +750,6 @@ bool CPU::execute() {
       	reg.f |= 0x80;
     	}
     break;
-
-		// LD A, E
-		case 0x7B:
-			reg.a = reg.e;
-		break;
 
 		// POP BC
 		case 0xC1:
@@ -796,6 +796,11 @@ bool CPU::execute() {
     	mmu.write_u8(0xFF00 + operand, reg.a);
     break;
 
+		// LD (0xFF00 + C), A
+		case 0xE2:
+			mmu.write_u8((0xFF00 + reg.c), reg.a);
+		break;
+		
 		// LD (nnnn), A
 		case 0xEA:
 			mmu.write_u8(operand, reg.a);
@@ -806,11 +811,6 @@ bool CPU::execute() {
     case 0xF0:
     	reg.a = mmu.read_u8(0xFF00 + operand);
     break;
-
-		// LD (0xFF00 + C), A
-		case 0xE2:
-			mmu.write_u8((0xFF00 + reg.c), reg.a);
-		break;
 
     // DI
     // Disable interrupts
