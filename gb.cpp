@@ -20,6 +20,7 @@ int main(int argc, char* args[]) {
     printf("Couldn't load %s\n", args[1]);
     return -1;
   }
+  printf("z: run\nx: step\nm: read memory\nr: registers\nb: run to PC breakpoint\n\n");
 
   // Run until X is pressed on window
   bool quit = false;
@@ -48,15 +49,39 @@ int main(int argc, char* args[]) {
             printf("LEFT\n");
           break;
 
+          case SDLK_b: {
+            unsigned int breakpoint=0xFFFFF;
+            printf("Breakpoint PC: ");
+            scanf("%X", &breakpoint);
+            while (cpu.execute()) {
+              //printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
+              gpu.step(cpu.cpu_clock_t);
+              cpu.checkInterrupts();
+              if(cpu.reg.pc==breakpoint){
+                break;
+              }
+            }
+          }
+          break;
+
+          case SDLK_m: {
+            unsigned int address = 0;
+            printf("Memory address: ");
+            scanf("%X", &address);
+            printf("%04X: %04X\n", address, cpu.mmu.read_u16(address));
+          }
+          break;
+
+          case SDLK_r:
+            printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
+          break;
+
           case SDLK_z:
             while (cpu.execute()) {
               //printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
               gpu.step(cpu.cpu_clock_t);
               cpu.checkInterrupts();
-              if(cpu.reg.pc==0x0093){
-                break;
-              }
-              //gpu.renderScreen();
+
             }
           break;
 
