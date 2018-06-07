@@ -756,6 +756,7 @@ bool CPU::execute() {
 		case 0xCB:
 			if (!execute_CB(operand)) {
 				printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
+				printf("// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions_CB[operand].disassembly, operand);
 		    return false;
 			}
 		break;
@@ -792,7 +793,7 @@ bool CPU::execute() {
 
     default:
 			printf("^^^ Unimplemented instruction: 0x%02X ^^^\n\n", op);
-			printf("// %s\ncase 0x%02X:\n\nbreak;\n\n",instructions[op].disassembly,op);
+			printf("// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions[op].disassembly, op);
 	    return false;
     break;
   }
