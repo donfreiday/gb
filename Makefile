@@ -7,7 +7,7 @@ CC = g++
 # COMPILER_FLAGS =
 COMPILER_FLAGS = -g -Wall
 
-LINKER_FLAGS = -lSDL2
+LINKER_FLAGS = -lSDL -lGL
 
 # OBJ_NAME: name of our executable
 OBJ_NAME = gb

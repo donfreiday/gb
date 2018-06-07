@@ -2,7 +2,7 @@
    Author: Don Freiday
    todo: everything */
 
-#include <SDL2/SDL.h>
+#include <SDL/SDL.h>
 #include <stdio.h>
 #include "cpu.h"
 #include "mmu.h"

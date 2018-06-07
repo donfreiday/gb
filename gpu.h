@@ -1,7 +1,8 @@
 #ifndef GB_GPU
 #define GB_GPU
 
-#include <SDL2/SDL.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_opengl.h>
 #include "common.h"
 #include "mmu.h"
 
@@ -19,11 +20,11 @@ class GPU {
     int height;
     int lines;
 
-    SDL_Window* window;
-    SDL_Surface* screenSurface;
-    SDL_Surface* backSurface;
-    bool init(); // Starts up SDL and creates window
-    void close(); // Shuts down SDL and frees resources
+
+
+    bool initSDL(); // Starts up SDL and creates window
+    void initGL();
+
     void renderScanline(); // write scanline to surface
     void renderBackground();
     void renderSprites();

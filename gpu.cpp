@@ -8,7 +8,6 @@
 #define BG_PALETTE_DATA 0xFF47
 #define LCD_WINDOWY 0xFF4A
 #define LCD_WINDOWX 0xFF4B
-
 #define CPU_INTERRUPT_REQUEST 0xFF0F
 
 GPU::GPU(MMU &mem) {
@@ -17,35 +16,44 @@ GPU::GPU(MMU &mem) {
 }
 
 GPU::~GPU() {
-  close();
 }
 
 void GPU::reset() {
   width = 166;
   height = 144;
   lines = 456;
-  init();
+  initSDL();
 }
 
 // Starts up SDL and creates window
-bool GPU::init() {
-  if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+bool GPU::initSDL() {
+  if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
     printf("SDL failed to initialize! SDL_Error: %s\n", SDL_GetError());
     return false;
   }
-  window = SDL_CreateWindow("gb", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
-  screenSurface = SDL_GetWindowSurface(window);
-  backSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0);
-  SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) ); // Fill the screen with white
-  SDL_UpdateWindowSurface( window );
+  if(SDL_SetVideoMode(width, height, 8, SDL_OPENGL) == NULL) {
+    printf("SDL failed to initialize! SDL_Error: %s\n", SDL_GetError());
+    return false;
+  }
+  initGL();
+  SDL_WM_SetCaption("gb", NULL);
   return true;
 }
 
-// Shuts down SDL and frees resources
-void GPU::close() {
-  SDL_DestroyWindow(window);
-  window = NULL;
-  SDL_Quit();
+// todo: study this
+void GPU::initGL() {
+  glViewport(0, 0, width, height);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glOrtho(0, width, height, 0, -1.0, 1.0);
+  glClearColor(0, 0, 0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+  glShadeModel(GL_FLAT);
+  glEnable(GL_TEXTURE_2D);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_DITHER);
+  glDisable(GL_BLEND);
 }
 
 /*
@@ -102,30 +110,31 @@ void GPU::updateLCD() {
   }
 
   u8 currentLine = mmu.read_u8(LCD_CURRENT_SCANLINE);
-  u8 currentMode = status & 0x3;
-  u8 mode = 0;
-  bool interrupt = 0;
+  //u8 currentMode = status & 0x3;
+  //u8 mode = 0;
+  //bool interrupt = 0;
 
   // mode 1: vblank
   if (currentLine >= 144) {
-    mode = 1;
+    //mode = 1;
     status |= 1; // set bit 0
     status &= ~2; // clear bit 1
   }
   // mode 2: Searching Sprites Attributes
   else if (lines >= (456-80)) {
-    mode = 2;
+    //mode = 2;
     status |= 2; // set bit 1
     status &= ~1; // clear bit 0
   }
   // mode 3: Transferring Data to LCD Driver
   else if (lines >= (456-80-172)) {
+    //mode = 3;
     status |= 1; // set bit 0
     status |= 2; // set bit 1
   }
   // mode 0: hblank
   else {
-    mode = 0;
+    //mode = 0;
     status &= ~1; // clear bit 0
     status &= ~2; // clear bit 1
   }
