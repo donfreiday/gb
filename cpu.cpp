@@ -593,6 +593,11 @@ bool CPU::execute() {
     case 0x00:
     break;
 
+		// INC B
+		case 0x04:
+			reg.b++;
+		break;
+
     // DEC B
     case 0x05:
     	decrement_reg(reg.b);
@@ -602,6 +607,35 @@ bool CPU::execute() {
     case 0x06:
     	reg.b = operand;
     break;
+
+		// INC C
+		case 0x0C:
+			reg.c++;
+		break;
+
+		// DEC C
+		case 0x0D:
+			decrement_reg(reg.c);
+		break;
+
+		// LD C, nn
+		case 0x0E:
+			reg.c = operand;
+		break;
+
+		// RRC A
+		// Performs a RRC A faster and modifies the flags differently.
+		case 0x0F:
+			reg.f = 0;
+			if (reg.a & 1) {
+				reg.f |= 0x10; // Set carry flag
+			}
+			reg.a >>= 1; // Shift A right, high bit becomes 0
+			reg.a += (reg.f & 0x10 << 7); // Carry flag becomes high bit of A
+			if (reg.a == 0) {
+				reg.f |= 0x80;
+			}
+		break;
 
 		// LD DE, nnnn
 		case 0x11:
@@ -634,34 +668,10 @@ bool CPU::execute() {
 			reg.a = mmu.read_u8(reg.de);
 		break;
 
-		// INC C
-		case 0x0C:
-			reg.c++;
+		// LD E, nn
+		case 0x1E:
+			reg.e = operand;
 		break;
-
-    // DEC C
-    case 0x0D:
-    	decrement_reg(reg.c);
-    break;
-
-    // LD C, nn
-    case 0x0E:
-	    reg.c = operand;
-    break;
-
-    // RRC A
-    // Performs a RRC A faster and modifies the flags differently.
-    case 0x0F:
-	    reg.f = 0;
-	    if (reg.a & 1) {
-	      reg.f |= 0x10; // Set carry flag
-	    }
-	    reg.a >>= 1; // Shift A right, high bit becomes 0
-	    reg.a += (reg.f & 0x10 << 7); // Carry flag becomes high bit of A
-	    if (reg.a == 0) {
-	      reg.f |= 0x80;
-	    }
-    break;
 
 		// JR nn
 		case 0x18:
@@ -727,6 +737,16 @@ bool CPU::execute() {
 		// LD C, A
 		case 0x4F:
 			reg.c = reg.a;
+		break;
+
+		// LD D, A
+		case 0x57:
+			reg.d = reg.a;
+		break;
+
+		// LD H, A
+		case 0x67:
+			reg.h = reg.a;
 		break;
 
 		// LD (HL), A
@@ -800,7 +820,7 @@ bool CPU::execute() {
 		case 0xE2:
 			mmu.write_u8((0xFF00 + reg.c), reg.a);
 		break;
-		
+
 		// LD (nnnn), A
 		case 0xEA:
 			mmu.write_u8(operand, reg.a);
