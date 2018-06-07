@@ -667,6 +667,11 @@ bool CPU::execute() {
 			decrement_reg(reg.d);
 		break;
 
+		// LD D, nn
+		case 0x16:
+			reg.d = operand;
+		break;
+
 		// RL A
 		case 0x17: {
 			u8 prevCarry = (reg.f & 0x10) ? 1 : 0;
