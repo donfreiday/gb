@@ -10,7 +10,7 @@ CPU::instruction instructions[256] = {
 	{ "INC BC", 0, 8 },                   // 0x03
 	{ "INC B", 0, 4 },                    // 0x04
 	{ "DEC B", 0, 4 },                    // 0x05
-	{ "LD B, 0x%02X", 8},                 // 0x06
+	{ "LD B, 0x%02X", 1, 8},              // 0x06
 	{ "RLCA", 0, 8 },                     // 0x07
 	{ "LD (0x%04X), SP", 2, 20 },         // 0x08
 	{ "ADD HL, BC", 0, 8 },               // 0x09
@@ -598,10 +598,25 @@ bool CPU::execute() {
     decrement_reg(reg.b);
     break;
 
-    //LD B, nn
+    // LD B, nn
     case 0x06:
     reg.b = operand;
     break;
+
+		// LD DE, nnnn
+		case 0x11:
+		reg.de = mmu.read_u16(operand);
+		break;
+
+		// LD A, (DE)
+		case 0x1A:
+		reg.a = mmu.read_u8(reg.de);
+		break;
+
+		// INC C
+		case 0x0C:
+		reg.c++;
+		break;
 
     // DEC C
     case 0x0D:
@@ -661,6 +676,16 @@ bool CPU::execute() {
     reg.a = operand;
     break;
 
+		// LD C, A
+		case 0x4F:
+		reg.c = reg.a;
+		break;
+
+		// LD (HL), A
+		case 0x77:
+		mmu.write_u8(reg.hl, reg.a);
+		break;
+
     // XOR A
     /* Compares each bit of its first operand to the corresponding bit of its second operand.
     If one bit is 0 and the other bit is 1, the corresponding result bit is set to 1.
@@ -686,6 +711,13 @@ bool CPU::execute() {
 			}
 		break;
 
+		// CALL nnnn
+		case 0xCD:
+		reg.sp -= 2;
+		mmu.write_u16(reg.sp, reg.pc+2);
+		reg.pc = operand;
+		break;
+
     // LDH (0xFF00 + nn), A
     // Write value in reg.a at address pointed to by 0xFF00+nn
     case 0xE0:
@@ -697,6 +729,11 @@ bool CPU::execute() {
     case 0xF0:
     reg.a = mmu.read_u8(0xFF00 + operand);
     break;
+
+		// LD (0xFF00 + C), A
+		case 0xE2:
+		mmu.write_u8((0xFF00 + reg.c), reg.a);
+		break;
 
     // DI
     // Disable interrupts
