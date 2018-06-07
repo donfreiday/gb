@@ -5,6 +5,7 @@
 #define LCD_SCROLLY 0xFF42
 #define LCD_SCROLLX 0xFF43
 #define LCD_CURRENT_SCANLINE 0xFF44
+#define BG_PALETTE_DATA 0xFF47
 #define LCD_WINDOWY 0xFF4A
 #define LCD_WINDOWX 0xFF4B
 
@@ -188,7 +189,7 @@ void GPU::renderBackground() {
   u16 tileRow = (((u8)(yPos/8))*32);
 
   for (int pixel = 0; pixel < 160; pixel++) {
-    u8 xPos = pixel + mmu.read_u8(LCD_SCROLL_X);
+    u8 xPos = pixel + mmu.read_u8(LCD_SCROLLX);
 
     // Determine which of the 32 horizontal tiles this xPos falls within
     u16 tileCol = (xPos/8);
@@ -196,8 +197,89 @@ void GPU::renderBackground() {
     u16 tileAddress = bgTileMap + tileRow + tileCol;
 
     // Tile ID can be signed or unsigned depending on tile data memory region
-    s16 tileNum = (tileData == 0x8800) ? mmu.read_s8(tileAddress) : mmu.read_u8(tileAddress);
+    s16 tileID = (tileData == 0x8800) ? (s8)(mmu.read_u8(tileAddress)) : mmu.read_u8(tileAddress);
+
+    // Find this tile ID in memory
+    /* If the tile data memory area we are using is 0x8000-0x8FFF then the tile identifier read from the
+    background layout regions is an UNSIGNED BYTE meaning the tile identifier will range from 0 - 255.
+    However if we are using tile data area 0x8800-0x97FF then the tile identifier read from the background
+    layout is a SIGNED BYTE meaning the tile identifier will range from -127 to 127. */
+    u16 tileLocation = tileData;
+    if (tileData == 0x8000) {
+      tileLocation += (tileID * 16);
+    }
+    else {
+      tileLocation += ((tileID+128)*16);
+    }
+
+    u8 line = yPos % 8; // Current vertical line of tile
+    line *= 2; // Each vertical line is two bytes
+    u8 data1 = mmu.read_u8(tileLocation+line);
+    u8 data2 = mmu.read_u8(tileLocation+line+1);
+
+    /* A tile is 8x8 pixels; each horizontal line in a tile is two bytes.
+      pixel# = 0 1 2 3 4 5 6 7
+      data 2 = 1 0 1 0 1 1 1 0
+      data 1 = 0 0 1 1 0 1 0 1
+
+      Pixel 0 color id: 10
+      Pixel 1 color id: 00
+      Pixel 2 color id: 11
+      Pixel 3 color id: 01
+      Pixel 4 color id: 10
+      Pixel 5 color id: 11
+      Pixel 6 color id: 10
+      Pixel 7 color id: 01
+
+      Pixel 0 is bit 7 of data1 and data2: */
+      int colorBit = xPos % 8;
+      colorBit -= 7;
+      colorBit *= -1;
+
+      int colorNum = data2 & (1 << colorBit);
+      colorNum <<= 1;
+      colorNum |= data1 & (1 << colorBit);
+
+      COLOR color = paletteLookup(colorNum, BG_PALETTE_DATA);
+      int red = 0, green = 0, blue = 0;
+      switch(color) {
+        case WHITE:	red = 255; green = 255 ; blue = 255; break ;
+        case LIGHT_GRAY:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
+        case DARK_GRAY:	red = 0x77; green = 0x77 ; blue = 0x77; break ;
+        case BLACK: break; // -Wswitch warning prevention
+      }
+
+      u8 scanline = mmu.read_u8(LCD_CURRENT_SCANLINE) ;
+      screenData[pixel][scanline][0] = red;
+      screenData[pixel][scanline][1] = green;
+      screenData[pixel][scanline][2] = blue;
   }
+}
+
+// todo:+ comment on how this works
+GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
+  COLOR result = WHITE;
+  u8 palette = mmu.read_u8(address);
+  int high = 0;
+  int low = 0;
+  switch(colorID) {
+    case 0: high = 1; low = 0; break;
+    case 1: high = 3; low = 2; break;
+    case 2: high = 5; low = 4; break;
+    case 3: high = 7; low = 6; break;
+  }
+  int color = 0;
+  color = palette&(1<<high);
+  color <<= 1;
+  color |= palette&(1<<low);
+
+  switch(color) {
+    case 0: result = WHITE; break;
+    case 1: result = LIGHT_GRAY; break;
+    case 2: result = DARK_GRAY; break;
+    case 3: result = BLACK; break;
+  }
+  return result;
 }
 
 void GPU::renderSprites() {

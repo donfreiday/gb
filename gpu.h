@@ -29,6 +29,18 @@ class GPU {
     void renderSprites();
     void swapsurface(); // swap SDL surfaces
 
+    enum COLOR
+		{
+			WHITE,
+			LIGHT_GRAY,
+			DARK_GRAY,
+			BLACK
+		};
+
+    COLOR paletteLookup(u8 colorID, u16 address);
+
+    u8 screenData[144][160][3];
+
     // LCD
     void updateLCD();
     bool lcdEnabled();
