@@ -10,8 +10,8 @@
 #define LCD_WINDOWX 0xFF4B
 #define CPU_INTERRUPT_REQUEST 0xFF0F
 
-GPU::GPU(MMU &mem) {
-  mmu = mem;
+GPU::GPU(MMU& mem) {
+  mmu = &mem;
   reset();
 }
 
@@ -73,17 +73,17 @@ void GPU::step(int cycles) {
 
   if (lines <= 0) {
     // If a game writes to LCD_CURRENT_SCANLINE it will be reset to zero;
-    // this is emulated in mmu.write functions - hence the direct increment
-    mmu.memory[LCD_CURRENT_SCANLINE]++;
+    // this is emulated in mmu->write functions - hence the direct increment
+    mmu->memory[LCD_CURRENT_SCANLINE]++;
     lines = 456;
-    u8 currentLine = mmu.read_u8(LCD_CURRENT_SCANLINE);
+    u8 currentLine = mmu->read_u8(LCD_CURRENT_SCANLINE);
 
     // Mode 1: vblank
     if(currentLine == 144) {
-      mmu.memory[CPU_INTERRUPT_REQUEST] &= 1;
+      mmu->memory[CPU_INTERRUPT_REQUEST] &= 1;
     }
     else if(currentLine > 153) { //end of vblank
-        mmu.memory[LCD_CURRENT_SCANLINE] = 0;
+        mmu->memory[LCD_CURRENT_SCANLINE] = 0;
     }
     else if(currentLine < 144) {
       renderScanline();
@@ -98,18 +98,17 @@ void GPU::step(int cycles) {
 11: Transferring Data to LCD Driver */
 // todo: interrupt handling, coincidence flag
 void GPU::updateLCD() {
-  u8 status = mmu.read_u8(LCD_STATUS_REGISTER);
-
+  u8 status = mmu->read_u8(LCD_STATUS_REGISTER);
   if (!lcdEnabled()) {
     lines = 456;
-    mmu.write_u8(LCD_CURRENT_SCANLINE, 0);
+    mmu->write_u8(LCD_CURRENT_SCANLINE, 0);
     status &= 0xFC; // clear lower two bits (mode)
     status |= 1; // mode 1
-    mmu.write_u8(LCD_STATUS_REGISTER, status);
+    mmu->write_u8(LCD_STATUS_REGISTER, status);
     return;
   }
 
-  u8 currentLine = mmu.read_u8(LCD_CURRENT_SCANLINE);
+  u8 currentLine = mmu->read_u8(LCD_CURRENT_SCANLINE);
   //u8 currentMode = status & 0x3;
   //u8 mode = 0;
   //bool interrupt = 0;
@@ -138,16 +137,16 @@ void GPU::updateLCD() {
     status &= ~1; // clear bit 0
     status &= ~2; // clear bit 1
   }
-  mmu.write_u8(LCD_STATUS_REGISTER, status);
+  mmu->write_u8(LCD_STATUS_REGISTER, status);
 }
 
 bool GPU::lcdEnabled() {
-  return (mmu.read_u8(LCD_CONTROL_REGISTER) & (1 << 7)); // Bit 7 of the LCD control register
+  return (mmu->read_u8(LCD_CONTROL_REGISTER) & (1 << 7)); // Bit 7 of the LCD control register
 }
 
 // Write scanline to framebuffer
 void GPU::renderScanline() {
-  u8 control = mmu.read_u8(LCD_CONTROL_REGISTER);
+  u8 control = mmu->read_u8(LCD_CONTROL_REGISTER);
 
   // Bit 0: BG Display enable
   if (control & 1) {
@@ -188,17 +187,17 @@ void GPU::renderScanline() {
   Bit 0 - BG Display (for CGB see below) (0=Off, 1=On)
 */
 void GPU::renderBackground() {
-  u16 tileData = mmu.read_u8(LCD_CONTROL_REGISTER) & (1 << 4) ? 0x8000 : 0x8800;
-  u16 bgTileMap = mmu.read_u8(LCD_CONTROL_REGISTER) & (1 << 3) ? 0x9C00 : 0x9800;
+  u16 tileData = mmu->read_u8(LCD_CONTROL_REGISTER) & (1 << 4) ? 0x8000 : 0x8800;
+  u16 bgTileMap = mmu->read_u8(LCD_CONTROL_REGISTER) & (1 << 3) ? 0x9C00 : 0x9800;
 
   // yPos calculates which of 32 vertical tiles the current scanline is drawing
-  u8 yPos = mmu.read_u8(LCD_SCROLLY) + mmu.read_u8(LCD_CURRENT_SCANLINE);
+  u8 yPos = mmu->read_u8(LCD_SCROLLY) + mmu->read_u8(LCD_CURRENT_SCANLINE);
 
   // Determine which of the 8 vertical pixels of the current tile the scanline is on
   u16 tileRow = (((u8)(yPos/8))*32);
 
   for (int pixel = 0; pixel < 160; pixel++) {
-    u8 xPos = pixel + mmu.read_u8(LCD_SCROLLX);
+    u8 xPos = pixel + mmu->read_u8(LCD_SCROLLX);
 
     // Determine which of the 32 horizontal tiles this xPos falls within
     u16 tileCol = (xPos/8);
@@ -206,7 +205,7 @@ void GPU::renderBackground() {
     u16 tileAddress = bgTileMap + tileRow + tileCol;
 
     // Tile ID can be signed or unsigned depending on tile data memory region
-    s16 tileID = (tileData == 0x8800) ? (s8)(mmu.read_u8(tileAddress)) : mmu.read_u8(tileAddress);
+    s16 tileID = (tileData == 0x8800) ? (s8)(mmu->read_u8(tileAddress)) : mmu->read_u8(tileAddress);
 
     // Find this tile ID in memory
     /* If the tile data memory area we are using is 0x8000-0x8FFF then the tile identifier read from the
@@ -223,8 +222,8 @@ void GPU::renderBackground() {
 
     u8 line = yPos % 8; // Current vertical line of tile
     line *= 2; // Each vertical line is two bytes
-    u8 data1 = mmu.read_u8(tileLocation+line);
-    u8 data2 = mmu.read_u8(tileLocation+line+1);
+    u8 data1 = mmu->read_u8(tileLocation+line);
+    u8 data2 = mmu->read_u8(tileLocation+line+1);
 
     /* A tile is 8x8 pixels; each horizontal line in a tile is two bytes.
       pixel# = 0 1 2 3 4 5 6 7
@@ -258,7 +257,7 @@ void GPU::renderBackground() {
         case BLACK: break; // -Wswitch warning prevention
       }
 
-      u8 scanline = mmu.read_u8(LCD_CURRENT_SCANLINE) ;
+      u8 scanline = mmu->read_u8(LCD_CURRENT_SCANLINE) ;
       screenData[pixel][scanline][0] = red;
       screenData[pixel][scanline][1] = green;
       screenData[pixel][scanline][2] = blue;
@@ -268,7 +267,7 @@ void GPU::renderBackground() {
 // todo:+ comment on how this works
 GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
   COLOR result = WHITE;
-  u8 palette = mmu.read_u8(address);
+  u8 palette = mmu->read_u8(address);
   int high = 0;
   int low = 0;
   switch(colorID) {

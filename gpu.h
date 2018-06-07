@@ -8,14 +8,14 @@
 
 class GPU {
   public:
-    GPU(MMU &mem);
+    GPU(MMU& mem);
     ~GPU();
     void reset();
     void step(int cycles); // clock step
     void renderScreen();
 
   private:
-    MMU mmu;
+    MMU* mmu;
 
     int width;
     int height;
