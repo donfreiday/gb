@@ -249,7 +249,7 @@ void GPU::renderBackground() {
       colorNum |= data1 & (1 << colorBit);
 
       COLOR color = paletteLookup(colorNum, BG_PALETTE_DATA);
-      int red = 0, green = 0, blue = 0;
+      u8 red = 0, green = 0, blue = 0;
       switch(color) {
         case WHITE:	red = 255; green = 255 ; blue = 255; break ;
         case LIGHT_GRAY:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
@@ -258,9 +258,10 @@ void GPU::renderBackground() {
       }
 
       u8 scanline = mmu->read_u8(LCD_CURRENT_SCANLINE) ;
-      screenData[pixel][scanline][0] = red;
-      screenData[pixel][scanline][1] = green;
-      screenData[pixel][scanline][2] = blue;
+
+      screenData[scanline][pixel][0] = red;
+      screenData[scanline][pixel][1] = green;
+      screenData[scanline][pixel][2] = blue;
   }
 }
 
