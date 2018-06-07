@@ -663,6 +663,11 @@ bool CPU::execute() {
 	    }
     break;
 
+		// JR nn
+		case 0x18:
+			reg.pc += (s8)operand;
+		break;
+
     // JR nz nn
     // Relative jump by signed immediate if last result was not zero (zero flag = 0)
     case 0x20:
@@ -686,6 +691,13 @@ bool CPU::execute() {
 			reg.hl++;
 		break;
 
+		// JR Z, nn
+		case 0x28:
+			if(reg.f & 0x80) {
+				reg.pc += (s8)operand;
+			}
+		break;
+
     // LD SP, nnnn
     case 0x31:
     	reg.sp = operand;
@@ -696,6 +708,11 @@ bool CPU::execute() {
     case 0x32:
     	mmu.write_u8(reg.hl--, reg.a);
     break;
+
+		// DEC A
+		case 0x3D:
+			decrement_reg(reg.a);
+		break;
 
     // LD A, nn
     case 0x3E:
@@ -728,6 +745,11 @@ bool CPU::execute() {
       	reg.f |= 0x80;
     	}
     break;
+
+		// LD A, E
+		case 0x7B:
+			reg.a = reg.e;
+		break;
 
 		// POP BC
 		case 0xC1:
@@ -774,6 +796,11 @@ bool CPU::execute() {
     	mmu.write_u8(0xFF00 + operand, reg.a);
     break;
 
+		// LD (nnnn), A
+		case 0xEA:
+			mmu.write_u8(operand, reg.a);
+		break;
+
     // LDH A, (0xFF00 + nn)
     // Store value at 0xFF00+nn in reg.a
     case 0xF0:
@@ -790,6 +817,22 @@ bool CPU::execute() {
     case 0xF3:
 	    interrupt = false;
     break;
+
+		// CP nn
+		// Implied subtraction (A - nn) and set flags
+		case 0xFE:
+			reg.f = 0;
+			if(reg.a < operand) {
+				reg.f |= 0x10; // carry
+			}
+			if((reg.a & 0xF) < (operand & 0xF)) {
+				reg.f |= 0x20; // half carry
+			}
+			reg.f |= 0x40; // subtract
+			if((reg.a - operand) == 0) {
+				reg.f |= 0x80; // zero
+			}
+		break;
 
     default:
 			printf("^^^ Unimplemented instruction: 0x%02X ^^^\n\n", op);
