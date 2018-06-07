@@ -19,7 +19,7 @@ GPU::~GPU() {
 }
 
 void GPU::reset() {
-  width = 166;
+  width = 160;
   height = 144;
   lines = 456;
   initSDL();
