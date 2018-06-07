@@ -608,6 +608,27 @@ bool CPU::execute() {
 			reg.de = mmu.read_u16(operand);
 		break;
 
+		// INC DE
+		case 0x13:
+			reg.de++;
+		break;
+
+		// RL A
+		case 0x17: {
+			u8 prevCarry = (reg.f & 0x10) ? 1 : 0;
+			reg.f = 0;
+			u8 carry = (reg.a & 0x80) >> 7;
+			reg.a <<= 1;
+			reg.a += prevCarry;
+			if (carry) {
+				reg.f |= 0x10;
+			}
+			if (reg.a == 0) {
+				reg.f |= 0x80;
+			}
+		}
+		break;
+
 		// LD A, (DE)
 		case 0x1A:
 			reg.a = mmu.read_u8(reg.de);
@@ -660,6 +681,11 @@ bool CPU::execute() {
     	reg.hl = operand;
     break;
 
+		// INC HL
+		case 0x23:
+			reg.hl++;
+		break;
+
     // LD SP, nnnn
     case 0x31:
     	reg.sp = operand;
@@ -686,6 +712,11 @@ bool CPU::execute() {
 			mmu.write_u8(reg.hl, reg.a);
 		break;
 
+		// LDI (HL), A
+		case 0x22:
+			mmu.write_u8(reg.hl++, reg.a);
+		break;
+
     // XOR A
     /* Compares each bit of its first operand to the corresponding bit of its second operand.
     If one bit is 0 and the other bit is 1, the corresponding result bit is set to 1.
@@ -698,6 +729,12 @@ bool CPU::execute() {
     	}
     break;
 
+		// POP BC
+		case 0xC1:
+			reg.bc = mmu.read_u16(reg.sp);
+			reg.sp += 2;
+		break;
+
     // JP nn
     case 0xC3:
     	reg.pc = operand;
@@ -705,8 +742,14 @@ bool CPU::execute() {
 
 		// PUSH BC
 		case 0xC5:
-			reg.sp-=4;
+			reg.sp-=2;
 			mmu.write_u16(reg.sp, reg.bc);
+		break;
+
+		// RET
+		case 0xC9:
+			reg.pc = mmu.read_u16(reg.sp);
+			reg.sp+=2;
 		break;
 
 		// CB is a prefix
@@ -748,7 +791,8 @@ bool CPU::execute() {
     break;
 
     default:
-			printf("^^^ Unimplemented instruction: 0x%02X ^^^\n", op);
+			printf("^^^ Unimplemented instruction: 0x%02X ^^^\n\n", op);
+			printf("// %s\ncase 0x%02X:\n\nbreak;\n\n",instructions[op].disassembly,op);
 	    return false;
     break;
   }
