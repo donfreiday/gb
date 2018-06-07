@@ -703,6 +703,12 @@ bool CPU::execute() {
     reg.pc = operand;
     break;
 
+		// PUSH BC
+		case 0xC5:
+		reg.sp-=4;
+		mmu.write_u16(reg.sp, reg.bc);
+		break;
+
 		// CB is a prefix
 		case 0xCB:
 			if (!execute_CB(operand)) {
@@ -759,6 +765,22 @@ bool CPU::execute() {
 bool CPU::execute_CB(u8 op) {
 	printf("%s\n", instructions_CB[op].disassembly);
 	switch(op) {
+		// RL C
+		case 0x11: {
+			u8 prevCarry = (reg.f & 0x10) ? 1 : 0;
+			reg.f = 0;
+			u8 carry = (reg.c & 0x80) >> 7;
+			reg.c <<= 1;
+			reg.c += prevCarry;
+			if (carry) {
+				reg.f |= 0x10;
+			}
+			if (reg.c == 0) {
+				reg.f |= 0x80;
+			}
+		}
+		break;
+
 		// BIT 7, H
 		case 0x7C: {
 			u8 carry = (reg.f & 0x10) ? 1 : 0;
