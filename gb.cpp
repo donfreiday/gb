@@ -33,48 +33,46 @@ int main(int argc, char* args[]) {
       else if (e.type == SDL_KEYDOWN) {
         switch(e.key.keysym.sym) {
           case SDLK_UP:
-          printf("UP\n");
+            printf("UP\n");
           break;
 
           case SDLK_DOWN:
-          printf("DOWN\n");
+            printf("DOWN\n");
           break;
 
           case SDLK_RIGHT:
-          printf("RIGHT\n");
+            printf("RIGHT\n");
           break;
 
           case SDLK_LEFT:
-          printf("LEFT\n");
+            printf("LEFT\n");
           break;
 
           case SDLK_z:
-          while (cpu.execute()) {
-            printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
-            gpu.step(cpu.cpu_clock_t);
-            cpu.checkInterrupts();
-            if(cpu.reg.pc==0x0053){
-              break;
+            while (cpu.execute()) {
+              printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
+              gpu.step(cpu.cpu_clock_t);
+              cpu.checkInterrupts();
+              if(cpu.reg.pc==0x0053){
+                //break;
+              }
+              //gpu.renderScreen();
             }
-            //gpu.renderScreen();
-          }
           break;
 
           case SDLK_x:
-          // Fetch the next opcode and increment pc
-          cpu.execute();
-          printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
-          gpu.step(cpu.cpu_clock_t);
-          cpu.checkInterrupts();
-          gpu.renderScreen();
+            // Fetch the next opcode and increment pc
+            cpu.execute();
+            printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
+            gpu.step(cpu.cpu_clock_t);
+            cpu.checkInterrupts();
+            gpu.renderScreen();
           break;
 
           default:
           break;
         }
       }
-
-
     }
   }
   return 0;
