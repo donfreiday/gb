@@ -672,7 +672,7 @@ bool CPU::execute() {
 
 		// LD DE, nnnn
 		case 0x11:
-			reg.de = mmu.read_u16(operand);
+			reg.de = operand;
 		break;
 
 		// INC DE
