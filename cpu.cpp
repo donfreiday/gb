@@ -871,7 +871,7 @@ bool CPU::execute() {
 		// CALL nnnn
 		case 0xCD:
 			reg.sp -= 2;
-			mmu.write_u16(reg.sp, reg.pc+2);
+			mmu.write_u16(reg.sp, reg.pc);
 			reg.pc = operand;
 		break;
 

@@ -9,7 +9,7 @@
 #include "gpu.h"
 #include <set>
 
-#define HELP "z: run\nx: step\nm: read memory\nr: registers\nb: toggle breakpoint on PC\nl: list breakpoints\nv: toggle verbose debugging\nh: help\n\n"
+#define HELP "z: run\nx: step\nm: read memory\nr: registers\ns: stack\nb: toggle breakpoint on PC\nl: list breakpoints\nv: toggle verbose debugging\nh: help\n\n"
 #define TITLE "\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n"
 
 int main(int argc, char* args[]) {
@@ -98,6 +98,13 @@ int main(int argc, char* args[]) {
           // Display registers
           case SDLK_r:
             printf("af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
+          break;
+
+          // Dump nearest 10 values on the stack
+          case SDLK_s:
+            for(int i=-5; i<5; i++) {
+              printf("%04X:%04X\n", cpu.reg.sp+i, cpu.mmu.read_u16(cpu.reg.sp+i));
+            }
           break;
 
           // Toggle verbose debugging
