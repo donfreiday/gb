@@ -213,7 +213,7 @@ void GPU::renderBackground() {
     However if we are using tile data area 0x8800-0x97FF then the tile identifier read from the background
     layout is a SIGNED BYTE meaning the tile identifier will range from -127 to 127. */
     u16 tileLocation = tileData;
-    printf("\ntileLocation: %04X",tileLocation);
+    //printf("\ntileLocation: %04X",tileLocation);
     if (tileData == 0x8000) {
       tileLocation += (tileID * 16);
     }

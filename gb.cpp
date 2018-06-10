@@ -9,7 +9,7 @@
 #include "gpu.h"
 #include <set>
 
-#define HELP "z: run\nx: step\nm: read memory\nr: registers\nb: toggle breakpoint on PC\nh: help\n\n"
+#define HELP "z: run\nx: step\nm: read memory\nr: registers\nb: toggle breakpoint on PC\nl: list breakpoints\nv: toggle verbose debugging\nh: help\n\n"
 #define TITLE "\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n"
 
 int main(int argc, char* args[]) {
@@ -27,6 +27,7 @@ int main(int argc, char* args[]) {
   printf(HELP);
 
   std::set<u16> breakpoints;
+  bool verbose = false;
   bool quit = false;
   SDL_Event e;
   while(!quit) {
@@ -71,10 +72,21 @@ int main(int argc, char* args[]) {
           }
           break;
 
+          // Help
           case SDLK_h:
               printf(HELP);
           break;
 
+          // List breakpoints
+          case SDLK_l:
+            printf("Breakpoints: ");
+            for(u16 b : breakpoints) {
+              printf("%04X ", b);
+            }
+            printf("\n");
+          break;
+
+          // Dump memory address
           case SDLK_m: {
             unsigned int address = 0;
             printf("Memory address: ");
@@ -88,11 +100,17 @@ int main(int argc, char* args[]) {
             printf("af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
           break;
 
+          // Toggle verbose debugging
+          case SDLK_v:
+            verbose = !verbose;
+            verbose ? printf("Verbose debugging enabled\n") : printf("Verbose debugging disabled\n");
+          break;
+
           // Run till unimplemented instruction
           case SDLK_z:
-          // Printing debug info makes this really slow
-          cpu.debug = false;
-          cpu.debugVerbose = false;
+            // Printing debug info makes this really slow
+            cpu.debug = verbose;
+            cpu.debugVerbose = verbose;
             while (cpu.execute()) {
               gpu.step(cpu.cpu_clock_t);
               cpu.checkInterrupts();

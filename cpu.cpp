@@ -593,7 +593,7 @@ bool CPU::execute() {
   else {
     if(debug) { printf("%s", instructions[op].disassembly); }
   }
-	if(debugVerbose) { printf("af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, interrupt); }
+	if(debugVerbose) { printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, interrupt); }
 	if(debug || debugVerbose) { printf("\n"); }
 
   // Adjust PC
@@ -847,7 +847,7 @@ bool CPU::execute() {
 		case 0xCB:
 			if (!execute_CB(operand)) {
 				printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
-				printf("// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions_CB[operand].disassembly, operand);
+				printf("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions_CB[operand].disassembly, operand);
 		    return false;
 			}
 		break;
@@ -905,7 +905,7 @@ bool CPU::execute() {
 
     default:
 			printf("^^^ Unimplemented instruction: 0x%02X ^^^\n\n", op);
-			printf("// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions[op].disassembly, op);
+			printf("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions[op].disassembly, op);
 	    return false;
     break;
   }
@@ -914,7 +914,7 @@ bool CPU::execute() {
 
 // extended instruction set via 0xCB prefix
 bool CPU::execute_CB(u8 op) {
-	printf("%s\n", instructions_CB[op].disassembly);
+	if(debug) { printf("%s\n", instructions_CB[op].disassembly); }
 	switch(op) {
 		// RL C
 		case 0x11: {
