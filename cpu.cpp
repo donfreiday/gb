@@ -1,6 +1,11 @@
 #include "cpu.h"
 #include "mmu.h"
 
+#define FLAG_CARRY_MASK (1 << 4)
+#define FLAG_HALF_CARRY_MASK (1 << 5)
+#define FLAG_SUBTRACT_MASK (1 << 6)
+#define FLAG_ZERO_MASK (1 << 7)
+
 // thx to cinoop
 // char const *disassembly; u8 operandLength; u8 cycles;
 CPU::instruction instructions[256] = {
@@ -532,7 +537,7 @@ void CPU::reset() {
   reg.e = 0xD8;
   reg.h = 0x01;
   reg.l = 0x4D;
-  reg.f = 0xB0;
+  reg.f = 0x00;
   reg.pc = 0x00; // 0x100 is end of 256byte ROM header
   reg.sp = 0xFFFE;
   cpu_clock_m = 0;
@@ -593,8 +598,6 @@ bool CPU::execute() {
   else {
     if(debug) { printf("%s", instructions[op].disassembly); }
   }
-	if(debugVerbose) { printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, interrupt); }
-	if(debug || debugVerbose) { printf("\n"); }
 
   // Adjust PC
   reg.pc += instructions[op].operandLength;
@@ -909,6 +912,17 @@ bool CPU::execute() {
 	    return false;
     break;
   }
+
+	if(debugVerbose) {
+		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, interrupt);
+		printf(" flags=");
+		reg.f & FLAG_CARRY_MASK ? printf("C") : printf("c");
+		reg.f & FLAG_HALF_CARRY_MASK ? printf("H") : printf("h");
+		reg.f & FLAG_SUBTRACT_MASK ? printf("S") : printf("s");
+		reg.f & FLAG_ZERO_MASK ? printf("Z") : printf("z");
+	}
+	if(debug || debugVerbose) { printf("\n"); }
+	
   return true;
 }
 
