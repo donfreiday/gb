@@ -23,6 +23,15 @@ bool MMU::load(char* filename) {
   file.seekg(file.beg);
   file.read((char*)(memory), 0x8000);
   file.close();
+
+  // todo: hack alert!
+  // The bootrom expects to find a compressed Nintendo logo in the header
+  // of the ROM. So we'll just load tetris after the bootrom
+  file.open("tetris.gb", std::ios::binary);
+  file.seekg(0x100);
+  file.read((char*)(memory+0x100), 0x8000-0x100);
+  file.close();
+
   return true;
 }
 
