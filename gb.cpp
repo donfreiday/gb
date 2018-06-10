@@ -102,8 +102,10 @@ int main(int argc, char* args[]) {
 
           // Dump nearest 10 values on the stack
           case SDLK_s:
-            for(int i=-5; i<5; i++) {
-              printf("%04X:%04X\n", cpu.reg.sp+i, cpu.mmu.read_u16(cpu.reg.sp+i));
+            for(int i=10; i>-10; i-=2) {
+              if(cpu.reg.sp+i <= 0xFFFE && cpu.reg.sp+i >= 0) {
+                printf("%04X:%04X\n", cpu.reg.sp+i, cpu.mmu.read_u16(cpu.reg.sp+i));
+              }
             }
           break;
 
