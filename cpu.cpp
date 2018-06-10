@@ -551,7 +551,7 @@ void CPU::reset() {
   reg.h = 0;
   reg.l = 0;
   reg.f = 0;
-  reg.pc = 0; 
+  reg.pc = 0;
   reg.sp = 0;
   cpu_clock_m = 0;
   cpu_clock_t = 0;
@@ -929,10 +929,10 @@ bool CPU::execute() {
 	if(debugVerbose) {
 		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, interrupt);
 		printf(" flags=");
-		reg.f & FLAG_CARRY_MASK ? printf("C") : printf("c");
-		reg.f & FLAG_HALF_CARRY_MASK ? printf("H") : printf("h");
-		reg.f & FLAG_SUBTRACT_MASK ? printf("S") : printf("s");
 		reg.f & FLAG_ZERO_MASK ? printf("Z") : printf("z");
+		reg.f & FLAG_SUBTRACT_MASK ? printf("S") : printf("s");
+		reg.f & FLAG_HALF_CARRY_MASK ? printf("H") : printf("h");
+		reg.f & FLAG_CARRY_MASK ? printf("C") : printf("c");
 	}
 	if(debug || debugVerbose) { printf("\n"); }
 
@@ -941,7 +941,7 @@ bool CPU::execute() {
 
 // extended instruction set via 0xCB prefix
 bool CPU::execute_CB(u8 op) {
-	if(debug) { printf("%s\n", instructions_CB[op].disassembly); }
+	if(debug) { printf(": %s", instructions_CB[op].disassembly); }
 	switch(op) {
 		// RL C
 		case 0x11: {
