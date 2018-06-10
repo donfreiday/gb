@@ -563,10 +563,12 @@ void CPU::reset() {
 
 void CPU::decrement_reg(u8 &reg1) {
   reg1--;
-  if ((reg.f & 0x10) == 1) {
-    reg.f |= 0x10; // carry flag
-  }
+	u8 carry = 0;
+  carry = reg.f & FLAG_CARRY_MASK;
   reg.f = 0;
+	if(carry) {
+		reg.f |= FLAG_CARRY_MASK;
+	}
   if (reg1==0) {
     reg.f |= 0x80; // zero flag
   }
