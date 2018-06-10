@@ -261,7 +261,6 @@ CPU::instruction instructions[256] = {
 	{ "CP 0x%02X", 1, 8 },                // 0xfe
 	{ "RST 0x38", 0, 16 },                // 0xff
 };
-
 CPU::instruction instructions_CB[256] = {
 	{ "RLC B", 0, 8 },                    // 0x00
 	{ "RLC C", 0, 8 },                    // 0x01
@@ -540,6 +539,8 @@ void CPU::reset() {
   cpu_clock_t = 0;
   cycles = 0;
   interrupt = true;
+	debug = false;
+	debugVerbose = false;
 }
 
 void CPU::decrement_reg(u8 &reg1) {
@@ -574,7 +575,7 @@ void CPU::increment_reg(u8 &reg1) {
 }
 
 bool CPU::execute() {
-	printf("%04X: ", reg.pc);
+	if(debug) { printf("%04X: ", reg.pc); }
 
 	// Fetch the opcode from MMU and increment PC
 	u8 op = mmu.read_u8(reg.pc++);
@@ -583,16 +584,17 @@ bool CPU::execute() {
   u16 operand;
   if (instructions[op].operandLength == 1) {
     operand = mmu.read_u8(reg.pc);
-    printf(instructions[op].disassembly, operand);
+		if(debug) { printf(instructions[op].disassembly, operand); }
   }
   else if (instructions[op].operandLength == 2) {
     operand = mmu.read_u16(reg.pc);
-    printf(instructions[op].disassembly, operand);
+    if(debug) { printf(instructions[op].disassembly, operand); }
   }
   else {
-    printf("%s", instructions[op].disassembly);
+    if(debug) { printf("%s", instructions[op].disassembly); }
   }
-  printf("\n");
+	if(debugVerbose) { printf("af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, interrupt); }
+	if(debug || debugVerbose) { printf("\n"); }
 
   // Adjust PC
   reg.pc += instructions[op].operandLength;

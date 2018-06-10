@@ -66,12 +66,14 @@ public:
   void checkInterrupts();
   void doInterrupt(u8 interrupt);
 
+  // Debug flags
+  bool debug, debugVerbose;
+
   struct instruction { // thx to cinoop
     char const *disassembly;
     u8 operandLength;
     u8 cycles;
   };
-
 };
 
 #endif

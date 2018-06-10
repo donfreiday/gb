@@ -7,9 +7,13 @@
 #include "cpu.h"
 #include "mmu.h"
 #include "gpu.h"
+#include <set>
+
+#define HELP "z: run\nx: step\nm: read memory\nr: registers\nb: toggle breakpoint on PC\nh: help\n\n"
+#define TITLE "\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n"
 
 int main(int argc, char* args[]) {
-  printf("\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n");
+  printf(TITLE);
   if (argc < 2) {
     printf("Usage: gb <rom.gb>\n");
     return 0;
@@ -20,12 +24,11 @@ int main(int argc, char* args[]) {
     printf("Couldn't load %s\n", args[1]);
     return -1;
   }
-  printf("z: run\nx: step\nm: read memory\nr: registers\nb: run to PC breakpoint\n\n");
+  printf(HELP);
 
-  // Run until X is pressed on window
+  std::set<u16> breakpoints;
   bool quit = false;
   SDL_Event e;
-
   while(!quit) {
     while(SDL_PollEvent(&e) != 0) {
       if(e.type == SDL_QUIT) {
@@ -49,19 +52,27 @@ int main(int argc, char* args[]) {
             printf("LEFT\n");
           break;
 
+          // Toggle breakpoint
           case SDLK_b: {
-            unsigned int breakpoint=0xFFFFF;
-            printf("Breakpoint PC: ");
+            unsigned int breakpoint = 0xFFFF;
+            printf("Toggle breakpoint on PC: ");
             scanf("%X", &breakpoint);
-            while (cpu.execute()) {
-              //printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
-              gpu.step(cpu.cpu_clock_t);
-              cpu.checkInterrupts();
-              if(cpu.reg.pc==breakpoint){
-                break;
-              }
+            if(breakpoints.count(breakpoint)) {
+              breakpoints.erase(breakpoint);
             }
+            else {
+              breakpoints.insert(breakpoint);
+            }
+            printf("Breakpoints: ");
+            for(u16 b : breakpoints) {
+              printf("%04X ", b);
+            }
+            printf("\n");
           }
+          break;
+
+          case SDLK_h:
+              printf(HELP);
           break;
 
           case SDLK_m: {
@@ -72,23 +83,31 @@ int main(int argc, char* args[]) {
           }
           break;
 
+          // Display registers
           case SDLK_r:
-            printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
+            printf("af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
           break;
 
+          // Run till unimplemented instruction
           case SDLK_z:
+          // Printing debug info makes this really slow
+          cpu.debug = false;
+          cpu.debugVerbose = false;
             while (cpu.execute()) {
-              //printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
               gpu.step(cpu.cpu_clock_t);
               cpu.checkInterrupts();
-
+              if(breakpoints.count(cpu.reg.pc)) {
+                printf("%04X: breakpoint\n", cpu.reg.pc);
+                break;
+              }
             }
           break;
 
+          // Execute
           case SDLK_x:
-            // Fetch the next opcode and increment pc
+            cpu.debug = true;
+            cpu.debugVerbose = true;
             cpu.execute();
-            printf("af=%04X\nbc=%04X\nde=%04X\nhl=%04X\nsp=%04X\npc=%04X\nime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
             gpu.step(cpu.cpu_clock_t);
             cpu.checkInterrupts();
             gpu.renderScreen();
