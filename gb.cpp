@@ -72,6 +72,10 @@ int main(int argc, char* args[]) {
           }
           break;
 
+          case SDLK_d:
+            //gpu.dumpTile();
+          break;
+
           // Help
           case SDLK_h:
               printf(HELP);
@@ -127,7 +131,7 @@ int main(int argc, char* args[]) {
           // Run till unimplemented instruction
           case SDLK_z:
             // Printing debug info makes this really slow
-            cpu.debug = verbose;
+            cpu.debug = true;
             cpu.debugVerbose = verbose;
             while (cpu.execute()) {
               gpu.step(cpu.cpu_clock_t);
@@ -146,7 +150,6 @@ int main(int argc, char* args[]) {
             cpu.execute();
             gpu.step(cpu.cpu_clock_t);
             cpu.checkInterrupts();
-            gpu.renderScreen();
           break;
 
           default:

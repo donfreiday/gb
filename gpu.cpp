@@ -21,7 +21,10 @@ GPU::~GPU() {
 void GPU::reset() {
   width = 160;
   height = 144;
-  lines = 456;
+  scanline = 0;
+  mmu->write_u8(LCD_CURRENT_SCANLINE,scanline);
+  modeclock = 0;
+  mode = 0;
   initSDL();
 }
 
@@ -63,85 +66,62 @@ Between 144 and 153 is the vblank period.
 It takes 456 cpu cycles to draw one scanline and move on to the next.
 */
 void GPU::step(int cycles) {
-  updateLCD();
-  if (lcdEnabled()) {
-    lines -= cycles;
-  }
-  else {
+  // Is LCD enabled?
+  if(!(mmu->read_u8(LCD_CONTROL_REGISTER)&(1<<7))) {
+    modeclock = 0;
+    mode = 0;
+    scanline = 0;
+    mmu->write_u8(LCD_CURRENT_SCANLINE,scanline);
     return;
   }
+  modeclock += cycles;
+  switch(mode) {
+    // OAM read mode
+    case 2:
+      if(modeclock >= 80) {
+        modeclock = 0;
+        mode = 3;
+      }
+    break;
 
-  if (lines <= 0) {
-    // If a game writes to LCD_CURRENT_SCANLINE it will be reset to zero;
-    // this is emulated in mmu->write functions - hence the direct increment
-    mmu->memory[LCD_CURRENT_SCANLINE]++;
-    lines = 456;
-    u8 currentLine = mmu->read_u8(LCD_CURRENT_SCANLINE);
+    // VRAM read mode. End of mode 3 is end of scanline
+    case 3:
+      if(modeclock >= 172) {
+        modeclock = 0;
+        mode = 0; // hblank
+        renderScanline();
+      }
+    break;
 
-    // Mode 1: vblank
-    if(currentLine == 144) {
-      mmu->memory[CPU_INTERRUPT_REQUEST] &= 1;
+  // hblank
+  case 0:
+    if(modeclock >= 204) {
+      modeclock = 0;
+      scanline++;
+      if(scanline == 143) {
+        mode = 1; // vblank
+        renderScreen();
+      }
+      else {
+        mode = 2;
+      }
     }
-    else if(currentLine > 153) { //end of vblank
-        mmu->memory[LCD_CURRENT_SCANLINE] = 0;
-    }
-    else if(currentLine < 144) {
-      renderScanline();
-    }
-  }
-}
+  break;
 
-/* The lower two bits of the LCD status register are the modes:
-00: H-Blank
-01: V-Blank
-10: Searching Sprites Atts
-11: Transferring Data to LCD Driver */
-// todo: interrupt handling, coincidence flag
-void GPU::updateLCD() {
-  u8 status = mmu->read_u8(LCD_STATUS_REGISTER);
-  if (!lcdEnabled()) {
-    lines = 456;
-    mmu->write_u8(LCD_CURRENT_SCANLINE, 0);
-    status &= 0xFC; // clear lower two bits (mode)
-    status |= 1; // mode 1
-    mmu->write_u8(LCD_STATUS_REGISTER, status);
-    return;
+    // vblank (10 lines)
+    case 1:
+      if(modeclock>=456) {
+        modeclock = 0;
+        scanline++;
+        if(scanline>153) {
+          mode = 2; // restart scanning mode
+          scanline = 0;
+        }
+      }
+    break;
   }
+  mmu->write_u8(LCD_CURRENT_SCANLINE,scanline);
 
-  u8 currentLine = mmu->read_u8(LCD_CURRENT_SCANLINE);
-  //u8 currentMode = status & 0x3;
-  //u8 mode = 0;
-  //bool interrupt = 0;
-
-  // mode 1: vblank
-  if (currentLine >= 144) {
-    //mode = 1;
-    status |= 1; // set bit 0
-    status &= ~2; // clear bit 1
-  }
-  // mode 2: Searching Sprites Attributes
-  else if (lines >= (456-80)) {
-    //mode = 2;
-    status |= 2; // set bit 1
-    status &= ~1; // clear bit 0
-  }
-  // mode 3: Transferring Data to LCD Driver
-  else if (lines >= (456-80-172)) {
-    //mode = 3;
-    status |= 1; // set bit 0
-    status |= 2; // set bit 1
-  }
-  // mode 0: hblank
-  else {
-    //mode = 0;
-    status &= ~1; // clear bit 0
-    status &= ~2; // clear bit 1
-  }
-  mmu->write_u8(LCD_STATUS_REGISTER, status);
-}
-
-bool GPU::lcdEnabled() {
-  return (mmu->read_u8(LCD_CONTROL_REGISTER) & (1 << 7)); // Bit 7 of the LCD control register
 }
 
 // Write scanline to framebuffer
@@ -157,7 +137,6 @@ void GPU::renderScanline() {
   if (control & 2) {
     renderSprites();
   }
-
 }
 
 /* Background is 256x256 pixels or 32x32 tiles, of which only 160x144 pixels are visible
@@ -221,6 +200,10 @@ void GPU::renderBackground() {
       tileLocation += ((tileID+128)*16);
     }
 
+    if(tileLocation==0x8010) {
+      printf("GODDAMN\n");
+    }
+
     u8 line = yPos % 8; // Current vertical line of tile
     line *= 2; // Each vertical line is two bytes
     u8 data1 = mmu->read_u8(tileLocation+line);
@@ -247,11 +230,18 @@ void GPU::renderBackground() {
       colorBit -= 7;
       colorBit *= -1;
 
-      int colorNum = data2 & (1 << colorBit);
-      colorNum <<= 1;
-      colorNum |= data1 & (1 << colorBit);
+      int colorID = 0;
+      //int colorID = (data2 & (1 << colorBit));
+      //colorID <<= 1;
+      if (data2 & (1<<colorBit)){
+        colorID |= 2;
+      }
+      if (data1 & (1<<colorBit)) {
+        colorID |= 1;
+      }
+      //colorID |= (data1 & (1 << colorBit));
 
-      COLOR color = paletteLookup(colorNum, BG_PALETTE_DATA);
+      COLOR color = paletteLookup(colorID, BG_PALETTE_DATA);
       u8 red = 0, green = 0, blue = 0;
       switch(color) {
         case WHITE:	red = 255; green = 255 ; blue = 255; break ;
@@ -281,9 +271,14 @@ GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
     case 3: high = 7; low = 6; break;
   }
   int color = 0;
-  color = palette&(1<<high);
-  color <<= 1;
-  color |= palette&(1<<low);
+  if(palette&(1<<high)) {
+    color|=2;
+  }
+  if(palette&(1<<low)) {
+    color|=1;
+  }
+
+  //color |= palette&(1<<low);
 
   switch(color) {
     case 0: result = WHITE; break;

@@ -14,12 +14,17 @@ class GPU {
     void step(int cycles); // clock step
     void renderScreen();
 
+    void dumpTile();
+
   private:
     MMU* mmu;
 
     int width;
     int height;
-    int lines;
+
+    int mode;
+    int modeclock;
+    int scanline;
 
     bool initSDL(); // Starts up SDL and creates window
     void initGL();
@@ -28,6 +33,8 @@ class GPU {
     void renderBackground();
     void renderSprites();
     void swapsurface(); // swap SDL surfaces
+
+
 
     enum COLOR
 		{
