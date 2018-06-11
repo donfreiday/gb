@@ -9,7 +9,7 @@
 #include "gpu.h"
 #include <set>
 
-#define HELP "z: run\nx: step\nm: read memory\nr: registers\ns: stack\nb: toggle breakpoint on PC\nl: list breakpoints\nv: toggle verbose debugging\nh: help\n\n"
+#define HELP "z: run\nx: step\nm: read memory word\nn: read memory byte\nr: registers\ns: stack\nb: toggle breakpoint on PC\nl: list breakpoints\nv: toggle verbose debugging\nh: help\n\n"
 #define TITLE "\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n"
 
 int main(int argc, char* args[]) {
@@ -86,12 +86,21 @@ int main(int argc, char* args[]) {
             printf("\n");
           break;
 
-          // Dump memory address
+          // Read memory word
           case SDLK_m: {
             unsigned int address = 0;
             printf("Memory address: ");
             scanf("%X", &address);
             printf("%04X: %04X\n", address, cpu.mmu.read_u16(address));
+          }
+          break;
+
+          // Read memory byte
+          case SDLK_n: {
+            unsigned int address = 0;
+            printf("Memory address: ");
+            scanf("%X", &address);
+            printf("%04X: %02X\n", address, cpu.mmu.read_u8(address));
           }
           break;
 
