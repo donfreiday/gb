@@ -1,11 +1,11 @@
 # A Gameboy Emulator
 Author: Don Freiday
 
-[![screenshot](https://github.com/donfreiday/gb/blob/master/screenshot.png)](https://youtu.be/jGuP2uIBTVw)
+![screenshot](https://github.com/donfreiday/gb/blob/master/screenshot.png)
 
 My very first emulator.
 
-Implemented so far: enough to execute the boot rom.
+Implemented so far: enough to [execute the boot rom](https://youtu.be/jGuP2uIBTVw)
 
 Not implemented: sprite and window layers of graphics, timers, sound, input, many CPU instructions, other stuff
 
