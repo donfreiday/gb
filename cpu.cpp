@@ -4,10 +4,13 @@
 #include "cpu.h"
 #include "mmu.h"
 
-#define FLAG_CARRY_MASK (1 << 4)
-#define FLAG_HALF_CARRY_MASK (1 << 5)
-#define FLAG_SUBTRACT_MASK (1 << 6)
-#define FLAG_ZERO_MASK (1 << 7)
+#define CPU_INTERRUPT_FLAG   0xFF0F
+#define CPU_INTERRUPT_ENABLE 0xFFFF
+
+#define FLAG_CARRY       4 // set if a carry occurred from the last arithmetic operation or if register A is the smaller value when executing the CP instruction
+#define FLAG_HALF_CARRY  5 // set if a carry occurred from the lower nibble in the last math operation.
+#define FLAG_SUBTRACT    6 // set if a subtraction was performed in the last math instruction.
+#define FLAG_ZERO  		   7 // set when the result of an arithmetic operation is zero or two values match when using the CP
 
 // thx to cinoop
 // char const *disassembly; u8 operandLength; u8 cycles;
@@ -564,41 +567,100 @@ void CPU::reset() {
 	debugVerbose = false;
 }
 
-void CPU::decrement_reg(u8 &reg1) {
+template <typename t>
+void CPU::decrementReg(t &reg1) {
   reg1--;
-	u8 carry = 0;
-  carry = reg.f & FLAG_CARRY_MASK;
+  bool carry = bitTest(reg.f, FLAG_CARRY);
   reg.f = 0;
-	if(carry) {
-		reg.f |= FLAG_CARRY_MASK;
+	bitSet(reg.f, FLAG_SUBTRACT);
+	if (carry) {
+		bitSet(reg.f, FLAG_CARRY);
 	}
-  if (reg1==0) {
-    reg.f |= 0x80; // zero flag
+  if (reg1 == 0) {
+    bitSet(reg.f, FLAG_ZERO);
   }
-  reg.f |= 0x40; // add/sub flag
-
-  if((reg1 & 0xF) == 0xF) {
-    reg.f |= 0x20;
+  if ((reg1 & 0xF) == 0xF) {
+    bitSet(reg.f, FLAG_HALF_CARRY);
   }
 }
 
-void CPU::increment_reg(u8 &reg1) {
-	u8 carry = (reg.f & 0x10) ? 1 : 0;
+template <typename t>
+void CPU::incrementReg(t &reg1) {
 	reg1++;
+	bool carry = bitTest(reg.f, FLAG_CARRY);
 	reg.f = 0;
-	if (carry==1) {
-		reg.f |= 0x10;
-	}
-	if((reg1 & 0xF)==0) {
-		reg.f |= 0x20; // half carry
+	if (carry) {
+		bitSet(reg.f, FLAG_CARRY);
 	}
 	if (reg1 == 0) {
-		reg.f |= 0x80; // zero
+    bitSet(reg.f, FLAG_ZERO);
+  }
+  if ((reg1 & 0xF) == 0xF) {
+    bitSet(reg.f, FLAG_HALF_CARRY);
+  }
+}
+
+template <typename t>
+void CPU::rotateRightCarry(t &reg1) {
+	reg.f = 0;
+	if (bitTest(reg.a, 1)) {
+		bitSet(reg.f, FLAG_CARRY); // Low bit of register is shifted into carry flag
+	}
+	reg.a >>= 1; // Shift register right, high bit becomes 0
+	if (bitTest(reg.f, FLAG_CARRY)) {
+		bitSet(reg.a, 7); // Carry flag shifts into high bit of register
+	}
+	if (reg1 == 0) {
+    bitSet(reg.f, FLAG_ZERO);
+  }
+}
+
+template <typename t>
+void CPU::rotateLeft(t &reg1) {
+	bool prevCarry = bitTest(reg.f, FLAG_CARRY);
+	reg.f = 0;
+	bool carry = bitTest(reg1, 7);
+	reg1 <<= 1;
+	reg1 += prevCarry;
+	if (carry) {
+		bitSet(reg.f, FLAG_CARRY);
+	}
+	if (reg1 == 0) {
+    bitSet(reg.f, FLAG_ZERO);
+  }
+}
+
+template <typename t>
+void CPU::subtract(t num) {
+	reg.f = 0;
+	if (reg.a < num) {
+		bitSet(reg.f, FLAG_CARRY);
+	}
+	if ((reg.a & 0xF) < (num &0xF)) {
+		bitSet(reg.f,FLAG_HALF_CARRY);
+	}
+	bitSet(reg.f, FLAG_SUBTRACT);
+	reg.a -= num;
+	if (reg.a == 0) {
+		bitSet(reg.f, FLAG_ZERO);
+	}
+}
+
+void CPU::bitTestReg(u8 reg1, u8 pos) {
+	bool carry = bitTest(reg.f, FLAG_CARRY);
+	reg.f = 0;
+	if (carry) {
+		bitSet(reg.f, FLAG_CARRY);
+	}
+	bitSet(reg.f, FLAG_HALF_CARRY);
+	bitClear(reg.f, FLAG_SUBTRACT);
+	if (!bitTest(reg1, pos)) {
+		bitSet(reg.f, FLAG_ZERO);
 	}
 }
 
 bool CPU::execute() {
-	if(debug) { printf("%04X: ", reg.pc); }
+	if (debug) { printf("%04X: ", reg.pc); }
 
 	// Fetch the opcode from MMU and increment PC
 	u8 op = mmu.read_u8(reg.pc++);
@@ -607,14 +669,14 @@ bool CPU::execute() {
   u16 operand;
   if (instructions[op].operandLength == 1) {
     operand = mmu.read_u8(reg.pc);
-		if(debug) { printf(instructions[op].disassembly, operand); }
+		if (debug) { printf(instructions[op].disassembly, operand); }
   }
   else if (instructions[op].operandLength == 2) {
     operand = mmu.read_u16(reg.pc);
-    if(debug) { printf(instructions[op].disassembly, operand); }
+    if (debug) { printf(instructions[op].disassembly, operand); }
   }
   else {
-    if(debug) { printf("%s", instructions[op].disassembly); }
+    if (debug) { printf("%s", instructions[op].disassembly); }
   }
 
   // Adjust PC
@@ -622,7 +684,7 @@ bool CPU::execute() {
 
   // Update clocks and cycle count
   cpu_clock_t = instructions[op].cycles;
-  cpu_clock_m = instructions[op].cycles / 4; // 4 CPU cycles is one machine cycles
+  cpu_clock_m = instructions[op].cycles / 4; // 4 CPU cycles is one machine cycle
   cycles += instructions[op].cycles;
 
   // Go go go!
@@ -633,12 +695,12 @@ bool CPU::execute() {
 
 		// INC B
 		case 0x04:
-			increment_reg(reg.b);
+			incrementReg(reg.b);
 		break;
 
     // DEC B
     case 0x05:
-    	decrement_reg(reg.b);
+    	decrementReg(reg.b);
     break;
 
     // LD B, nn
@@ -648,12 +710,12 @@ bool CPU::execute() {
 
 		// INC C
 		case 0x0C:
-			increment_reg(reg.c);
+			incrementReg(reg.c);
 		break;
 
 		// DEC C
 		case 0x0D:
-			decrement_reg(reg.c);
+			decrementReg(reg.c);
 		break;
 
 		// LD C, nn
@@ -664,15 +726,8 @@ bool CPU::execute() {
 		// RRC A
 		// Performs a RRC A faster and modifies the flags differently.
 		case 0x0F:
-			reg.f = 0;
-			if (reg.a & 1) {
-				reg.f |= 0x10; // Set carry flag
-			}
-			reg.a >>= 1; // Shift A right, high bit becomes 0
-			reg.a += (reg.f & 0x10 << 7); // Carry flag becomes high bit of A
-			if (reg.a == 0) {
-				reg.f |= 0x80;
-			}
+			rotateRightCarry(reg.a);
+			bitClear(reg.f, FLAG_ZERO);
 		break;
 
 		// LD DE, nnnn
@@ -682,12 +737,12 @@ bool CPU::execute() {
 
 		// INC DE
 		case 0x13:
-			reg.de++;
+			incrementReg(reg.de);
 		break;
 
 		// DEC D
 		case 0x15:
-			decrement_reg(reg.d);
+			decrementReg(reg.d);
 		break;
 
 		// LD D, nn
@@ -696,19 +751,9 @@ bool CPU::execute() {
 		break;
 
 		// RL A
-		case 0x17: {
-			u8 prevCarry = (reg.f & 0x10) ? 1 : 0;
-			reg.f = 0;
-			u8 carry = (reg.a & 0x80) >> 7;
-			reg.a <<= 1;
-			reg.a += prevCarry;
-			if (carry) {
-				reg.f |= 0x10;
-			}
-			if (reg.a == 0) {
-				reg.f |= 0x80;
-			}
-		}
+		// Rotate A left through Carry flag.
+		case 0x17:
+			rotateLeft(reg.a);
 		break;
 
 		// LD A, (DE)
@@ -718,7 +763,7 @@ bool CPU::execute() {
 
 		// DEC E
 		case 0x1D:
-			decrement_reg(reg.e);
+			decrementReg(reg.e);
 		break;
 
 
@@ -735,22 +780,22 @@ bool CPU::execute() {
     // JR nz nn
     // Relative jump by signed immediate if last result was not zero (zero flag = 0)
     case 0x20:
-    	if (!(reg.f & 0x80)) {
+    	if (!bitTest(reg.f, FLAG_ZERO)) {
       	reg.pc += (s8)(operand);
     	}
     break;
 
 		// INC H
 		case 0x24:
-			increment_reg(reg.h);
+			incrementReg(reg.h);
 		break;
 
-    // LD L, n
+    // LD L, nn
     case 0x2E:
     	reg.l = operand;
     break;
 
-    // LD hl, nn
+    // LD hl, nnnn
     case 0x21:
     	reg.hl = operand;
     break;
@@ -762,12 +807,12 @@ bool CPU::execute() {
 
 		// INC HL
 		case 0x23:
-			reg.hl++;
+			incrementReg(reg.hl);
 		break;
 
 		// JR Z, nn
 		case 0x28:
-			if(reg.f & 0x80) {
+			if(bitTest(reg.f, FLAG_ZERO)) {
 				reg.pc += (s8)operand;
 			}
 		break;
@@ -778,14 +823,13 @@ bool CPU::execute() {
     break;
 
     // LDD (hl--), a
-    // Save a to address pointed to by hl and decrement hl
     case 0x32:
     	mmu.write_u8(reg.hl--, reg.a);
     break;
 
 		// DEC A
 		case 0x3D:
-			decrement_reg(reg.a);
+			decrementReg(reg.a);
 		break;
 
     // LD A, nn
@@ -825,9 +869,8 @@ bool CPU::execute() {
 
 		// SUB B
 		case 0x90:
-			reg.a-=reg.b;
+			subtract(reg.b);
 		break;
-
 
     // XOR A
     /* Compares each bit of its first operand to the corresponding bit of its second operand.
@@ -836,8 +879,8 @@ bool CPU::execute() {
     case 0xAF:
       reg.a ^= reg.a;
     	reg.f = 0;
-    	if(reg.a == 0) {
-      	reg.f |= 0x80;
+    	if (reg.a == 0) {
+      	bitSet(reg.f, FLAG_ZERO);
     	}
     break;
 
@@ -847,21 +890,21 @@ bool CPU::execute() {
 			reg.sp += 2;
 		break;
 
-    // JP nn
+    // JP nnnn
     case 0xC3:
     	reg.pc = operand;
     break;
 
 		// PUSH BC
 		case 0xC5:
-			reg.sp-=2;
+			reg.sp -= 2;
 			mmu.write_u16(reg.sp, reg.bc);
 		break;
 
 		// RET
 		case 0xC9:
 			reg.pc = mmu.read_u16(reg.sp);
-			reg.sp+=2;
+			reg.sp += 2;
 		break;
 
 		// CB is a prefix
@@ -881,7 +924,6 @@ bool CPU::execute() {
 		break;
 
     // LDH (0xFF00 + nn), A
-    // Write value in reg.a at address pointed to by 0xFF00+nn
     case 0xE0:
     	mmu.write_u8(0xFF00 + operand, reg.a);
     break;
@@ -897,7 +939,6 @@ bool CPU::execute() {
 		break;
 
     // LDH A, (0xFF00 + nn)
-    // Store value at 0xFF00+nn in reg.a
     case 0xF0:
     	reg.a = mmu.read_u8(0xFF00 + operand);
     break;
@@ -912,15 +953,15 @@ bool CPU::execute() {
 		// Implied subtraction (A - nn) and set flags
 		case 0xFE:
 			reg.f = 0;
-			if(reg.a < operand) {
-				reg.f |= 0x10; // carry
+			if (reg.a < operand) {
+				bitSet(reg.f, FLAG_CARRY);
 			}
-			if((reg.a & 0xF) < (operand & 0xF)) {
-				reg.f |= 0x20; // half carry
+			if ((reg.a & 0xF) < (operand & 0xF)) {
+				bitSet(reg.f, FLAG_HALF_CARRY);
 			}
-			reg.f |= 0x40; // subtract
-			if((reg.a - operand) == 0) {
-				reg.f |= 0x80; // zero
+			bitSet(reg.f, FLAG_SUBTRACT);
+			if ((reg.a - operand) == 0) {
+				bitSet(reg.f, FLAG_ZERO);
 			}
 		break;
 
@@ -934,10 +975,10 @@ bool CPU::execute() {
 	if(debugVerbose) {
 		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, interrupt);
 		printf(" flags=");
-		reg.f & FLAG_ZERO_MASK ? printf("Z") : printf("z");
-		reg.f & FLAG_SUBTRACT_MASK ? printf("S") : printf("s");
-		reg.f & FLAG_HALF_CARRY_MASK ? printf("H") : printf("h");
-		reg.f & FLAG_CARRY_MASK ? printf("C") : printf("c");
+		bitTest(reg.f, FLAG_ZERO) ? printf("Z") : printf("z");
+		bitTest(reg.f, FLAG_SUBTRACT) ? printf("N") : printf("n");
+		bitTest(reg.f, FLAG_HALF_CARRY) ? printf("H") : printf("h");
+		bitTest(reg.f, FLAG_CARRY) ? printf("C") : printf("c");
 	}
 	if(debug || debugVerbose) { printf("\n"); }
 
@@ -947,39 +988,20 @@ bool CPU::execute() {
 // extended instruction set via 0xCB prefix
 bool CPU::execute_CB(u8 op) {
 	if(debug) { printf(": %s", instructions_CB[op].disassembly); }
+
 	switch(op) {
 		// RL C
-		case 0x11: {
-			u8 prevCarry = (reg.f & 0x10) ? 1 : 0;
-			reg.f = 0;
-			u8 carry = (reg.c & 0x80) >> 7;
-			reg.c <<= 1;
-			reg.c += prevCarry;
-			if (carry) {
-				reg.f |= 0x10;
-			}
-			if (reg.c == 0) {
-				reg.f |= 0x80;
-			}
-		}
+		case 0x11:
+			rotateLeft(reg.c);
 		break;
 
 		// BIT 7, H
-		case 0x7C: {
-			u8 carry = (reg.f & 0x10) ? 1 : 0;
-			reg.f = 0;
-			if (carry) {
-				reg.f |= 0x10;
-			}
-			reg.f |= 0x20;
-			if (!(reg.h & 0x80)) {
-				reg.f |= 0x80;
-			}
-	  }
+		case 0x7C:
+			bitTestReg(reg.h, 7);
 		break;
 
 		default:
-		return false;
+			return false;
 		break;
 	}
 	return true;
@@ -991,19 +1013,17 @@ Bit 1: LCD Interupt
 Bit 2: Timer Interupt
 Bit 4: Joypad Interupt
 Interrupt request register: 0xFF0F
-Interrupt enable register: 0xFFFF allows disabling/enabling specific registers
-*/
-
+Interrupt enable register: 0xFFFF allows disabling/enabling specific registers */
 void CPU::checkInterrupts() {
 	if (!interrupt) { // IME disabled
 		return;
 	}
-	u8 requested = mmu.read_u8(0xFF0F);
+	u8 requested = mmu.read_u8(CPU_INTERRUPT_FLAG);
 	if (requested > 0) {
-		u8 enabled = mmu.read_u8(0xFFFF);
+		u8 enabled = mmu.read_u8(CPU_INTERRUPT_ENABLE);
 		for (u8 i = 0; i < 5; i++) {
-			if(requested & (1 << i)) {
-				if (enabled & (1 << i)) {
+			if (bitTest(requested, i)) {
+				if (bitTest(enabled, i)) {
 					doInterrupt(i);
 				}
 			}
@@ -1013,24 +1033,25 @@ void CPU::checkInterrupts() {
 
 void CPU::doInterrupt(u8 interrupt) {
 	interrupt = false; // IME = disabled
-	mmu.write_u8(0xFF0F, (mmu.read_u8(0xFF0F)& ~interrupt)); // Reset bit in Interrupt Request Register
-	mmu.write_u16(reg.sp+=2, reg.pc); // Push PC to the stack
+	mmu.write_u8(CPU_INTERRUPT_FLAG, mmu.read_u8(CPU_INTERRUPT_FLAG)& ~interrupt); // Reset bit in Interrupt Request Register
+	mmu.write_u16(reg.sp += 2, reg.pc); // Push PC to the stack
+
 	// Interrupts have specific service routines at defined memory locations
 	switch(interrupt) {
 		case 0:
-		reg.pc = 0x40;
+			reg.pc = 0x40;
 		break;
 
 		case 1:
-		reg.pc = 0x48;
+			reg.pc = 0x48;
 		break;
 
 		case 2:
-		reg.pc = 0x50;
+			reg.pc = 0x50;
 		break;
 
 		case 4:
-		reg.pc = 0x60;
+			reg.pc = 0x60;
 		break;
 
 		default: break;

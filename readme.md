@@ -10,6 +10,7 @@ Implemented so far: enough to [execute the boot rom](https://youtu.be/jGuP2uIBTV
 Not implemented: sprite and window layers of graphics, timers, sound, input, many CPU instructions, other stuff
 
 Resources:
+<http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf>
 <https://realboyemulator.wordpress.com/>
 <http://gameboy.mongenel.com/dmg/opcodes.html>
 <http://problemkaputt.de/pandocs.htm#cpuinstructionset>

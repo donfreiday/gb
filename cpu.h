@@ -59,9 +59,22 @@ public:
   CPU();
   void reset();
 
-  void decrement_reg(u8 &reg1);
-  void increment_reg(u8 &reg1);
-  void rotate_right_carry(u8 &reg1);
+  template <typename t>
+  void decrementReg(t &reg1);
+
+  template <typename t>
+  void incrementReg(t &reg1);
+
+  template <typename t>
+  void rotateRightCarry(t &reg1);
+
+  template <typename t>
+  void rotateLeft(t &reg1);
+
+  template <typename t>
+  void subtract(t num);
+
+  void bitTestReg(u8 reg1, u8 pos);
 
   bool execute();
   bool execute_CB(u8 op); // execute extended instruction set
