@@ -1,7 +1,7 @@
 # A Gameboy Emulator
 Author: Don Freiday
 
-![screenshot](https://github.com/donfreiday/gb/screenshot.png "screenshot")
+![screenshot](https://github.com/donfreiday/gb/blob/master/screenshot.png)
 
 My very first emulator.
 
