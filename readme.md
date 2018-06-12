@@ -1,8 +1,12 @@
 # A Gameboy Emulator
 Author: Don Freiday
 
-My very first emulator. Implemented so far: very little.
-I've borrowed a bit of GBEPlus (CPU registers, HLE bios state, etc), am implementing opcodes, and using the excellent BGB debugger to verify my work.
+My very first emulator.
+
+Implemented so far: enough to execute the boot rom.
+
+Not implemented: sprite and window layers of graphics, timers, sound, input, many CPU instructions, other stuff
+
 
 Resources:
 
@@ -13,3 +17,4 @@ https://github.com/shonumi/gbe-plus/
 http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU
 http://bgb.bircd.org/#downloads
 https://github.com/CTurt/Cinoop/tree/master/source
+http://www.codeslinger.co.uk/pages/projects/gameboy.html

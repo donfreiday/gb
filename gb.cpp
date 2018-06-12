@@ -1,6 +1,5 @@
 /* gb: a Gameboy Emulator
-   Author: Don Freiday
-   todo: everything */
+   Author: Don Freiday */
 
 #include <SDL/SDL.h>
 #include <stdio.h>

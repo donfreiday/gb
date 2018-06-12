@@ -1,3 +1,6 @@
+/* gb: a Gameboy Emulator
+   Author: Don Freiday */
+
 #include "gpu.h"
 
 #define LCD_CONTROL_REGISTER 0xFF40
@@ -208,8 +211,6 @@ void GPU::renderBackground() {
     line *= 2; // Each vertical line is two bytes
     u8 data1 = mmu->read_u8(tileLocation+line);
     u8 data2 = mmu->read_u8(tileLocation+line+1);
-
-
 
     /* A tile is 8x8 pixels; each horizontal line in a tile is two bytes.
       pixel# = 0 1 2 3 4 5 6 7

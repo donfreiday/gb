@@ -1,3 +1,6 @@
+/* gb: a Gameboy Emulator
+   Author: Don Freiday */
+
 #include "cpu.h"
 #include "mmu.h"
 

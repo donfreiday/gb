@@ -1,3 +1,6 @@
+/* gb: a Gameboy Emulator
+   Author: Don Freiday */
+
 #ifndef GB_CPU
 #define GB_CPU
 

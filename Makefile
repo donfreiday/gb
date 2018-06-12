@@ -1,3 +1,6 @@
+# gb: a Gameboy Emulator 
+# Author: Don Freiday
+
 # OBJS: files to compile as part of the project
 OBJS = gb.cpp cpu.h cpu.cpp mmu.h mmu.cpp gpu.h gpu.cpp
 
