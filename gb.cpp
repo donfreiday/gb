@@ -26,7 +26,7 @@ int main(int argc, char* args[]) {
   printf(HELP);
 
   std::set<u16> breakpoints;
-  bool verbose = false;
+
   bool quit = false;
   SDL_Event e;
   while(!quit) {
@@ -130,7 +130,7 @@ int main(int argc, char* args[]) {
           // Run till unimplemented instruction
           case SDLK_z:
             // Printing debug info makes this really slow
-            cpu.debug = true;
+            //cpu.debug = true;
             cpu.debugVerbose = verbose;
             while (cpu.execute()) {
               gpu.step(cpu.cpu_clock_t);
