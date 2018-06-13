@@ -659,6 +659,16 @@ void CPU::bitTestReg(u8 reg1, u8 pos) {
 	}
 }
 
+// Logical OR n with register A, result in A.
+template <typename t>
+void CPU::orReg(t reg1) {
+	reg.a |= reg1;
+	reg.f = 0;
+	if (reg.a == 0) {
+		bitSet(reg.f, FLAG_ZERO);
+	}
+}
+
 bool CPU::execute() {
 	if (debug) { printf("%04X: ", reg.pc); }
 
@@ -693,6 +703,11 @@ bool CPU::execute() {
     case 0x00:
     break;
 
+		// LD BC, nnnn
+		case 0x01:
+			reg.bc = operand;
+		break;
+
 		// INC B
 		case 0x04:
 			incrementReg(reg.b);
@@ -707,6 +722,11 @@ bool CPU::execute() {
     case 0x06:
     	reg.b = operand;
     break;
+
+		// DEC BC
+		case 0x0B:
+			decrementReg(reg.bc);
+		break;
 
 		// INC C
 		case 0x0C:
@@ -817,6 +837,11 @@ bool CPU::execute() {
 			}
 		break;
 
+		// LDI A, (HL)
+		case 0x2A:
+			reg.a = mmu.read_u8(reg.hl++);
+		break;
+
     // LD SP, nnnn
     case 0x31:
     	reg.sp = operand;
@@ -826,6 +851,11 @@ bool CPU::execute() {
     case 0x32:
     	mmu.write_u8(reg.hl--, reg.a);
     break;
+
+		// LD (HL), nn
+		case 0x36:
+			mmu.write_u8(reg.hl, operand);
+		break;
 
 		// DEC A
 		case 0x3D:
@@ -857,6 +887,11 @@ bool CPU::execute() {
 			mmu.write_u8(reg.hl, reg.a);
 		break;
 
+		// LD A, B
+		case 0x78:
+			reg.a = reg.b;
+		break;
+
 		// LD A, E
 		case 0x7B:
 			reg.a = reg.e;
@@ -883,6 +918,11 @@ bool CPU::execute() {
       	bitSet(reg.f, FLAG_ZERO);
     	}
     break;
+
+		// OR C
+		case 0xB1:
+			orReg(reg.c);
+		break;
 
 		// POP BC
 		case 0xC1:
@@ -948,6 +988,11 @@ bool CPU::execute() {
     case 0xF3:
 	    interrupt = false;
     break;
+
+		// EI
+		case 0xFB:
+			interrupt = true;
+		break;
 
 		// CP nn
 		// Implied subtraction (A - nn) and set flags

@@ -76,6 +76,10 @@ public:
 
   void bitTestReg(u8 reg1, u8 pos);
 
+  // Logical OR n with register A, result in A.
+  template <typename t>
+  void orReg(t reg1);
+
   bool execute();
   bool execute_CB(u8 op); // execute extended instruction set
 
