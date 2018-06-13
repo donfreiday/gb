@@ -13,14 +13,15 @@ class GPU {
   public:
     GPU(MMU& mem);
     ~GPU();
-    void reset();
-    void step(int cycles); // clock step
-    void renderScreen();
 
-    void dumpTile();
+    void reset();
+    void step(u8 cycles); // clock step
+    void renderScreen();
 
   private:
     MMU* mmu;
+
+    u8 screenData[144][160][3];
 
     int width;
     int height;
@@ -35,9 +36,6 @@ class GPU {
     void renderScanline(); // write scanline to surface
     void renderBackground();
     void renderSprites();
-    void swapsurface(); // swap SDL surfaces
-
-
 
     enum COLOR
 		{
@@ -48,13 +46,6 @@ class GPU {
 		};
 
     COLOR paletteLookup(u8 colorID, u16 address);
-
-    u8 screenData[144][160][3];
-
-    // LCD
-    void updateLCD();
-    bool lcdEnabled();
-
 };
 
 #endif
