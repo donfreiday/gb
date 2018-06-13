@@ -562,7 +562,8 @@ void CPU::reset() {
   cpu_clock_m = 0;
   cpu_clock_t = 0;
   cycles = 0;
-  interrupt = true;
+  ime = true;
+	eiDelay = false;
 	debug = false;
 	debugVerbose = false;
 }
@@ -667,6 +668,17 @@ void CPU::orReg(t reg1) {
 	if (reg.a == 0) {
 		bitSet(reg.f, FLAG_ZERO);
 	}
+}
+
+//Logically AND n with A, result in A.
+template <typename t>
+void CPU::andReg(t reg1) {
+	reg.a &= reg1;
+	reg.f = 0;
+	if (reg.a == 0) {
+		bitSet(reg.f, FLAG_ZERO);
+	}
+	bitSet(reg.f, FLAG_HALF_CARRY);
 }
 
 bool CPU::execute() {
@@ -842,6 +854,14 @@ bool CPU::execute() {
 			reg.a = mmu.read_u8(reg.hl++);
 		break;
 
+		// CPL
+		// Complement A register. (Flip all bits.)
+		case 0x2F:
+			reg.a = ~reg.a;
+			bitSet(reg.f, FLAG_SUBTRACT);
+			bitSet(reg.f, FLAG_HALF_CARRY);
+		break;
+
     // LD SP, nnnn
     case 0x31:
     	reg.sp = operand;
@@ -852,9 +872,19 @@ bool CPU::execute() {
     	mmu.write_u8(reg.hl--, reg.a);
     break;
 
+		// INC (HL)
+		case 0x34:
+			incrementReg(reg.hl);
+		break;
+
 		// LD (HL), nn
 		case 0x36:
 			mmu.write_u8(reg.hl, operand);
+		break;
+
+		// INC A
+		case 0x3C:
+			incrementReg(reg.a);
 		break;
 
 		// DEC A
@@ -907,6 +937,11 @@ bool CPU::execute() {
 			subtract(reg.b);
 		break;
 
+		// AND A
+		case 0xA7:
+			andReg(reg.a);
+		break;
+
     // XOR A
     /* Compares each bit of its first operand to the corresponding bit of its second operand.
     If one bit is 0 and the other bit is 1, the corresponding result bit is set to 1.
@@ -924,6 +959,14 @@ bool CPU::execute() {
 			orReg(reg.c);
 		break;
 
+		// RET NZ
+		case 0xC0:
+			if (!bitTest(reg.f, FLAG_ZERO)) {
+				reg.pc = mmu.read_u16(reg.sp);
+				reg.sp += 2;
+			}
+		break;
+
 		// POP BC
 		case 0xC1:
 			reg.bc = mmu.read_u16(reg.sp);
@@ -939,6 +982,14 @@ bool CPU::execute() {
 		case 0xC5:
 			reg.sp -= 2;
 			mmu.write_u16(reg.sp, reg.bc);
+		break;
+
+		// RET Z
+		case 0xC8:
+			if (bitTest(reg.f, FLAG_ZERO)) {
+				reg.pc = mmu.read_u16(reg.sp);
+				reg.sp += 2;
+			}
 		break;
 
 		// RET
@@ -963,14 +1014,50 @@ bool CPU::execute() {
 			reg.pc = operand;
 		break;
 
+		// POP DE
+		case 0xD1:
+			reg.de = mmu.read_u16(reg.sp);
+			reg.sp += 2;
+		break;
+
+		// PUSH DE
+		case 0xD5:
+			reg.sp -= 2;
+			mmu.write_u16(reg.sp, reg.de);
+		break;
+
+		// RETI
+		case 0xD9:
+			reg.pc = mmu.read_u16(reg.sp);
+			reg.sp += 2;
+			ime = true;
+		break;
+
     // LDH (0xFF00 + nn), A
     case 0xE0:
     	mmu.write_u8(0xFF00 + operand, reg.a);
     break;
 
+		// POP HL
+		case 0xE1:
+			reg.hl = mmu.read_u16(reg.sp);
+			reg.sp += 2;
+		break;
+
 		// LD (0xFF00 + C), A
 		case 0xE2:
 			mmu.write_u8((0xFF00 + reg.c), reg.a);
+		break;
+
+		// PUSH HL
+		case 0xE5:
+			reg.sp-=2;
+			mmu.write_u16(reg.sp, reg.hl);
+		break;
+
+		// AND nn
+		case 0xE6:
+			andReg(operand);
 		break;
 
 		// LD (nnnn), A
@@ -983,15 +1070,32 @@ bool CPU::execute() {
     	reg.a = mmu.read_u8(0xFF00 + operand);
     break;
 
+		// POP AF
+		case 0xF1:
+			reg.af = mmu.read_u16(reg.sp);
+			reg.sp += 2;
+		break;
+
     // DI
-    // Disable interrupts
     case 0xF3:
-	    interrupt = false;
+	    ime = false;
     break;
+
+		// PUSH AF
+		case 0xF5:
+			reg.sp-=2;
+			mmu.write_u16(reg.sp, reg.af);
+		break;
+
+		// LD A, (nnnn)
+		case 0xFA:
+			reg.a = mmu.read_u8(operand);
+		break;
 
 		// EI
 		case 0xFB:
-			interrupt = true;
+			ime = true;
+			eiDelay = true;
 		break;
 
 		// CP nn
@@ -1018,7 +1122,7 @@ bool CPU::execute() {
   }
 
 	if(debugVerbose) {
-		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, interrupt);
+		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, ime);
 		printf(" flags=");
 		bitTest(reg.f, FLAG_ZERO) ? printf("Z") : printf("z");
 		bitTest(reg.f, FLAG_SUBTRACT) ? printf("N") : printf("n");
@@ -1060,7 +1164,8 @@ Bit 4: Joypad Interupt
 Interrupt request register: 0xFF0F
 Interrupt enable register: 0xFFFF allows disabling/enabling specific registers */
 void CPU::checkInterrupts() {
-	if (!interrupt) { // IME disabled
+	if (!ime || eiDelay) { // IME disabled or the last instruction was EI
+		eiDelay = false;
 		return;
 	}
 	u8 requested = mmu.read_u8(CPU_INTERRUPT_FLAG);
@@ -1077,9 +1182,10 @@ void CPU::checkInterrupts() {
 }
 
 void CPU::doInterrupt(u8 interrupt) {
-	interrupt = false; // IME = disabled
+	ime = false; // IME = disabled
 	mmu.write_u8(CPU_INTERRUPT_FLAG, mmu.read_u8(CPU_INTERRUPT_FLAG)& ~interrupt); // Reset bit in Interrupt Request Register
-	mmu.write_u16(reg.sp += 2, reg.pc); // Push PC to the stack
+	reg.sp -= 2;
+	mmu.write_u16(reg.sp, reg.pc); // Push PC to the stack
 
 	// Interrupts have specific service routines at defined memory locations
 	switch(interrupt) {

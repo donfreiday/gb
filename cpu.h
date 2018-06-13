@@ -52,7 +52,7 @@ public:
   u32 cpu_clock_m, cpu_clock_t;
   u32 cycles;
 
-  bool interrupt;
+  bool ime, eiDelay; // interrupt master enable, flag for delaying interrupt after EI instruction
 
   MMU mmu;
 
@@ -79,6 +79,10 @@ public:
   // Logical OR n with register A, result in A.
   template <typename t>
   void orReg(t reg1);
+
+  //Logically AND n with A, result in A.
+  template <typename t>
+  void andReg(t reg1);
 
   bool execute();
   bool execute_CB(u8 op); // execute extended instruction set

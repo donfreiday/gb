@@ -109,7 +109,7 @@ int main(int argc, char* args[]) {
 
           // Display registers
           case SDLK_r:
-            printf("af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.interrupt);
+            printf("af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.ime);
           break;
 
           // Dump nearest 10 values on the stack
