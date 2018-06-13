@@ -46,6 +46,8 @@ class GPU {
 		};
 
     COLOR paletteLookup(u8 colorID, u16 address);
+
+    void requestInterrupt(u8 interrupt);
 };
 
 #endif

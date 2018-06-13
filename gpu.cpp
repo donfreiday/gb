@@ -5,7 +5,8 @@
 
 #define LCD_SCROLLY 0xFF42
 #define LCD_SCROLLX 0xFF43
-#define LCD_CURRENT_SCANLINE 0xFF44
+#define LCD_SCANLINE 0xFF44
+#define LCD_COINCIDENCE 0xFF45
 #define BG_PALETTE_DATA 0xFF47
 #define LCD_WINDOWY 0xFF4A
 #define LCD_WINDOWX 0xFF4B
@@ -24,10 +25,10 @@
 
 // Bits 6-3 are for interrupt selection
 #define LCD_STAT 0xFF41
-#define LCD_STAT_COINCIDENCE 6
-#define LCD_STAT_MODE_10 5
-#define LCD_STAT_MODE_01 4
-#define LCD_STAT_MODE_00 3
+#define LCD_STAT_COINCIDENCE_INT_ENABLE 6
+#define LCD_STAT_MODE2_INT_ENABLE 5
+#define LCD_STAT_MODE1_INT_ENABLE 4
+#define LCD_STAT_MODE0_INT_ENABLE 3
 #define LCD_STAT_COINCIDENCE_FLAG 2 // 0: LYC != LY, 1: LYC=LY
 #define LCD_STAT_MODE_FLAG_HIGH 1 // 00 = hblank, 01 = vblank, 10 = oam search, 11 = lcd driver data tx
 #define LCD_STAT_MODE_FLAG_LOW 0
@@ -46,7 +47,7 @@ void GPU::reset() {
   width = 160;
   height = 144;
   scanline = 0;
-  mmu->write_u8(LCD_CURRENT_SCANLINE,scanline);
+  mmu->write_u8(LCD_SCANLINE,scanline);
   modeclock = 0;
   mode = 0;
   memset(screenData, 0, sizeof(screenData));
@@ -89,6 +90,7 @@ void GPU::initGL() {
 Scanlines are drawn one at a time from 0 to 153.
 Between 144 and 153 is the vblank period.
 It takes 456 cpu cycles to draw one scanline and move on to the next.
+
 */
 void GPU::step(u8 cycles) {
   u8 status = mmu->read_u8(LCD_STAT);
@@ -97,18 +99,18 @@ void GPU::step(u8 cycles) {
   if( !(bitTest(mmu->read_u8(LCD_CTL), LCD_CTL_DISPLAY_ENABLE)) ) {
     modeclock = 0;
     scanline = 0;
-    mmu->write_u8(LCD_CURRENT_SCANLINE, scanline);
-    mode = 0;
-    bitClear(status, LCD_STAT_MODE_FLAG_HIGH);
-    bitClear(status, LCD_STAT_MODE_FLAG_LOW);
+    mmu->write_u8(LCD_SCANLINE, scanline);
+    mode = 1;
+    status &= (0xFF << 2); // clear mode flags in LCD status register
     mmu->write_u8(LCD_STAT, status);
     return;
   }
 
   modeclock += cycles;
+  bool interrupt = false;
 
   switch(mode) {
-    // OAM read mode
+    // OAM read mode, 80 cycles
     case 2:
       if(modeclock >= 80) {
         modeclock = 0;
@@ -116,47 +118,67 @@ void GPU::step(u8 cycles) {
       }
     break;
 
-    // VRAM read mode. End of mode 3 is end of scanline
+    // VRAM read mode, 172 cycles. End of mode 3 is end of scanline
     case 3:
       if(modeclock >= 172) {
         modeclock = 0;
         mode = 0; // hblank
+        interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE0_INT_ENABLE);
         renderScanline();
       }
     break;
 
-  // hblank
-  case 0:
-    if(modeclock >= 204) {
-      modeclock = 0;
-      scanline++;
-      if(scanline == 143) {
-        mode = 1; // vblank
-        renderScreen();
+    // hblank, 204 cycles
+    case 0:
+      if(modeclock >= 204) {
+        modeclock = 0;
+        scanline++;
+        if(scanline == 143) {
+          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE1_INT_ENABLE);
+          mode = 1; // vblank
+          renderScreen();
+        }
+        else {
+          mode = 2;
+          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
+        }
       }
-      else {
-        mode = 2;
-      }
-    }
-  break;
+    break;
 
-    // vblank (10 lines)
+    // vblank, 456 cycles (10 scanlines)
     case 1:
       if(modeclock>=456) {
         modeclock = 0;
         scanline++;
         if(scanline>153) {
           mode = 2; // restart scanning mode
+          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
+          requestInterrupt(0);
           scanline = 0;
         }
       }
     break;
   }
 
+  if(interrupt) {
+    requestInterrupt(1);
+  }
+
+  // Handle coincidence flag and check for interrupt enabled
+  if (scanline == mmu->read_u8(LCD_COINCIDENCE)) {
+    bitSet(status, LCD_STAT_COINCIDENCE_FLAG);
+    if(bitTest(status, LCD_STAT_COINCIDENCE_INT_ENABLE)) {
+      requestInterrupt(1);
+    }
+  }
+  else {
+    bitClear(status, LCD_STAT_COINCIDENCE_FLAG);
+  }
+
   status &= (0xFF << 2); // clear the mode flag bits
   status |= mode;
   mmu->write_u8(LCD_STAT, status);
-  mmu->write_u8(LCD_CURRENT_SCANLINE, scanline);
+  mmu->write_u8(LCD_SCANLINE, scanline);
 }
 
 // Write scanline to framebuffer
@@ -205,7 +227,7 @@ void GPU::renderBackground() {
   u16 bgTileMap = mmu->read_u8(LCD_CTL) & (1 << 3) ? 0x9C00 : 0x9800;
 
   // yPos calculates which of 32 vertical tiles the current scanline is drawing
-  u8 yPos = mmu->read_u8(LCD_SCROLLY) + mmu->read_u8(LCD_CURRENT_SCANLINE);
+  u8 yPos = mmu->read_u8(LCD_SCROLLY) + mmu->read_u8(LCD_SCANLINE);
 
   // Determine which of the 8 vertical pixels of the current tile the scanline is on
   u16 tileRow = (((u8)(yPos/8))*32);
@@ -283,7 +305,7 @@ void GPU::renderBackground() {
         case BLACK: break; // -Wswitch warning prevention
       }
 
-      u8 scanline = mmu->read_u8(LCD_CURRENT_SCANLINE) ;
+      u8 scanline = mmu->read_u8(LCD_SCANLINE) ;
 
       screenData[scanline][pixel][0] = red;
       screenData[scanline][pixel][1] = green;
@@ -299,23 +321,21 @@ void GPU::renderSprites() {
 GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
   COLOR result = WHITE;
   u8 palette = mmu->read_u8(address);
-  int high = 0;
-  int low = 0;
+  u8 high = 0;
+  u8 low = 0;
   switch(colorID) {
     case 0: high = 1; low = 0; break;
     case 1: high = 3; low = 2; break;
     case 2: high = 5; low = 4; break;
     case 3: high = 7; low = 6; break;
   }
-  int color = 0;
+  u8 color = 0;
   if(palette&(1<<high)) {
     color|=2;
   }
   if(palette&(1<<low)) {
     color|=1;
   }
-
-  //color |= palette&(1<<low);
 
   switch(color) {
     case 0: result = WHITE; break;
@@ -333,4 +353,10 @@ void GPU::renderScreen() {
 	glPixelZoom(1, -1);
  	glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
 	SDL_GL_SwapBuffers( ) ;
+}
+
+void GPU::requestInterrupt(u8 interrupt) {
+  u8 cpuInterrupts = mmu->read_u8(CPU_INTERRUPT_REQUEST);
+  bitSet(cpuInterrupts, interrupt);
+  mmu->write_u8(CPU_INTERRUPT_REQUEST, interrupt);
 }
