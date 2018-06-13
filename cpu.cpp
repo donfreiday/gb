@@ -557,7 +557,7 @@ void CPU::reset() {
   reg.h = 0;
   reg.l = 0;
   reg.f = 0;
-  reg.pc = 0;
+  reg.pc = 0x100;
   reg.sp = 0;
   cpu_clock_m = 0;
   cpu_clock_t = 0;

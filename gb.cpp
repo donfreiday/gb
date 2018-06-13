@@ -26,7 +26,7 @@ int main(int argc, char* args[]) {
   printf(HELP);
 
   std::set<u16> breakpoints;
-
+  bool verbose = false;
   bool quit = false;
   SDL_Event e;
   while(!quit) {

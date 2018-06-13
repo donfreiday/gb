@@ -10,7 +10,11 @@ MMU::MMU() {
 bool MMU::load(char* filename) {
   // Open file
   std::ifstream file;
-  file.open(filename, std::ios::binary | std::ios::ate);
+  file.open("tetris.gb", std::ios::binary);
+  file.seekg(file.beg);
+  file.read((char*)(memory), 0x8000);
+  file.close();
+  /*file.open(filename, std::ios::binary | std::ios::ate);
   if(!file.is_open()) {
     printf("Failed to open ROM: %s!\n", filename);
     return false;
@@ -32,7 +36,7 @@ bool MMU::load(char* filename) {
   file.open("tetris.gb", std::ios::binary);
   file.seekg(0x100);
   file.read((char*)(memory+0x100), 0x8000-0x100);
-  file.close();
+  file.close();*/
 
   return true;
 }
