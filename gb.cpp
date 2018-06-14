@@ -71,10 +71,6 @@ int main(int argc, char* args[]) {
           }
           break;
 
-          case SDLK_d:
-            //gpu.dumpTile();
-          break;
-
           // Help
           case SDLK_h:
               printf(HELP);

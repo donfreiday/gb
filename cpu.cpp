@@ -895,8 +895,11 @@ bool CPU::execute() {
     break;
 
 		// INC (HL)
-		case 0x34:
-			incrementReg(reg.hl);
+		case 0x34: {
+			u8 byte = mmu.read_u8(reg.hl);
+			incrementReg(byte);
+			mmu.write_u8(reg.hl, byte);
+		}
 		break;
 
 		// LD (HL), nn
