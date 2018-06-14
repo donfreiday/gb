@@ -24,6 +24,9 @@ public:
   void write_u8(u16 address, u8 value);
   void write_u16(u16 address, u16 value);
 
+private:
+  void DMA(u8 src);
+
 };
 
 #endif

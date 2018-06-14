@@ -84,6 +84,13 @@ public:
   template <typename t>
   void andReg(t reg1);
 
+  template <typename t>
+  void swapReg(t &reg1);
+
+  // Logical exclusive OR n with register A, result in A.
+  template <typename t>
+  void xorReg(t reg1);
+
   bool execute();
   bool execute_CB(u8 op); // execute extended instruction set
 

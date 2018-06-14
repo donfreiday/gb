@@ -54,7 +54,12 @@ void MMU::write_u8(u16 address, u8 value) {
   if (address == 0xFF44) {
    memory[address] = 0 ;
   }
-  memory[address] = value;
+  else if (address == 0xFF46) {
+    DMA(value);
+  }
+  else {
+    memory[address] = value;
+  }
 }
 
 void MMU::write_u16(u16 address, u16 value) {
@@ -62,5 +67,20 @@ void MMU::write_u16(u16 address, u16 value) {
   if (address == 0xFF44) {
    *(u16*)(memory+address) = 0;
   }
-  *(u16*)(memory+address) = value;
+  else if (address == 0xFF46) {
+    DMA(value);
+  }
+  else {
+    *(u16*)(memory+address) = value;
+  }
+}
+
+// Source address is: (data that was being written to FF46) / 100 or equivalently, data << 8
+// Destination is: sprite RAM FE00-FE9F, 0xA0 bytes
+void MMU::DMA(u8 src) {
+  u16 srcAddress = src;
+  srcAddress<<=8;
+  for(u8 i = 0; i < 0xA0; i++) {
+    write_u8(0xFE00 + i, read_u8(srcAddress+i));
+  }
 }

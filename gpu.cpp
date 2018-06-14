@@ -99,8 +99,8 @@ void GPU::step(u8 cycles) {
   if( !(bitTest(mmu->read_u8(LCD_CTL), LCD_CTL_DISPLAY_ENABLE)) ) {
     modeclock = 0;
     scanline = 0;
-    mmu->write_u8(LCD_SCANLINE, scanline);
-    mode = 1;
+    mmu->memory[LCD_SCANLINE] = scanline; // writes to this address are trapped in write_u8 and write_u16
+    mode = 0;
     status &= (0xFF << 2); // clear mode flags in LCD status register
     mmu->write_u8(LCD_STAT, status);
     return;
@@ -178,7 +178,7 @@ void GPU::step(u8 cycles) {
   status &= (0xFF << 2); // clear the mode flag bits
   status |= mode;
   mmu->write_u8(LCD_STAT, status);
-  mmu->write_u8(LCD_SCANLINE, scanline);
+  mmu->memory[LCD_SCANLINE] = scanline; // writes to this address are trapped in write_u8 and write_u16
 }
 
 // Write scanline to framebuffer

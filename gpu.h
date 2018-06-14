@@ -28,7 +28,7 @@ class GPU {
 
     int mode;
     int modeclock;
-    int scanline;
+    u8 scanline;
 
     bool initSDL(); // Starts up SDL and creates window
     void initGL();

@@ -681,6 +681,28 @@ void CPU::andReg(t reg1) {
 	bitSet(reg.f, FLAG_HALF_CARRY);
 }
 
+ //Swap upper & lower nibles of n.
+template <typename t>
+void CPU::swapReg(t &reg1) {
+	t lowerNibble = reg1 >> 4;
+	reg1 <<= 4;
+	reg1 |= lowerNibble;
+	reg.f = 0;
+	if (reg1 == 0) {
+		bitSet(reg.f, FLAG_ZERO);
+	}
+}
+
+// Logical exclusive OR n with register A, result in A.
+template <typename t>
+void CPU::xorReg(t reg1) {
+	reg.a ^= reg1;
+	reg.f = 0;
+	if (reg.a == 0) {
+		bitSet(reg.f, FLAG_ZERO);
+	}
+}
+
 bool CPU::execute() {
 	if (debug) { printf("%04X: ", reg.pc); }
 
@@ -897,6 +919,11 @@ bool CPU::execute() {
     	reg.a = operand;
     break;
 
+		// LD B, A
+		case 0x47:
+			reg.b = reg.a;
+		break;
+
 		// LD C, A
 		case 0x4F:
 			reg.c = reg.a;
@@ -922,6 +949,11 @@ bool CPU::execute() {
 			reg.a = reg.b;
 		break;
 
+		// LD A, C
+		case 0x79:
+			andReg(reg.c);
+		break;
+
 		// LD A, E
 		case 0x7B:
 			reg.a = reg.e;
@@ -937,9 +969,19 @@ bool CPU::execute() {
 			subtract(reg.b);
 		break;
 
+		// AND C
+		case 0xA1:
+			andReg(reg.c);
+		break;
+
 		// AND A
 		case 0xA7:
 			andReg(reg.a);
+		break;
+
+		// XOR C
+		case 0xA9:
+			xorReg(reg.c);
 		break;
 
     // XOR A
@@ -947,12 +989,14 @@ bool CPU::execute() {
     If one bit is 0 and the other bit is 1, the corresponding result bit is set to 1.
     Otherwise, the corresponding result bit is set to 0.*/
     case 0xAF:
-      reg.a ^= reg.a;
-    	reg.f = 0;
-    	if (reg.a == 0) {
-      	bitSet(reg.f, FLAG_ZERO);
-    	}
+			xorReg(reg.a);
     break;
+
+
+		// OR B
+		case 0xB0:
+			orReg(reg.b);
+		break;
 
 		// OR C
 		case 0xB1:
@@ -1065,6 +1109,13 @@ bool CPU::execute() {
 			mmu.write_u8(operand, reg.a);
 		break;
 
+		// RST 0x28
+		case 0xEF:
+			reg.sp -=2 ;
+			mmu.write_u16(reg.sp, reg.pc);
+			reg.pc = operand;
+		break;
+
     // LDH A, (0xFF00 + nn)
     case 0xF0:
     	reg.a = mmu.read_u8(0xFF00 + operand);
@@ -1142,6 +1193,11 @@ bool CPU::execute_CB(u8 op) {
 		// RL C
 		case 0x11:
 			rotateLeft(reg.c);
+		break;
+
+		// SWAP A
+		case 0x37:
+			swapReg(reg.a);
 		break;
 
 		// BIT 7, H
