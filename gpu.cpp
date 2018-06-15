@@ -34,9 +34,7 @@
 #define LCD_STAT_MODE_FLAG_LOW 0
 
 
-GPU::GPU(MMU& mem) {
-  mmu = &mem;
-  reset();
+GPU::GPU() {
 }
 
 GPU::~GPU() {

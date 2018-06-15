@@ -11,16 +11,16 @@
 
 class GPU {
   public:
-    GPU(MMU& mem);
+    GPU();
     ~GPU();
 
     void reset();
     void step(u8 cycles); // clock step
     void renderScreen();
 
-  private:
     MMU* mmu;
 
+  private:
     u8 screenData[144][160][3];
 
     int width;

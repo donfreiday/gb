@@ -7,6 +7,7 @@
 #include <fstream>
 #include <stdio.h>
 #include "common.h"
+#include "joypad.h"
 
 class MMU {
 
@@ -23,6 +24,8 @@ public:
   u16 read_u16(u16 address);
   void write_u8(u16 address, u8 value);
   void write_u16(u16 address, u16 value);
+
+  Joypad* joypad;
 
 private:
   void DMA(u8 src);

@@ -1,34 +1,28 @@
 /* gb: a Gameboy Emulator
    Author: Don Freiday */
 
-#include <SDL/SDL.h>
-#include <stdio.h>
-#include "cpu.h"
-#include "mmu.h"
-#include "gpu.h"
-#include <set>
+#include "gb.h"
 
-#define HELP "z: run\nx: step\nm: read memory word\nn: read memory byte\nr: registers\ns: stack\nb: toggle breakpoint on PC\nl: list breakpoints\nv: toggle verbose debugging\nh: help\n\n"
-#define TITLE "\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n"
+gb::gb() {
+  gpu.mmu = &cpu.mmu;
+  cpu.mmu.joypad = &joypad;
+  gpu.reset();
+}
 
-int main(int argc, char* args[]) {
-  printf(TITLE);
-  if (argc < 2) {
-    printf("Usage: gb <rom.gb>\n");
-    return 0;
-  }
-  CPU cpu;
-  GPU gpu(cpu.mmu);
-  if (!cpu.mmu.load(args[1])) {
-    printf("Couldn't load %s\n", args[1]);
-    return -1;
-  }
-  printf(HELP);
+gb::~gb() {
 
+}
+
+bool gb::loadROM(char* file) {
+  return cpu.mmu.load(file);
+}
+
+void gb::run() {
   std::set<u16> breakpoints;
   bool verbose = false;
   bool quit = false;
   SDL_Event e;
+
   while(!quit) {
     while(SDL_PollEvent(&e) != 0) {
       if(e.type == SDL_QUIT) {
@@ -69,11 +63,6 @@ int main(int argc, char* args[]) {
             }
             printf("\n");
           }
-          break;
-
-          // Help
-          case SDLK_h:
-              printf(HELP);
           break;
 
           // List breakpoints
@@ -153,5 +142,19 @@ int main(int argc, char* args[]) {
       }
     }
   }
+}
+
+#define HELP "z: run\nx: step\nm: read memory word\nn: read memory byte\nr: registers\ns: stack\nb: toggle breakpoint on PC\nl: list breakpoints\nv: toggle verbose debugging\nh: help\n\n"
+#define TITLE "\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n"
+
+int main(int argc, char* args[]) {
+  gb core;
+  printf(TITLE);
+  if (!core.loadROM(args[1])) {
+    printf("Couldn't load %s\n", args[1]);
+    return -1;
+  }
+  printf(HELP);
+  core.run();
   return 0;
 }
