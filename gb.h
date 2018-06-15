@@ -5,7 +5,7 @@
 #include "cpu.h"
 #include "gpu.h"
 #include "joypad.h"
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <set>
 

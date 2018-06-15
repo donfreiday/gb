@@ -1,4 +1,4 @@
-# gb: a Gameboy Emulator 
+# gb: a Gameboy Emulator
 # Author: Don Freiday
 
 # OBJS: files to compile as part of the project
@@ -10,7 +10,7 @@ CC = g++
 # COMPILER_FLAGS =
 COMPILER_FLAGS = -g -Wall
 
-LINKER_FLAGS = -lSDL -lGL
+LINKER_FLAGS = -lSDL2 -lGL
 
 # OBJ_NAME: name of our executable
 OBJ_NAME = gb

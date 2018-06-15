@@ -8,24 +8,22 @@ MMU::MMU() {
 }
 
 bool MMU::load(char* filename) {
-  // Open file
+  // load tetris
   std::ifstream file;
   file.open("tetris.gb", std::ios::binary);
   file.seekg(file.beg);
   file.read((char*)(memory), 0x8000);
   file.close();
-  /*file.open(filename, std::ios::binary | std::ios::ate);
+
+/* Load bios. Dont forget PC must be set to 0 in CPU
+  std::ifstream file;
+  file.open("bios.gb", std::ios::binary | std::ios::ate);
   if(!file.is_open()) {
     printf("Failed to open ROM: %s!\n", filename);
     return false;
   }
   printf("Loaded ROM: %s\n", filename);
 
-  // Get file size
-  //int filesize = file.tellg();
-
-  // We're going to work with 32KByte only for now; no MBC
-  //file.seekg(filesize - 0x8000);
   file.seekg(file.beg);
   file.read((char*)(memory), 0x8000);
   file.close();

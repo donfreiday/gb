@@ -58,29 +58,31 @@ bool GPU::initSDL() {
     printf("SDL failed to initialize! SDL_Error: %s\n", SDL_GetError());
     return false;
   }
-  if(SDL_SetVideoMode(width, height, 8, SDL_OPENGL) == NULL) {
-    printf("SDL failed to initialize! SDL_Error: %s\n", SDL_GetError());
-    return false;
-  }
-  initGL();
-  SDL_WM_SetCaption("gb", NULL);
-  return true;
-}
+  window = SDL_CreateWindow("gb", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_OPENGL);
 
-// todo: study this
-void GPU::initGL() {
-  glViewport(0, 0, width, height);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glOrtho(0, width, height, 0, -1.0, 1.0);
-  glClearColor(0, 0, 0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-  glShadeModel(GL_FLAT);
-  glEnable(GL_TEXTURE_2D);
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
-  glDisable(GL_DITHER);
-  glDisable(GL_BLEND);
+  // Rendering context
+  mainContext = SDL_GL_CreateContext(window);
+
+  // Set our OpenGL version.
+  // SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+  // 3.2 is part of the modern versions of OpenGL, but most video cards whould be able to run it
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+
+  // Turn on double buffering with a 24bit Z buffer.
+  // You may need to change this to 16 or 32 for your system
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+  // This makes our buffer swap syncronized with the monitor's vertical refresh
+	SDL_GL_SetSwapInterval(1);
+
+  glClearColor(1.0, 1.0, 1.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT);
+  SDL_GL_SwapWindow(window);
+
+  return true;
 }
 
 /*
@@ -332,7 +334,7 @@ void GPU::renderScreen() {
  	glRasterPos2i(-1, 1);
 	glPixelZoom(1, -1);
  	glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
-	SDL_GL_SwapBuffers( ) ;
+	SDL_GL_SwapWindow(window);
 }
 
 void GPU::requestInterrupt(u8 interrupt) {

@@ -4,8 +4,8 @@
 #ifndef GB_GPU
 #define GB_GPU
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_opengl.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 #include "common.h"
 #include "mmu.h"
 
@@ -22,6 +22,8 @@ class GPU {
 
   private:
     u8 screenData[144][160][3];
+    SDL_Window *window;
+    SDL_GLContext mainContext;
 
     int width;
     int height;
