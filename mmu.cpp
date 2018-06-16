@@ -9,13 +9,14 @@ MMU::MMU() {
 
 bool MMU::load(char* filename) {
   // load tetris
+  /*
   std::ifstream file;
   file.open("tetris.gb", std::ios::binary);
   file.seekg(file.beg);
   file.read((char*)(memory), 0x8000);
-  file.close();
+  file.close();*/
 
-/* Load bios. Dont forget PC must be set to 0 in CPU
+  //Load bios. Dont forget PC must be set to 0 in CPU
   std::ifstream file;
   file.open("bios.gb", std::ios::binary | std::ios::ate);
   if(!file.is_open()) {
@@ -34,7 +35,7 @@ bool MMU::load(char* filename) {
   file.open("tetris.gb", std::ios::binary);
   file.seekg(0x100);
   file.read((char*)(memory+0x100), 0x8000-0x100);
-  file.close();*/
+  file.close();
 
   return true;
 }

@@ -557,7 +557,7 @@ void CPU::reset() {
   reg.h = 0;
   reg.l = 0;
   reg.f = 0;
-  reg.pc = 0x100;
+  reg.pc = 0x000;
   reg.sp = 0;
   cpu_clock_m = 0;
   cpu_clock_t = 0;
@@ -637,12 +637,45 @@ void CPU::subtract(t num) {
 	if (reg.a < num) {
 		bitSet(reg.f, FLAG_CARRY);
 	}
-	if ((reg.a & 0xF) < (num &0xF)) {
+	if ((reg.a & 0xF) < (num & 0xF)) {
 		bitSet(reg.f,FLAG_HALF_CARRY);
 	}
 	bitSet(reg.f, FLAG_SUBTRACT);
 	reg.a -= num;
 	if (reg.a == 0) {
+		bitSet(reg.f, FLAG_ZERO);
+	}
+}
+
+// Add n to A.
+template <typename t>
+void CPU::add(t n) {
+	reg.f = 0;
+	if ((reg.a + n) > 0xFF) {
+		bitSet(reg.f, FLAG_CARRY);
+	}
+	if ((reg.a & 0xF) + (n & 0xF) > 0xF) {
+		bitSet(reg.f,FLAG_HALF_CARRY);
+	}
+	bitClear(reg.f, FLAG_SUBTRACT);
+	reg.a -= n;
+	if (reg.a == 0) {
+		bitSet(reg.f, FLAG_ZERO);
+	}
+}
+
+// Compare A with n. This is basically an A - n subtraction instruction but the results are thrown away.
+template <typename t>
+void CPU::compare(t num) {
+	reg.f = 0;
+	if (reg.a < num) {
+		bitSet(reg.f, FLAG_CARRY);
+	}
+	if ((reg.a & 0xF) < (num &0xF)) {
+		bitSet(reg.f,FLAG_HALF_CARRY);
+	}
+	bitSet(reg.f, FLAG_SUBTRACT);
+	if (reg.a - num == 0) {
 		bitSet(reg.f, FLAG_ZERO);
 	}
 }
@@ -967,6 +1000,16 @@ bool CPU::execute() {
 			reg.a = reg.h;
 		break;
 
+		// LD A, L
+		case 0x7D:
+			reg.a = reg.l;
+		break;
+
+		// ADD A, (HL)
+		case 0x86:
+			add(mmu.read_u8(reg.hl));
+		break;
+
 		// SUB B
 		case 0x90:
 			subtract(reg.b);
@@ -1004,6 +1047,11 @@ bool CPU::execute() {
 		// OR C
 		case 0xB1:
 			orReg(reg.c);
+		break;
+
+		// CP (HL)
+		case 0xBE:
+			compare(mmu.read_u8(reg.hl));
 		break;
 
 		// RET NZ

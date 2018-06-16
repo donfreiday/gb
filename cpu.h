@@ -91,6 +91,14 @@ public:
   template <typename t>
   void xorReg(t reg1);
 
+  // Compare A with n. This is basically an A - n subtraction instruction but the results are thrown away.
+  template <typename t>
+  void compare(t num);
+
+  // Add n to A.
+  template <typename t>
+  void add(t n);
+
   bool execute();
   bool execute_CB(u8 op); // execute extended instruction set
 
