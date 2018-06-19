@@ -22,7 +22,7 @@ CPU::instruction instructions[256] = {
 	{ "INC B", 0, 4 },                    // 0x04
 	{ "DEC B", 0, 4 },                    // 0x05
 	{ "LD B, 0x%02X", 1, 8},              // 0x06
-	{ "RLCA", 0, 8 },                     // 0x07
+	{ "RLCA", 0, 4 },                     // 0x07
 	{ "LD (0x%04X), SP", 2, 20 },         // 0x08
 	{ "ADD HL, BC", 0, 8 },               // 0x09
 	{ "LD A, (BC)", 0, 8 },               // 0x0a
@@ -30,7 +30,7 @@ CPU::instruction instructions[256] = {
 	{ "INC C", 0, 4 },                    // 0x0c
 	{ "DEC C", 0, 4 },                    // 0x0d
 	{ "LD C, 0x%02X", 1, 8 },             // 0x0e
-	{ "RRCA", 0, 8 },                     // 0x0f
+	{ "RRCA", 0, 4 },                     // 0x0f
 	{ "STOP", 1, 4 },                     // 0x10
 	{ "LD DE, 0x%04X", 2, 12 },           // 0x11
 	{ "LD (DE), A", 0, 8 },               // 0x12
@@ -38,7 +38,7 @@ CPU::instruction instructions[256] = {
 	{ "INC D", 0, 4 },                    // 0x14
 	{ "DEC D", 0, 4 },                    // 0x15
 	{ "LD D, 0x%02X", 1, 8 },             // 0x16
-	{ "RLA", 0, 8 },                      // 0x17
+	{ "RLA", 0, 4 },                      // 0x17
 	{ "JR 0x%02X", 1, 8 },                // 0x18
 	{ "ADD HL, DE", 0, 8 },               // 0x19
 	{ "LD A, (DE)", 0, 8 },               // 0x1a
@@ -46,7 +46,7 @@ CPU::instruction instructions[256] = {
 	{ "INC E", 0, 4 },                    // 0x1c
 	{ "DEC E", 0, 4 },                    // 0x1d
 	{ "LD E, 0x%02X", 1, 8 },             // 0x1e
-	{ "RRA", 0, 8 },                      // 0x1f
+	{ "RRA", 0, 4 },                      // 0x1f
 	{ "JR NZ, 0x%02X", 1, 0 },            // 0x20
 	{ "LD HL, 0x%04X", 2, 12 },           // 0x21
 	{ "LDI (HL), A", 0, 8 },              // 0x22
@@ -63,7 +63,7 @@ CPU::instruction instructions[256] = {
 	{ "DEC L", 0, 4 },                    // 0x2d
 	{ "LD L, 0x%02X", 1, 8 },             // 0x2e
 	{ "CPL", 0, 4 },                      // 0x2f
-	{ "JR NC, 0x%02X", 1, 8 },            // 0x30
+	{ "JR NC, 0x%02X", 1, 0 },            // 0x30
 	{ "LD SP, 0x%04X", 2, 12 },           // 0x31
 	{ "LDD (HL), A", 0, 8 },              // 0x32
 	{ "INC SP", 0, 8 },                   // 0x33
@@ -220,7 +220,7 @@ CPU::instruction instructions[256] = {
 	{ "JP Z, 0x%04X", 2, 0 },             // 0xca
 	{ "CB %02X", 1, 0 },                  // 0xcb
 	{ "CALL Z, 0x%04X", 2, 0 },           // 0xcc
-	{ "CALL 0x%04X", 2, 12 },             // 0xcd
+	{ "CALL 0x%04X", 2, 24 },             // 0xcd
 	{ "ADC 0x%02X", 1, 8 },               // 0xce
 	{ "RST 0x08", 0, 16 },                // 0xcf
 	{ "RET NC", 0, 0 },                   // 0xd0
@@ -1248,7 +1248,7 @@ bool CPU::execute() {
   }
 
 	if(debugVerbose) {
-		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, ime);
+		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x mcycles=%d", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, ime, cpu_clock_m);
 		printf(" flags=");
 		bitTest(reg.f, FLAG_ZERO) ? printf("Z") : printf("z");
 		bitTest(reg.f, FLAG_SUBTRACT) ? printf("N") : printf("n");
