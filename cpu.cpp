@@ -658,7 +658,7 @@ void CPU::add(t n) {
 		bitSet(reg.f,FLAG_HALF_CARRY);
 	}
 	bitClear(reg.f, FLAG_SUBTRACT);
-	reg.a -= n;
+	reg.a += n;
 	if (reg.a == 0) {
 		bitSet(reg.f, FLAG_ZERO);
 	}
