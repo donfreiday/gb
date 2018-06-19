@@ -136,6 +136,12 @@ void gb::run() {
             cpu.checkInterrupts();
           break;
 
+          // Reset
+          case SDLK_q:
+            cpu.reset();
+            gpu.reset();
+          break;
+
           default:
           break;
         }

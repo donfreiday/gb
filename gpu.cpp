@@ -38,10 +38,13 @@ GPU::GPU() {
 }
 
 GPU::~GPU() {
+  window = NULL;
   SDL_Quit();
 }
 
 void GPU::reset() {
+  window = NULL;
+  SDL_Quit();
   width = 160;
   height = 144;
   scanline = 0;
