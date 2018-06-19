@@ -115,8 +115,8 @@ void gb::run() {
           // Run till unimplemented instruction
           case SDLK_z:
             // Printing debug info makes this really slow
-            //cpu.debug = true;
-            cpu.debugVerbose = verbose;
+            cpu.debug = true;
+            cpu.debugVerbose = false;
             while (cpu.execute()) {
               gpu.step(cpu.cpu_clock_t);
               cpu.checkInterrupts();
@@ -150,7 +150,7 @@ void gb::run() {
 int main(int argc, char* args[]) {
   gb core;
   printf(TITLE);
-  if (!core.loadROM(args[1])) {
+  if (!core.loadROM(args[1])) { // todo: ROM is hard coded in mmu
     printf("Couldn't load %s\n", args[1]);
     return -1;
   }
