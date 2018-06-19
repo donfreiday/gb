@@ -760,9 +760,9 @@ bool CPU::execute() {
   reg.pc += instructions[op].operandLength;
 
   // Update clocks and cycle count
-  cpu_clock_t = instructions[op].cycles;
-  cpu_clock_m = instructions[op].cycles / 4; // 4 CPU cycles is one machine cycle
-  cycles += instructions[op].cycles;
+  cpu_clock_t = (op == 0xCB) ? instructions_CB[op].cycles : instructions[op].cycles;
+  cpu_clock_m = cpu_clock_t / 4; // 4 CPU cycles is one machine cycle
+  cycles += cpu_clock_t;
 
   // Go go go!
   switch(op) {
@@ -868,9 +868,15 @@ bool CPU::execute() {
     // Relative jump by signed immediate if last result was not zero (zero flag = 0)
     case 0x20:
     	if (!bitTest(reg.f, FLAG_ZERO)) {
-      	reg.pc += (s8)(operand);
+      		reg.pc += (s8)(operand);
+			cpu_clock_t = 12;	
     	}
-    break;
+		else {
+			cpu_clock_t = 8;
+		}
+		cpu_clock_m = cpu_clock_t / 4;
+		cycles += cpu_clock_t;
+	break;
 
 		// INC H
 		case 0x24:
@@ -901,7 +907,13 @@ bool CPU::execute() {
 		case 0x28:
 			if(bitTest(reg.f, FLAG_ZERO)) {
 				reg.pc += (s8)operand;
+				cpu_clock_t = 12;
 			}
+			else {
+				cpu_clock_t = 8;
+			}
+			cpu_clock_m = cpu_clock_t / 4;
+			cycles += cpu_clock_t;
 		break;
 
 		// LDI A, (HL)
@@ -1059,7 +1071,13 @@ bool CPU::execute() {
 			if (!bitTest(reg.f, FLAG_ZERO)) {
 				reg.pc = mmu.read_u16(reg.sp);
 				reg.sp += 2;
+				cpu_clock_t = 20;
 			}
+			else {
+				cpu_clock_t = 8;
+			}
+			cpu_clock_m = cpu_clock_t / 4;
+			cycles += cpu_clock_t;
 		break;
 
 		// POP BC
@@ -1084,7 +1102,13 @@ bool CPU::execute() {
 			if (bitTest(reg.f, FLAG_ZERO)) {
 				reg.pc = mmu.read_u16(reg.sp);
 				reg.sp += 2;
+				cpu_clock_t = 20;
 			}
+			else {
+				cpu_clock_t = 8;
+			}
+			cpu_clock_m = cpu_clock_t / 4;
+			cycles += cpu_clock_t;
 		break;
 
 		// RET
@@ -1232,6 +1256,9 @@ bool CPU::execute() {
 		bitTest(reg.f, FLAG_CARRY) ? printf("C") : printf("c");
 	}
 	if(debug || debugVerbose) { printf("\n"); }
+	if(cpu_clock_t <= 0) {
+		printf("problem with %X, cycles: %d\n", op, cpu_clock_t);
+	}
 
   return true;
 }
