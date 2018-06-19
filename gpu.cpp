@@ -48,7 +48,7 @@ void GPU::reset() {
   width = 160;
   height = 144;
   scanline = 0;
-  mmu->write_u8(LCD_SCANLINE,scanline);
+  mmu->memory[LCD_SCANLINE] = scanline;
   modeclock = 0;
   mode = 0;
   memset(screenData, 0, sizeof(screenData));
