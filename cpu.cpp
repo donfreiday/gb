@@ -39,7 +39,7 @@ CPU::instruction instructions[256] = {
 	{ "DEC D", 0, 4 },                    // 0x15
 	{ "LD D, 0x%02X", 1, 8 },             // 0x16
 	{ "RLA", 0, 4 },                      // 0x17
-	{ "JR 0x%02X", 1, 12 },                // 0x18
+	{ "JR 0x%02X", 1, 12 },               // 0x18
 	{ "ADD HL, DE", 0, 8 },               // 0x19
 	{ "LD A, (DE)", 0, 8 },               // 0x1a
 	{ "DEC DE", 0, 8 },                   // 0x1b
@@ -210,7 +210,7 @@ CPU::instruction instructions[256] = {
 	{ "RET NZ", 0, 0 },                   // 0xc0
 	{ "POP BC", 0, 12 },                  // 0xc1
 	{ "JP NZ, 0x%04X", 2, 0 },            // 0xc2
-	{ "JP 0x%04X", 2, 12 },               // 0xc3
+	{ "JP 0x%04X", 2, 16 },               // 0xc3
 	{ "CALL NZ, 0x%04X", 2, 0 },          // 0xc4
 	{ "PUSH BC", 0, 16 },                 // 0xc5
 	{ "ADD A, 0x%02X", 1, 8 },            // 0xc6
