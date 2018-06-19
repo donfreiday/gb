@@ -31,7 +31,7 @@ CPU::instruction instructions[256] = {
 	{ "DEC C", 0, 4 },                    // 0x0d
 	{ "LD C, 0x%02X", 1, 8 },             // 0x0e
 	{ "RRCA", 0, 4 },                     // 0x0f
-	{ "STOP", 1, 4 },                     // 0x10
+	{ "STOP", 1, 0 },                     // 0x10
 	{ "LD DE, 0x%04X", 2, 12 },           // 0x11
 	{ "LD (DE), A", 0, 8 },               // 0x12
 	{ "INC DE", 0, 8 },                   // 0x13
@@ -47,7 +47,7 @@ CPU::instruction instructions[256] = {
 	{ "DEC E", 0, 4 },                    // 0x1d
 	{ "LD E, 0x%02X", 1, 8 },             // 0x1e
 	{ "RRA", 0, 4 },                      // 0x1f
-	{ "JR NZ, 0x%02X", 1, 0 },            // 0x20
+	{ "JR NZ, 0x%02X", 1, 8 },            // 0x20
 	{ "LD HL, 0x%04X", 2, 12 },           // 0x21
 	{ "LDI (HL), A", 0, 8 },              // 0x22
 	{ "INC HL", 0, 8 },                   // 0x23
@@ -55,7 +55,7 @@ CPU::instruction instructions[256] = {
 	{ "DEC H", 0, 4 },                    // 0x25
 	{ "LD H, 0x%02X", 1, 8 },             // 0x26
 	{ "DAA", 0, 4 },                      // 0x27
-	{ "JR Z, 0x%02X", 1, 0 },             // 0x28
+	{ "JR Z, 0x%02X", 1, 8 },             // 0x28
 	{ "ADD HL, HL", 0, 8 },               // 0x29
 	{ "LDI A, (HL)", 0, 8 },              // 0x2a
 	{ "DEC HL", 0, 8 },                   // 0x2b
@@ -63,7 +63,7 @@ CPU::instruction instructions[256] = {
 	{ "DEC L", 0, 4 },                    // 0x2d
 	{ "LD L, 0x%02X", 1, 8 },             // 0x2e
 	{ "CPL", 0, 4 },                      // 0x2f
-	{ "JR NC, 0x%02X", 1, 0 },            // 0x30
+	{ "JR NC, 0x%02X", 1, 8 },            // 0x30
 	{ "LD SP, 0x%04X", 2, 12 },           // 0x31
 	{ "LDD (HL), A", 0, 8 },              // 0x32
 	{ "INC SP", 0, 8 },                   // 0x33
@@ -71,7 +71,7 @@ CPU::instruction instructions[256] = {
 	{ "DEC (HL)", 0, 12 },                // 0x35
 	{ "LD (HL), 0x%02X", 1, 12 },         // 0x36
 	{ "SCF", 0, 4 },                      // 0x37
-	{ "JR C, 0x%02X", 1, 0 },             // 0x38
+	{ "JR C, 0x%02X", 1, 8 },             // 0x38
 	{ "ADD HL, SP", 0, 8 },               // 0x39
 	{ "LDD A, (HL)", 0, 8 },              // 0x3a
 	{ "DEC SP", 0, 8 },                   // 0x3b
@@ -133,14 +133,14 @@ CPU::instruction instructions[256] = {
 	{ "LD (HL), E", 0, 8 },               // 0x73
 	{ "LD (HL), H", 0, 8 },               // 0x74
 	{ "LD (HL), L", 0, 8 },               // 0x75
-	{ "HALT", 0, 4 },                     // 0x76
+	{ "HALT", 0, 0 },                     // 0x76
 	{ "LD (HL), A", 0, 8 },               // 0x77
 	{ "LD A, B", 0, 4 },                  // 0x78
 	{ "LD A, C", 0, 4 },                  // 0x79
 	{ "LD A, D", 0, 4 },                  // 0x7a
 	{ "LD A, E", 0, 4 },                  // 0x7b
 	{ "LD A, H", 0, 4 },                  // 0x7c
-  { "LD A, L", 0, 4 },                  // 0x7d
+	{ "LD A, L", 0, 4 },                  // 0x7d
 	{ "LD A, (HL)", 0, 8 },               // 0x7e
 	{ "LD A, A", 0, 4 },                  // 0x7f
 	{ "ADD A, B", 0, 4 },                 // 0x80
@@ -193,49 +193,49 @@ CPU::instruction instructions[256] = {
 	{ "XOR A", 0, 4 },                    // 0xaf
 	{ "OR B", 0, 4 },                     // 0xb0
 	{ "OR C", 0, 4 },                     // 0xb1
-  { "OR D", 0, 4 },                     // 0xb2
+	{ "OR D", 0, 4 },                     // 0xb2
 	{ "OR E", 0, 4 },                     // 0xb3
-  { "OR H", 0, 4 },                     // 0xb4
-  { "OR L", 0, 4 },                     // 0xb5
-  { "OR (HL)", 0, 8 },                  // 0xb6
-  { "OR A", 0, 4 },                     // 0xb7
-  { "CP B", 0, 4 },                     // 0xb8
-  { "CP C", 0, 4 },                     // 0xb9
+	{ "OR H", 0, 4 },                     // 0xb4
+	{ "OR L", 0, 4 },                     // 0xb5
+	{ "OR (HL)", 0, 8 },                  // 0xb6
+	{ "OR A", 0, 4 },                     // 0xb7
+	{ "CP B", 0, 4 },                     // 0xb8
+	{ "CP C", 0, 4 },                     // 0xb9
 	{ "CP D", 0, 4 },                     // 0xba
 	{ "CP E", 0, 4 },                     // 0xbb
 	{ "CP H", 0, 4 },                     // 0xbc
 	{ "CP L", 0, 4 },                     // 0xbd
 	{ "CP (HL)", 0, 8 },                  // 0xbe
 	{ "CP A", 0, 4 },                     // 0xbf
-	{ "RET NZ", 0, 0 },                   // 0xc0
+	{ "RET NZ", 0, 8 },                   // 0xc0
 	{ "POP BC", 0, 12 },                  // 0xc1
-	{ "JP NZ, 0x%04X", 2, 0 },            // 0xc2
+	{ "JP NZ, 0x%04X", 2, 12 },           // 0xc2
 	{ "JP 0x%04X", 2, 16 },               // 0xc3
-	{ "CALL NZ, 0x%04X", 2, 0 },          // 0xc4
+	{ "CALL NZ, 0x%04X", 2, 12 },         // 0xc4
 	{ "PUSH BC", 0, 16 },                 // 0xc5
 	{ "ADD A, 0x%02X", 1, 8 },            // 0xc6
 	{ "RST 0x00", 0, 16 },                // 0xc7
-	{ "RET Z", 0, 0 },                    // 0xc8
-	{ "RET", 0, 16 },                      // 0xc9
-	{ "JP Z, 0x%04X", 2, 0 },             // 0xca
+	{ "RET Z", 0, 8 },                    // 0xc8
+	{ "RET", 0, 16 },                     // 0xc9
+	{ "JP Z, 0x%04X", 2, 12 },            // 0xca
 	{ "CB %02X", 1, 0 },                  // 0xcb
-	{ "CALL Z, 0x%04X", 2, 0 },           // 0xcc
+	{ "CALL Z, 0x%04X", 2, 12 },          // 0xcc
 	{ "CALL 0x%04X", 2, 24 },             // 0xcd
 	{ "ADC 0x%02X", 1, 8 },               // 0xce
 	{ "RST 0x08", 0, 16 },                // 0xcf
-	{ "RET NC", 0, 0 },                   // 0xd0
+	{ "RET NC", 0, 8 },                   // 0xd0
 	{ "POP DE", 0, 12 },                  // 0xd1
-	{ "JP NC, 0x%04X", 2, 0 },            // 0xd2
+	{ "JP NC, 0x%04X", 2, 12 },           // 0xd2
 	{ "UNKNOWN", 0, 0 },                  // 0xd3
-	{ "CALL NC, 0x%04X", 2, 0 },          // 0xd4
+	{ "CALL NC, 0x%04X", 2, 12 },         // 0xd4
 	{ "PUSH DE", 0, 16 },                 // 0xd5
 	{ "SUB 0x%02X", 1, 8 },               // 0xd6
 	{ "RST 0x10", 0, 16 },                // 0xd7
-	{ "RET C", 0, 0 },                    // 0xd8
+	{ "RET C", 0, 8 },                    // 0xd8
 	{ "RETI", 0, 16 },                    // 0xd9
-	{ "JP C, 0x%04X", 2, 0 },             // 0xda
+	{ "JP C, 0x%04X", 2, 12 },            // 0xda
 	{ "UNKNOWN", 0, 0 },                  // 0xdb
-	{ "CALL C, 0x%04X", 2, 0 },           // 0xdc
+	{ "CALL C, 0x%04X", 2, 12 },          // 0xdc
 	{ "UNKNOWN", 0, 0 },                  // 0xdd
 	{ "SBC 0x%02X", 1, 8 },               // 0xde
 	{ "RST 0x18", 0, 16 },                // 0xdf
@@ -257,7 +257,7 @@ CPU::instruction instructions[256] = {
 	{ "RST 0x28", 0, 16 },                // 0xef
 	{ "LD A, (0xFF00 + 0x%02X)", 1, 12 }, // 0xf0
 	{ "POP AF", 0, 12 },                  // 0xf1
-	{ "LD A, (0xFF00 + C)", 0, 8 },       // 0xf2
+	{ "LD A, (0xFF00 + C)", 0, 8 },       // 0xf2 todo: possible undocumented opcode?
 	{ "DI", 0, 4 },                       // 0xf3
 	{ "UNKNOWN", 0, 0 },                  // 0xf4
 	{ "PUSH AF", 0, 16 },                 // 0xf5
@@ -265,7 +265,7 @@ CPU::instruction instructions[256] = {
 	{ "RST 0x30", 0, 16 },                // 0xf7
 	{ "LD HL, SP+0x%02X", 1, 12 },        // 0xf8
 	{ "LD SP, HL", 0, 8 },                // 0xf9
-	{ "LD A, (0x%04X)", 2, 6 },           // 0xfa
+	{ "LD A, (0x%04X)", 2, 16 },           // 0xfa
 	{ "EI", 0, 4 },                       // 0xfb
 	{ "UNKNOWN", 0, 0 },                  // 0xfc
 	{ "UNKNOWN", 0, 0 },                  // 0xfd
@@ -407,7 +407,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 0, E", 0, 8 },                 // 0x83
 	{ "RES 0, H", 0, 8 },                 // 0x84
 	{ "RES 0, L", 0, 8 },                 // 0x85
-	{ "RES 0, (HL)", 0, 12 },             // 0x86
+	{ "RES 0, (HL)", 0, 16 },             // 0x86
 	{ "RES 0, A", 0, 8 },                 // 0x87
 	{ "RES 1, B", 0, 8 },                 // 0x88
 	{ "RES 1, C", 0, 8 },                 // 0x89
@@ -415,7 +415,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 1, E", 0, 8 },                 // 0x8b
 	{ "RES 1, H", 0, 8 },                 // 0x8c
 	{ "RES 1, L", 0, 8 },                 // 0x8d
-	{ "RES 1, (HL)", 0, 12 },             // 0x8e
+	{ "RES 1, (HL)", 0, 16 },             // 0x8e
 	{ "RES 1, A", 0, 8 },                 // 0x8f
 	{ "RES 2, B", 0, 8 },                 // 0x90
 	{ "RES 2, C", 0, 8 },                 // 0x91
@@ -423,7 +423,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 2, E", 0, 8 },                 // 0x93
 	{ "RES 2, H", 0, 8 },                 // 0x94
 	{ "RES 2, L", 0, 8 },                 // 0x95
-	{ "RES 2, (HL)", 0, 12 },             // 0x96
+	{ "RES 2, (HL)", 0, 16 },             // 0x96
 	{ "RES 2, A", 0, 8 },                 // 0x97
 	{ "RES 3, B", 0, 8 },                 // 0x98
 	{ "RES 3, C", 0, 8 },                 // 0x99
@@ -431,7 +431,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 3, E", 0, 8 },                 // 0x9b
 	{ "RES 3, H", 0, 8 },                 // 0x9c
 	{ "RES 3, L", 0, 8 },                 // 0x9d
-	{ "RES 3, (HL)", 0, 12 },             // 0x9e
+	{ "RES 3, (HL)", 0, 16 },             // 0x9e
 	{ "RES 3, A", 0, 8 },                 // 0x9f
 	{ "RES 4, B", 0, 8 },                 // 0xa0
 	{ "RES 4, C", 0, 8 },                 // 0xa1
@@ -439,7 +439,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 4, E", 0, 8 },                 // 0xa3
 	{ "RES 4, H", 0, 8 },                 // 0xa4
 	{ "RES 4, L", 0, 8 },                 // 0xa5
-	{ "RES 4, (HL)", 0, 12 },             // 0xa6
+	{ "RES 4, (HL)", 0, 16 },             // 0xa6
 	{ "RES 4, A", 0, 8 },                 // 0xa7
 	{ "RES 5, B", 0, 8 },                 // 0xa8
 	{ "RES 5, C", 0, 8 },                 // 0xa9
@@ -447,7 +447,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 5, E", 0, 8 },                 // 0xab
 	{ "RES 5, H", 0, 8 },                 // 0xac
 	{ "RES 5, L", 0, 8 },                 // 0xad
-	{ "RES 5, (HL)", 0, 12 },             // 0xae
+	{ "RES 5, (HL)", 0, 16 },             // 0xae
 	{ "RES 5, A", 0, 8 },                 // 0xaf
 	{ "RES 6, B", 0, 8 },                 // 0xb0
 	{ "RES 6, C", 0, 8 },                 // 0xb1
@@ -455,7 +455,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 6, E", 0, 8 },                 // 0xb3
 	{ "RES 6, H", 0, 8 },                 // 0xb4
 	{ "RES 6, L", 0, 8 },                 // 0xb5
-	{ "RES 6, (HL)", 0, 12 },             // 0xb6
+	{ "RES 6, (HL)", 0, 16 },             // 0xb6
 	{ "RES 6, A", 0, 8 },                 // 0xb7
 	{ "RES 7, B", 0, 8 },                 // 0xb8
 	{ "RES 7, C", 0, 8 },                 // 0xb9
@@ -463,7 +463,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "RES 7, E", 0, 8 },                 // 0xbb
 	{ "RES 7, H", 0, 8 },                 // 0xbc
 	{ "RES 7, L", 0, 8 },                 // 0xbd
-	{ "RES 7, (HL)", 0, 12 },             // 0xbe
+	{ "RES 7, (HL)", 0, 16 },             // 0xbe
 	{ "RES 7, A", 0, 8 },                 // 0xbf
 	{ "SET 0, B", 0, 8 },                 // 0xc0
 	{ "SET 0, C", 0, 8 },                 // 0xc1
@@ -471,7 +471,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 0, E", 0, 8 },                 // 0xc3
 	{ "SET 0, H", 0, 8 },                 // 0xc4
 	{ "SET 0, L", 0, 8 },                 // 0xc5
-	{ "SET 0, (HL)", 0, 12 },             // 0xc6
+	{ "SET 0, (HL)", 0, 16 },             // 0xc6
 	{ "SET 0, A", 0, 8 },                 // 0xc7
 	{ "SET 1, B", 0, 8 },                 // 0xc8
 	{ "SET 1, C", 0, 8 },                 // 0xc9
@@ -479,7 +479,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 1, E", 0, 8 },                 // 0xcb
 	{ "SET 1, H", 0, 8 },                 // 0xcc
 	{ "SET 1, L", 0, 8 },                 // 0xcd
-	{ "SET 1, (HL)", 0, 12 },             // 0xce
+	{ "SET 1, (HL)", 0, 16 },             // 0xce
 	{ "SET 1, A", 0, 8 },                 // 0xcf
 	{ "SET 2, B", 0, 8 },                 // 0xd0
 	{ "SET 2, C", 0, 8 },                 // 0xd1
@@ -487,7 +487,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 2, E", 0, 8 },                 // 0xd3
 	{ "SET 2, H", 0, 8 },                 // 0xd4
 	{ "SET 2, L", 0, 8 },                 // 0xd5
-	{ "SET 2, (HL)", 0, 12 },             // 0xd6
+	{ "SET 2, (HL)", 0, 16 },             // 0xd6
 	{ "SET 2, A", 0, 8 },                 // 0xd7
 	{ "SET 3, B", 0, 8 },                 // 0xd8
 	{ "SET 3, C", 0, 8 },                 // 0xd9
@@ -495,7 +495,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 3, E", 0, 8 },                 // 0xdb
 	{ "SET 3, H", 0, 8 },                 // 0xdc
 	{ "SET 3, L", 0, 8 },                 // 0xdd
-	{ "SET 3, (HL)", 0, 12 },             // 0xde
+	{ "SET 3, (HL)", 0, 16 },             // 0xde
 	{ "SET 3, A", 0, 8 },                 // 0xdf
 	{ "SET 4, B", 0, 8 },                 // 0xe0
 	{ "SET 4, C", 0, 8 },                 // 0xe1
@@ -503,7 +503,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 4, E", 0, 8 },                 // 0xe3
 	{ "SET 4, H", 0, 8 },                 // 0xe4
 	{ "SET 4, L", 0, 8 },                 // 0xe5
-	{ "SET 4, (HL)", 0, 12 },             // 0xe6
+	{ "SET 4, (HL)", 0, 16 },             // 0xe6
 	{ "SET 4, A", 0, 8 },                 // 0xe7
 	{ "SET 5, B", 0, 8 },                 // 0xe8
 	{ "SET 5, C", 0, 8 },                 // 0xe9
@@ -511,7 +511,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 5, E", 0, 8 },                 // 0xeb
 	{ "SET 5, H", 0, 8 },                 // 0xec
 	{ "SET 5, L", 0, 8 },                 // 0xed
-	{ "SET 5, (HL)", 0, 12 },             // 0xee
+	{ "SET 5, (HL)", 0, 16 },             // 0xee
 	{ "SET 5, A", 0, 8 },                 // 0xef
 	{ "SET 6, B", 0, 8 },                 // 0xf0
 	{ "SET 6, C", 0, 8 },                 // 0xf1
@@ -519,7 +519,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 6, E", 0, 8 },                 // 0xf3
 	{ "SET 6, H", 0, 8 },                 // 0xf4
 	{ "SET 6, L", 0, 8 },                 // 0xf5
-	{ "SET 6, (HL)", 0, 12 },             // 0xf6
+	{ "SET 6, (HL)", 0, 16 },             // 0xf6
 	{ "SET 6, A", 0, 8 },                 // 0xf7
 	{ "SET 7, B", 0, 8 },                 // 0xf8
 	{ "SET 7, C", 0, 8 },                 // 0xf9
@@ -527,7 +527,7 @@ CPU::instruction instructions_CB[256] = {
 	{ "SET 7, E", 0, 8 },                 // 0xfb
 	{ "SET 7, H", 0, 8 },                 // 0xfc
 	{ "SET 7, L", 0, 8 },                 // 0xfd
-	{ "SET 7, (HL)", 0, 12 },             // 0xfe
+	{ "SET 7, (HL)", 0, 16 },             // 0xfe
 	{ "SET 7, A", 0, 8 },                 // 0xff
 };
 
@@ -737,6 +737,59 @@ void CPU::xorReg(t reg1) {
 }
 
 bool CPU::execute() {
+	/*
+	// Blargg instruction timing data for main opcodes.
+	// Times are in machine cycles
+	u8 timings[256] = {
+		1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1,
+		0,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1,
+		2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1,
+		2,3,2,2,3,3,3,1,2,2,2,2,1,1,2,1,
+		1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+		1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+		1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+		2,2,2,2,2,2,0,2,1,1,1,1,1,1,2,1,
+		1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+		1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+		1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+		1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+		2,3,3,4,3,4,2,4,2,4,3,0,3,6,2,4,
+		2,3,3,0,3,4,2,4,2,4,3,0,3,0,2,4,
+		3,3,2,0,0,4,2,4,4,1,4,0,0,0,2,4,
+		3,3,2,1,0,4,2,4,3,2,4,1,0,0,2,4
+	};
+	 for (int i = 0; i<256; i++) {
+		 if(instructions[i].cycles != timings[i]*4) {
+		 	printf("0x%02X: %s: should be %d\n", i, instructions[i].disassembly, timings[i]*4); 
+		 }
+	 }
+
+	// Blargg instruction timing data for main opcodes.
+	// Times are in machine cycles
+	u8 timings[256] = {
+	2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,3,2,2,2,2,2,2,2,3,2,
+    2,2,2,2,2,2,3,2,2,2,2,2,2,2,3,2,
+	2,2,2,2,2,2,3,2,2,2,2,2,2,2,3,2,
+    2,2,2,2,2,2,3,2,2,2,2,2,2,2,3,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
+    2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2 };
+	for (int i = 0; i<256; i++) {
+		if(instructions_CB[i].cycles != timings[i]*4) {
+			printf("0x%02X: %s: should be %d\n", i, instructions_CB[i].disassembly, timings[i]*4); 
+		}
+	 }
+	 */
+
 	if (debug) { printf("%04X: ", reg.pc); }
 
 	// Fetch the opcode from MMU and increment PC
@@ -759,10 +812,8 @@ bool CPU::execute() {
   // Adjust PC
   reg.pc += instructions[op].operandLength;
 
-  // Update clocks and cycle count
+  // Update cpu clock
   cpu_clock_t = (op == 0xCB) ? instructions_CB[op].cycles : instructions[op].cycles;
-  cpu_clock_m = cpu_clock_t / 4; // 4 CPU cycles is one machine cycle
-  cycles += cpu_clock_t;
 
   // Go go go!
   switch(op) {
@@ -770,15 +821,15 @@ bool CPU::execute() {
     case 0x00:
     break;
 
-		// LD BC, nnnn
-		case 0x01:
-			reg.bc = operand;
-		break;
+	// LD BC, nnnn
+	case 0x01:
+		reg.bc = operand;
+	break;
 
-		// INC B
-		case 0x04:
-			incrementReg(reg.b);
-		break;
+	// INC B
+	case 0x04:
+		incrementReg(reg.b);
+	break;
 
     // DEC B
     case 0x05:
@@ -790,98 +841,92 @@ bool CPU::execute() {
     	reg.b = operand;
     break;
 
-		// DEC BC
-		case 0x0B:
-			decrementReg(reg.bc);
-		break;
+	// DEC BC
+	case 0x0B:
+		decrementReg(reg.bc);
+	break;
 
-		// INC C
-		case 0x0C:
-			incrementReg(reg.c);
-		break;
+	// INC C
+	case 0x0C:
+		incrementReg(reg.c);
+	break;
 
-		// DEC C
-		case 0x0D:
-			decrementReg(reg.c);
-		break;
+	// DEC C
+	case 0x0D:
+		decrementReg(reg.c);
+	break;
 
-		// LD C, nn
-		case 0x0E:
-			reg.c = operand;
-		break;
+	// LD C, nn
+	case 0x0E:
+		reg.c = operand;
+	break;
 
-		// RRC A
-		// Performs a RRC A faster and modifies the flags differently.
-		case 0x0F:
-			rotateRightCarry(reg.a);
-			bitClear(reg.f, FLAG_ZERO);
-		break;
+	// RRC A
+	// Performs a RRC A faster and modifies the flags differently.
+	case 0x0F:
+		rotateRightCarry(reg.a);
+		bitClear(reg.f, FLAG_ZERO);
+	break;
 
-		// LD DE, nnnn
-		case 0x11:
-			reg.de = operand;
-		break;
+	// LD DE, nnnn
+	case 0x11:
+		reg.de = operand;
+	break;
 
-		// INC DE
-		case 0x13:
-			incrementReg(reg.de);
-		break;
+	// INC DE
+	case 0x13:
+		incrementReg(reg.de);
+	break;
 
-		// DEC D
-		case 0x15:
-			decrementReg(reg.d);
-		break;
+	// DEC D
+	case 0x15:
+		decrementReg(reg.d);
+	break;
 
-		// LD D, nn
-		case 0x16:
-			reg.d = operand;
-		break;
+	// LD D, nn
+	case 0x16:
+		reg.d = operand;
+	break;
 
-		// RL A
-		// Rotate A left through Carry flag.
-		case 0x17:
-			rotateLeft(reg.a);
-		break;
+	// RL A
+	// Rotate A left through Carry flag.
+	case 0x17:
+		rotateLeft(reg.a);
+	break;
 
-		// LD A, (DE)
-		case 0x1A:
-			reg.a = mmu.read_u8(reg.de);
-		break;
+	// LD A, (DE)
+	case 0x1A:
+		reg.a = mmu.read_u8(reg.de);
+	break;
 
-		// DEC E
-		case 0x1D:
-			decrementReg(reg.e);
-		break;
+	// DEC E
+	case 0x1D:
+		decrementReg(reg.e);
+	break;
 
+	// LD E, nn
+	case 0x1E:
+		reg.e = operand;
+	break;
 
-		// LD E, nn
-		case 0x1E:
-			reg.e = operand;
-		break;
-
-		// JR nn
-		case 0x18:
-			reg.pc += (s8)operand;
-		break;
+	// JR nn
+	case 0x18:
+		reg.pc += (s8)operand;
+	break;
 
     // JR nz nn
     // Relative jump by signed immediate if last result was not zero (zero flag = 0)
     case 0x20:
     	if (!bitTest(reg.f, FLAG_ZERO)) {
       		reg.pc += (s8)(operand);
-			cpu_clock_t = 12;	
+			cpu_clock_t += 4;
     	}
-		else {
-			cpu_clock_t = 8;
-		}
-		cpu_clock_m = cpu_clock_t / 4;
-		cycles += cpu_clock_t;
 	break;
 
-		// INC H
-		case 0x24:
-			incrementReg(reg.h);
-		break;
+	// INC H
+	case 0x24:
+		incrementReg(reg.h);
+	break;
 
     // LD L, nn
     case 0x2E:
@@ -893,41 +938,36 @@ bool CPU::execute() {
     	reg.hl = operand;
     break;
 
-		// LDI (HL), A
-		case 0x22:
-			mmu.write_u8(reg.hl++, reg.a);
-		break;
+	// LDI (HL), A
+	case 0x22:
+		mmu.write_u8(reg.hl++, reg.a);
+	break;
 
-		// INC HL
-		case 0x23:
-			incrementReg(reg.hl);
-		break;
+	// INC HL
+	case 0x23:
+		incrementReg(reg.hl);
+	break;
 
-		// JR Z, nn
-		case 0x28:
-			if(bitTest(reg.f, FLAG_ZERO)) {
-				reg.pc += (s8)operand;
-				cpu_clock_t = 12;
-			}
-			else {
-				cpu_clock_t = 8;
-			}
-			cpu_clock_m = cpu_clock_t / 4;
-			cycles += cpu_clock_t;
-		break;
+	// JR Z, nn
+	case 0x28:
+		if(bitTest(reg.f, FLAG_ZERO)) {
+			reg.pc += (s8)operand;
+			cpu_clock_t += 4;
+		}
+	break;
 
-		// LDI A, (HL)
-		case 0x2A:
-			reg.a = mmu.read_u8(reg.hl++);
-		break;
+	// LDI A, (HL)
+	case 0x2A:
+		reg.a = mmu.read_u8(reg.hl++);
+	break;
 
-		// CPL
-		// Complement A register. (Flip all bits.)
-		case 0x2F:
-			reg.a = ~reg.a;
-			bitSet(reg.f, FLAG_SUBTRACT);
-			bitSet(reg.f, FLAG_HALF_CARRY);
-		break;
+	// CPL
+	// Complement A register. (Flip all bits.)
+	case 0x2F:
+		reg.a = ~reg.a;
+		bitSet(reg.f, FLAG_SUBTRACT);
+		bitSet(reg.f, FLAG_HALF_CARRY);
+	break;
 
     // LD SP, nnnn
     case 0x31:
@@ -939,108 +979,108 @@ bool CPU::execute() {
     	mmu.write_u8(reg.hl--, reg.a);
     break;
 
-		// INC (HL)
-		case 0x34: {
-			u8 byte = mmu.read_u8(reg.hl);
-			incrementReg(byte);
-			mmu.write_u8(reg.hl, byte);
-		}
-		break;
+	// INC (HL)
+	case 0x34: {
+		u8 byte = mmu.read_u8(reg.hl);
+		incrementReg(byte);
+		mmu.write_u8(reg.hl, byte);
+	}
+	break;
 
-		// LD (HL), nn
-		case 0x36:
-			mmu.write_u8(reg.hl, operand);
-		break;
+	// LD (HL), nn
+	case 0x36:
+		mmu.write_u8(reg.hl, operand);
+	break;
 
-		// INC A
-		case 0x3C:
-			incrementReg(reg.a);
-		break;
+	// INC A
+	case 0x3C:
+		incrementReg(reg.a);
+	break;
 
-		// DEC A
-		case 0x3D:
-			decrementReg(reg.a);
-		break;
+	// DEC A
+	case 0x3D:
+		decrementReg(reg.a);
+	break;
 
     // LD A, nn
     case 0x3E:
     	reg.a = operand;
     break;
 
-		// LD B, A
-		case 0x47:
-			reg.b = reg.a;
-		break;
+	// LD B, A
+	case 0x47:
+		reg.b = reg.a;
+	break;
 
-		// LD C, A
-		case 0x4F:
-			reg.c = reg.a;
-		break;
+	// LD C, A
+	case 0x4F:
+		reg.c = reg.a;
+	break;
 
-		// LD D, A
-		case 0x57:
-			reg.d = reg.a;
-		break;
+	// LD D, A
+	case 0x57:
+		reg.d = reg.a;
+	break;
 
-		// LD H, A
-		case 0x67:
-			reg.h = reg.a;
-		break;
+	// LD H, A
+	case 0x67:
+		reg.h = reg.a;
+	break;
 
-		// LD (HL), A
-		case 0x77:
-			mmu.write_u8(reg.hl, reg.a);
-		break;
+	// LD (HL), A
+	case 0x77:
+		mmu.write_u8(reg.hl, reg.a);
+	break;
 
-		// LD A, B
-		case 0x78:
-			reg.a = reg.b;
-		break;
+	// LD A, B
+	case 0x78:
+		reg.a = reg.b;
+	break;
 
-		// LD A, C
-		case 0x79:
-			andReg(reg.c);
-		break;
+	// LD A, C
+	case 0x79:
+		andReg(reg.c);
+	break;
 
-		// LD A, E
-		case 0x7B:
-			reg.a = reg.e;
-		break;
+	// LD A, E
+	case 0x7B:
+		reg.a = reg.e;
+	break;
 
-		// LD A, H
-		case 0x7C:
-			reg.a = reg.h;
-		break;
+	// LD A, H
+	case 0x7C:
+		reg.a = reg.h;
+	break;
 
-		// LD A, L
-		case 0x7D:
-			reg.a = reg.l;
-		break;
+	// LD A, L
+	case 0x7D:
+		reg.a = reg.l;
+	break;
 
-		// ADD A, (HL)
-		case 0x86:
-			add(mmu.read_u8(reg.hl));
-		break;
+	// ADD A, (HL)
+	case 0x86:
+		add(mmu.read_u8(reg.hl));
+	break;
 
-		// SUB B
-		case 0x90:
-			subtract(reg.b);
-		break;
+	// SUB B
+	case 0x90:
+		subtract(reg.b);
+	break;
 
-		// AND C
-		case 0xA1:
-			andReg(reg.c);
-		break;
+	// AND C
+	case 0xA1:
+		andReg(reg.c);
+	break;
 
-		// AND A
-		case 0xA7:
-			andReg(reg.a);
-		break;
+	// AND A
+	case 0xA7:
+		andReg(reg.a);
+	break;
 
-		// XOR C
-		case 0xA9:
-			xorReg(reg.c);
-		break;
+	// XOR C
+	case 0xA9:
+		xorReg(reg.c);
+	break;
 
     // XOR A
     /* Compares each bit of its first operand to the corresponding bit of its second operand.
@@ -1050,195 +1090,184 @@ bool CPU::execute() {
 			xorReg(reg.a);
     break;
 
+	// OR B
+	case 0xB0:
+		orReg(reg.b);
+	break;
 
-		// OR B
-		case 0xB0:
-			orReg(reg.b);
-		break;
+	// OR C
+	case 0xB1:
+		orReg(reg.c);
+	break;
 
-		// OR C
-		case 0xB1:
-			orReg(reg.c);
-		break;
+	// CP (HL)
+	case 0xBE:
+		compare(mmu.read_u8(reg.hl));
+	break;
 
-		// CP (HL)
-		case 0xBE:
-			compare(mmu.read_u8(reg.hl));
-		break;
-
-		// RET NZ
-		case 0xC0:
-			if (!bitTest(reg.f, FLAG_ZERO)) {
-				reg.pc = mmu.read_u16(reg.sp);
-				reg.sp += 2;
-				cpu_clock_t = 20;
-			}
-			else {
-				cpu_clock_t = 8;
-			}
-			cpu_clock_m = cpu_clock_t / 4;
-			cycles += cpu_clock_t;
-		break;
-
-		// POP BC
-		case 0xC1:
-			reg.bc = mmu.read_u16(reg.sp);
+	// RET NZ
+	case 0xC0:
+		if (!bitTest(reg.f, FLAG_ZERO)) {
+			reg.pc = mmu.read_u16(reg.sp);
 			reg.sp += 2;
-		break;
+			cpu_clock_t += 12;
+		}
+	break;
+
+	// POP BC
+	case 0xC1:
+		reg.bc = mmu.read_u16(reg.sp);
+		reg.sp += 2;
+	break;
 
     // JP nnnn
     case 0xC3:
     	reg.pc = operand;
     break;
 
-		// PUSH BC
-		case 0xC5:
-			reg.sp -= 2;
-			mmu.write_u16(reg.sp, reg.bc);
-		break;
+	// PUSH BC
+	case 0xC5:
+		reg.sp -= 2;
+		mmu.write_u16(reg.sp, reg.bc);
+	break;
 
-		// RET Z
-		case 0xC8:
-			if (bitTest(reg.f, FLAG_ZERO)) {
-				reg.pc = mmu.read_u16(reg.sp);
-				reg.sp += 2;
-				cpu_clock_t = 20;
-			}
-			else {
-				cpu_clock_t = 8;
-			}
-			cpu_clock_m = cpu_clock_t / 4;
-			cycles += cpu_clock_t;
-		break;
-
-		// RET
-		case 0xC9:
+	// RET Z
+	case 0xC8:
+		if (bitTest(reg.f, FLAG_ZERO)) {
 			reg.pc = mmu.read_u16(reg.sp);
 			reg.sp += 2;
-		break;
+			cpu_clock_t += 12;
+		}
+	break;
 
-		// CB is a prefix
-		case 0xCB:
-			if (!execute_CB(operand)) {
-				printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
-				printf("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions_CB[operand].disassembly, operand);
-		    return false;
-			}
-		break;
+	// RET
+	case 0xC9:
+		reg.pc = mmu.read_u16(reg.sp);
+		reg.sp += 2;
+	break;
 
-		// CALL nnnn
-		case 0xCD:
-			reg.sp -= 2;
-			mmu.write_u16(reg.sp, reg.pc);
-			reg.pc = operand;
-		break;
+	// CB is a prefix
+	case 0xCB:
+		if (!execute_CB(operand)) {
+			printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
+			printf("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions_CB[operand].disassembly, operand);
+		return false;
+		}
+	break;
 
-		// POP DE
-		case 0xD1:
-			reg.de = mmu.read_u16(reg.sp);
-			reg.sp += 2;
-		break;
+	// CALL nnnn
+	case 0xCD:
+		reg.sp -= 2;
+		mmu.write_u16(reg.sp, reg.pc);
+		reg.pc = operand;
+	break;
 
-		// PUSH DE
-		case 0xD5:
-			reg.sp -= 2;
-			mmu.write_u16(reg.sp, reg.de);
-		break;
+	// POP DE
+	case 0xD1:
+		reg.de = mmu.read_u16(reg.sp);
+		reg.sp += 2;
+	break;
 
-		// RETI
-		case 0xD9:
-			reg.pc = mmu.read_u16(reg.sp);
-			reg.sp += 2;
-			ime = true;
-		break;
+	// PUSH DE
+	case 0xD5:
+		reg.sp -= 2;
+		mmu.write_u16(reg.sp, reg.de);
+	break;
+
+	// RETI
+	case 0xD9:
+		reg.pc = mmu.read_u16(reg.sp);
+		reg.sp += 2;
+		ime = true;
+	break;
 
     // LDH (0xFF00 + nn), A
     case 0xE0:
     	mmu.write_u8(0xFF00 + operand, reg.a);
     break;
 
-		// POP HL
-		case 0xE1:
-			reg.hl = mmu.read_u16(reg.sp);
-			reg.sp += 2;
-		break;
+	// POP HL
+	case 0xE1:
+		reg.hl = mmu.read_u16(reg.sp);
+		reg.sp += 2;
+	break;
 
-		// LD (0xFF00 + C), A
-		case 0xE2:
-			mmu.write_u8((0xFF00 + reg.c), reg.a);
-		break;
+	// LD (0xFF00 + C), A
+	case 0xE2:
+		mmu.write_u8((0xFF00 + reg.c), reg.a);
+	break;
 
-		// PUSH HL
-		case 0xE5:
-			reg.sp-=2;
-			mmu.write_u16(reg.sp, reg.hl);
-		break;
+	// PUSH HL
+	case 0xE5:
+		reg.sp-=2;
+		mmu.write_u16(reg.sp, reg.hl);
+	break;
 
-		// AND nn
-		case 0xE6:
-			andReg(operand);
-		break;
+	// AND nn
+	case 0xE6:
+		andReg(operand);
+	break;
 
-		// LD (nnnn), A
-		case 0xEA:
-			mmu.write_u8(operand, reg.a);
-		break;
+	// LD (nnnn), A
+	case 0xEA:
+		mmu.write_u8(operand, reg.a);
+	break;
 
-		// RST 0x28
-		case 0xEF:
-			reg.sp -=2 ;
-			mmu.write_u16(reg.sp, reg.pc);
-			reg.pc = operand;
-		break;
+	// RST 0x28
+	case 0xEF:
+		reg.sp -=2 ;
+		mmu.write_u16(reg.sp, reg.pc);
+		reg.pc = operand;
+	break;
 
     // LDH A, (0xFF00 + nn)
     case 0xF0:
     	reg.a = mmu.read_u8(0xFF00 + operand);
     break;
 
-		// POP AF
-		case 0xF1:
-			reg.af = mmu.read_u16(reg.sp);
-			reg.sp += 2;
-		break;
+	// POP AF
+	case 0xF1:
+		reg.af = mmu.read_u16(reg.sp);
+		reg.sp += 2;
+	break;
 
     // DI
     case 0xF3:
 	    ime = false;
     break;
 
-		// PUSH AF
-		case 0xF5:
-			reg.sp-=2;
-			mmu.write_u16(reg.sp, reg.af);
-		break;
+	// PUSH AF
+	case 0xF5:
+		reg.sp-=2;
+		mmu.write_u16(reg.sp, reg.af);
+	break;
 
-		// LD A, (nnnn)
-		case 0xFA:
-			reg.a = mmu.read_u8(operand);
-		break;
+	// LD A, (nnnn)
+	case 0xFA:
+		reg.a = mmu.read_u8(operand);
+	break;
 
-		// EI
-		case 0xFB:
-			ime = true;
-			eiDelay = true;
-		break;
+	// EI
+	case 0xFB:
+		ime = true;
+		eiDelay = true;
+	break;
 
-		// CP nn
-		// Implied subtraction (A - nn) and set flags
-		case 0xFE:
-			reg.f = 0;
-			if (reg.a < operand) {
-				bitSet(reg.f, FLAG_CARRY);
-			}
-			if ((reg.a & 0xF) < (operand & 0xF)) {
-				bitSet(reg.f, FLAG_HALF_CARRY);
-			}
-			bitSet(reg.f, FLAG_SUBTRACT);
-			if ((reg.a - operand) == 0) {
-				bitSet(reg.f, FLAG_ZERO);
-			}
-		break;
+	// CP nn
+	// Implied subtraction (A - nn) and set flags
+	case 0xFE:
+		reg.f = 0;
+		if (reg.a < operand) {
+			bitSet(reg.f, FLAG_CARRY);
+		}
+		if ((reg.a & 0xF) < (operand & 0xF)) {
+			bitSet(reg.f, FLAG_HALF_CARRY);
+		}
+		bitSet(reg.f, FLAG_SUBTRACT);
+		if ((reg.a - operand) == 0) {
+			bitSet(reg.f, FLAG_ZERO);
+		}
+	break;
 
     default:
 			printf("^^^ Unimplemented instruction: 0x%02X ^^^\n\n", op);
@@ -1256,9 +1285,8 @@ bool CPU::execute() {
 		bitTest(reg.f, FLAG_CARRY) ? printf("C") : printf("c");
 	}
 	if(debug || debugVerbose) { printf("\n"); }
-	if(cpu_clock_t <= 0) {
-		printf("problem with %X, cycles: %d\n", op, cpu_clock_t);
-	}
+	cpu_clock_m = cpu_clock_t / 4;
+	cycles += cpu_clock_t;
 
   return true;
 }
