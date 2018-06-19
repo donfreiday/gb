@@ -39,7 +39,7 @@ CPU::instruction instructions[256] = {
 	{ "DEC D", 0, 4 },                    // 0x15
 	{ "LD D, 0x%02X", 1, 8 },             // 0x16
 	{ "RLA", 0, 4 },                      // 0x17
-	{ "JR 0x%02X", 1, 8 },                // 0x18
+	{ "JR 0x%02X", 1, 12 },                // 0x18
 	{ "ADD HL, DE", 0, 8 },               // 0x19
 	{ "LD A, (DE)", 0, 8 },               // 0x1a
 	{ "DEC DE", 0, 8 },                   // 0x1b
@@ -216,7 +216,7 @@ CPU::instruction instructions[256] = {
 	{ "ADD A, 0x%02X", 1, 8 },            // 0xc6
 	{ "RST 0x00", 0, 16 },                // 0xc7
 	{ "RET Z", 0, 0 },                    // 0xc8
-	{ "RET", 0, 4 },                      // 0xc9
+	{ "RET", 0, 16 },                      // 0xc9
 	{ "JP Z, 0x%04X", 2, 0 },             // 0xca
 	{ "CB %02X", 1, 0 },                  // 0xcb
 	{ "CALL Z, 0x%04X", 2, 0 },           // 0xcc
@@ -1248,7 +1248,7 @@ bool CPU::execute() {
   }
 
 	if(debugVerbose) {
-		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x mcycles=%d", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, ime, cpu_clock_m);
+		printf("\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x mcycles=%d tcycles=%X", reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, ime, cpu_clock_m, cycles);
 		printf(" flags=");
 		bitTest(reg.f, FLAG_ZERO) ? printf("Z") : printf("z");
 		bitTest(reg.f, FLAG_SUBTRACT) ? printf("N") : printf("n");
