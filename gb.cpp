@@ -64,7 +64,35 @@ void gb::run() {
             printf("\n");
           }
           break;
+          
+          // Disassemble
+          case SDLK_d: {
+            int length = 0;
+            printf("Disassemble how many bytes: ");
+            scanf("%X", &length);
 
+            for (int pc = cpu.reg.pc; pc < cpu.reg.pc + length; pc++) {
+                printf("%04X: ", pc);
+              	u8 op = cpu.mmu.read_u8(pc++);
+                u16 operand;
+                if (cpu.instructions[op].operandLength == 1) {
+                  operand = cpu.mmu.read_u8(pc);
+                  printf(cpu.instructions[op].disassembly, operand); 
+                }
+                else if (cpu.instructions[op].operandLength == 2) {
+                  operand = cpu.mmu.read_u16(pc++);
+                  printf(cpu.instructions[op].disassembly, operand); 
+                }
+                else {
+                  printf("%s", cpu.instructions[op].disassembly); 
+                }
+                printf(" m:%d\n", cpu.instructions[op].cycles/4);
+
+
+            }
+          }
+
+          break;
           // List breakpoints
           case SDLK_l:
             printf("Breakpoints: ");
