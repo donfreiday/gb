@@ -73,22 +73,21 @@ void gb::run() {
 
             for (int pc = cpu.reg.pc; pc < cpu.reg.pc + length; pc++) {
                 printf("%04X: ", pc);
-              	u8 op = cpu.mmu.read_u8(pc++);
+              	u8 op = cpu.mmu.read_u8(pc);
                 u16 operand;
                 if (cpu.instructions[op].operandLength == 1) {
-                  operand = cpu.mmu.read_u8(pc);
+                  operand = cpu.mmu.read_u8(++pc);
                   printf(cpu.instructions[op].disassembly, operand); 
                 }
                 else if (cpu.instructions[op].operandLength == 2) {
-                  operand = cpu.mmu.read_u16(pc++);
+                  operand = cpu.mmu.read_u16(++pc);
                   printf(cpu.instructions[op].disassembly, operand); 
+                  pc++;
                 }
                 else {
                   printf("%s", cpu.instructions[op].disassembly); 
                 }
                 printf(" m:%d\n", cpu.instructions[op].cycles/4);
-
-
             }
           }
 
