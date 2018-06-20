@@ -10,46 +10,40 @@
 #include "mmu.h"
 
 class GPU {
-  public:
-    GPU();
-    ~GPU();
+ public:
+  GPU();
+  ~GPU();
 
-    void reset();
-    void step(u8 cycles); // clock step
-    void renderScreen();
+  void reset();
+  void step(u8 cycles);  // clock step
+  void renderScreen();
 
-    MMU* mmu;
+  MMU* mmu;
 
-  private:
-    u8 screenData[144][160][3];
-    SDL_Window *window;
-    SDL_GLContext mainContext;
+ private:
+  u8 screenData[144][160][3];
+  SDL_Window* window;
+  SDL_GLContext mainContext;
 
-    int width;
-    int height;
+  int width;
+  int height;
 
-    int mode;
-    int modeclock;
-    u8 scanline;
+  int mode;
+  int modeclock;
+  u8 scanline;
 
-    bool initSDL(); // Starts up SDL and creates window
-    void initGL();
+  bool initSDL();  // Starts up SDL and creates window
+  void initGL();
 
-    void renderScanline(); // write scanline to surface
-    void renderBackground();
-    void renderSprites();
+  void renderScanline();  // write scanline to surface
+  void renderBackground();
+  void renderSprites();
 
-    enum COLOR
-		{
-			WHITE,
-			LIGHT_GRAY,
-			DARK_GRAY,
-			BLACK
-		};
+  enum COLOR { WHITE, LIGHT_GRAY, DARK_GRAY, BLACK };
 
-    COLOR paletteLookup(u8 colorID, u16 address);
+  COLOR paletteLookup(u8 colorID, u16 address);
 
-    void requestInterrupt(u8 interrupt);
+  void requestInterrupt(u8 interrupt);
 };
 
 #endif

@@ -15,11 +15,11 @@
 // 8-bit LCD control register
 #define LCD_CTL 0xFF40
 #define LCD_CTL_DISPLAY_ENABLE 7
-#define LCD_CTL_WINDOW_TILE_MAP_SELECT 6 // 0 = 9800-9BFF, 1 = 9C00-9FFF
+#define LCD_CTL_WINDOW_TILE_MAP_SELECT 6  // 0 = 9800-9BFF, 1 = 9C00-9FFF
 #define LCD_CTL_WINDOW_ENABLE 5
-#define LCD_CTL_TILE_DATA_SELECT 4 // 0 = 8800-97FF, 1 = 9C00-9FFF
-#define LCD_CTL_BG_TILE_MAP_SELECT 3// 0 = 9800-9BFF, 1 = 9C00-9FFF
-#define LCD_CTL_OBJ_SIZE 2 // 0 = 8x8, 1 = 8x16
+#define LCD_CTL_TILE_DATA_SELECT 4    // 0 = 8800-97FF, 1 = 9C00-9FFF
+#define LCD_CTL_BG_TILE_MAP_SELECT 3  // 0 = 9800-9BFF, 1 = 9C00-9FFF
+#define LCD_CTL_OBJ_SIZE 2            // 0 = 8x8, 1 = 8x16
 #define LCD_CTL_OBJ_ENABLE 1
 #define LCD_CTL_BG_ENABLE 0
 
@@ -29,13 +29,12 @@
 #define LCD_STAT_MODE2_INT_ENABLE 5
 #define LCD_STAT_MODE1_INT_ENABLE 4
 #define LCD_STAT_MODE0_INT_ENABLE 3
-#define LCD_STAT_COINCIDENCE_FLAG 2 // 0: LYC != LY, 1: LYC=LY
-#define LCD_STAT_MODE_FLAG_HIGH 1 // 00 = hblank, 01 = vblank, 10 = oam search, 11 = lcd driver data tx
+#define LCD_STAT_COINCIDENCE_FLAG 2  // 0: LYC != LY, 1: LYC=LY
+#define LCD_STAT_MODE_FLAG_HIGH \
+  1  // 00 = hblank, 01 = vblank, 10 = oam search, 11 = lcd driver data tx
 #define LCD_STAT_MODE_FLAG_LOW 0
 
-
-GPU::GPU() {
-}
+GPU::GPU() {}
 
 GPU::~GPU() {
   window = NULL;
@@ -49,6 +48,7 @@ void GPU::reset() {
   height = 144;
   scanline = 0;
   mmu->memory[LCD_SCANLINE] = scanline;
+  mmu->memory[LCD_STAT] = 0x84;
   modeclock = 0;
   mode = 0;
   memset(screenData, 0, sizeof(screenData));
@@ -57,20 +57,24 @@ void GPU::reset() {
 
 // Starts up SDL and creates window
 bool GPU::initSDL() {
-  if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
     printf("SDL failed to initialize! SDL_Error: %s\n", SDL_GetError());
     return false;
   }
-  window = SDL_CreateWindow("gb", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_OPENGL);
+  window =
+      SDL_CreateWindow("gb", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                       width, height, SDL_WINDOW_OPENGL);
 
   // Rendering context
   mainContext = SDL_GL_CreateContext(window);
 
   // Set our OpenGL version.
-  // SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
+  // SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions
+  // are disabled
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  // 3.2 is part of the modern versions of OpenGL, but most video cards whould be able to run it
+  // 3.2 is part of the modern versions of OpenGL, but most video cards whould
+  // be able to run it
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
@@ -79,7 +83,7 @@ bool GPU::initSDL() {
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
   // This makes our buffer swap syncronized with the monitor's vertical refresh
-	SDL_GL_SetSwapInterval(1);
+  SDL_GL_SetSwapInterval(1);
 
   glClearColor(1.0, 1.0, 1.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -99,12 +103,13 @@ void GPU::step(u8 cycles) {
   u8 status = mmu->read_u8(LCD_STAT);
 
   // If the LCD is disabled:
-  if( !(bitTest(mmu->read_u8(LCD_CTL), LCD_CTL_DISPLAY_ENABLE)) ) {
+  if (!(bitTest(mmu->read_u8(LCD_CTL), LCD_CTL_DISPLAY_ENABLE))) {
     modeclock = 0;
     scanline = 0;
-    mmu->memory[LCD_SCANLINE] = scanline; // writes to this address are trapped in write_u8 and write_u16
+    mmu->memory[LCD_SCANLINE] = scanline;  // writes to this address are trapped
+                                           // in write_u8 and write_u16
     mode = 0;
-    status &= (0xFF << 2); // clear mode flags in LCD status register
+    status &= (0xFF << 2);  // clear mode flags in LCD status register
     mmu->write_u8(LCD_STAT, status);
     return;
   }
@@ -112,78 +117,81 @@ void GPU::step(u8 cycles) {
   modeclock += cycles;
   bool interrupt = false;
 
-  switch(mode) {
+  switch (mode) {
     // OAM read mode, 80 cycles
     case 2:
-      if(modeclock >= 80) {
+      if (modeclock >= 80) {
         modeclock = 0;
         mode = 3;
       }
-    break;
+      break;
 
     // VRAM read mode, 172 cycles. End of mode 3 is end of scanline
     case 3:
-      if(modeclock >= 172) {
+      if (modeclock >= 172) {
         modeclock = 0;
-        mode = 0; // hblank
+        mode = 0;  // hblank
         interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE0_INT_ENABLE);
         renderScanline();
       }
-    break;
+      break;
 
     // hblank, 204 cycles
     case 0:
-      if(modeclock >= 204) {
+      if (modeclock >= 204) {
         modeclock = 0;
         scanline++;
-        if(scanline == 143) {
-          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE1_INT_ENABLE);
-          mode = 1; // vblank
+        if (scanline == 143) {
+          interrupt =
+              bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE1_INT_ENABLE);
+          mode = 1;  // vblank
           renderScreen();
-        }
-        else {
+        } else {
           mode = 2;
-          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
+          interrupt =
+              bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
         }
       }
-    break;
+      break;
 
     // vblank, 456 cycles (10 scanlines)
     case 1:
-      if(modeclock>=456) {
+      if (modeclock >= 456) {
         modeclock = 0;
         scanline++;
-        if(scanline>153) {
-          mode = 2; // restart scanning mode
-          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
+        if (scanline > 153) {
+          mode = 2;  // restart scanning mode
+          interrupt =
+              bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
           requestInterrupt(0);
           scanline = 0;
         }
       }
-    break;
+      break;
   }
 
-  if(interrupt) {
+  if (interrupt) {
     requestInterrupt(1);
   }
 
   // Handle coincidence flag and check for interrupt enabled
   if (scanline == mmu->read_u8(LCD_COINCIDENCE)) {
     bitSet(status, LCD_STAT_COINCIDENCE_FLAG);
-    if(bitTest(status, LCD_STAT_COINCIDENCE_INT_ENABLE)) {
+    if (bitTest(status, LCD_STAT_COINCIDENCE_INT_ENABLE)) {
       requestInterrupt(1);
     }
-  }
-  else {
+  } else {
     bitClear(status, LCD_STAT_COINCIDENCE_FLAG);
   }
 
-  status &= (0xFF << 2); // clear the mode flag bits
+  status &= (0xFF << 2);  // clear the mode flag bits
   status |= mode;
   mmu->write_u8(LCD_STAT, status);
-  mmu->memory[LCD_SCANLINE] = scanline; // writes to this address are trapped in write_u8 and write_u16
+  mmu->memory[LCD_SCANLINE] =
+      scanline;  // writes to this address are trapped in write_u8 and write_u16
 
-  printf("mode:%d\nscanline: %02X\nmodeclock:%d\nstatus:%02X\n\n",mode,scanline, modeclock, status);
+  // printf("mode:%d\nscanline:
+  // %02X\nmodeclock:%d\nstatus:%02X\n\n",mode,scanline, modeclock, status);
 }
 
 // Write scanline to framebuffer
@@ -197,19 +205,21 @@ void GPU::renderScanline() {
   }
 }
 
-/* Background is 256x256 pixels or 32x32 tiles, of which only 160x144 pixels are visible
+/* Background is 256x256 pixels or 32x32 tiles, of which only 160x144 pixels are
+  visible
 
   Visible area is determined by SCROLLX and SCROLLY (0xFF42 and 0xFF43)
 
-  Background layout is between 0x9800-0x9BFF and 0x9C00-0x9FFF, which is shared with the window layer
-  Bit 3 of the LCD control register determines which region to use for background,
-  Bit 6 determines the region for the window.
+  Background layout is between 0x9800-0x9BFF and 0x9C00-0x9FFF, which is shared
+  with the window layer Bit 3 of the LCD control register determines which
+  region to use for background, Bit 6 determines the region for the window.
 
   Tile identifier from background layout is different for each region:
   0x9800-0x9BFF: unsigned byte
   0x9C00-0x9FFF: signed byte
 
-  Tile data is either between 0x8000-0x8FFF or 0x9C00-0x9FFF, depending on bit 4 of the LCD control registers
+  Tile data is either between 0x8000-0x8FFF or 0x9C00-0x9FFF, depending on bit 4
+  of the LCD control registers
 
   Each tile is 8x8 pixels or 16 bytes.
 */
@@ -220,38 +230,41 @@ void GPU::renderBackground() {
   // yPos calculates which of 32 vertical tiles the current scanline is drawing
   u8 yPos = mmu->read_u8(LCD_SCROLLY) + mmu->read_u8(LCD_SCANLINE);
 
-  // Determine which of the 8 vertical pixels of the current tile the scanline is on
-  u16 tileRow = (((u8)(yPos/8))*32);
+  // Determine which of the 8 vertical pixels of the current tile the scanline
+  // is on
+  u16 tileRow = (((u8)(yPos / 8)) * 32);
 
   for (int pixel = 0; pixel < 160; pixel++) {
     u8 xPos = pixel + mmu->read_u8(LCD_SCROLLX);
 
     // Determine which of the 32 horizontal tiles this xPos falls within
-    u16 tileCol = (xPos/8);
+    u16 tileCol = (xPos / 8);
 
     u16 tileAddress = bgTileMap + tileRow + tileCol;
 
     // Tile ID can be signed or unsigned depending on tile data memory region
-    s16 tileID = (tileData == 0x8800) ? (s8)(mmu->read_u8(tileAddress)) : mmu->read_u8(tileAddress);
+    s16 tileID = (tileData == 0x8800) ? (s8)(mmu->read_u8(tileAddress))
+                                      : mmu->read_u8(tileAddress);
 
     // Find this tile ID in memory
-    /* If the tile data memory area we are using is 0x8000-0x8FFF then the tile identifier read from the
-    background layout regions is an UNSIGNED BYTE meaning the tile identifier will range from 0 - 255.
-    However if we are using tile data area 0x8800-0x97FF then the tile identifier read from the background
-    layout is a SIGNED BYTE meaning the tile identifier will range from -127 to 127. */
+    /* If the tile data memory area we are using is 0x8000-0x8FFF then the tile
+    identifier read from the background layout regions is an UNSIGNED BYTE
+    meaning the tile identifier will range from 0 - 255. However if we are using
+    tile data area 0x8800-0x97FF then the tile identifier read from the
+    background layout is a SIGNED BYTE meaning the tile identifier will range
+    from -127 to 127. */
     u16 tileLocation = tileData;
-    //printf("\ntileLocation: %04X",tileLocation);
+    // printf("\ntileLocation: %04X",tileLocation);
     if (tileData == 0x8000) {
       tileLocation += (tileID * 16);
-    }
-    else {
-      tileLocation += ((tileID+128)*16);
+    } else {
+      tileLocation += ((tileID + 128) * 16);
     }
 
-    u8 line = yPos % 8; // Current vertical line of tile
-    line *= 2; // Each vertical line is two bytes
-    u8 data1 = mmu->read_u8(tileLocation+line);
-    u8 data2 = mmu->read_u8(tileLocation+line+1);
+    u8 line = yPos % 8;  // Current vertical line of tile
+    line *= 2;           // Each vertical line is two bytes
+    u8 data1 = mmu->read_u8(tileLocation + line);
+    u8 data2 = mmu->read_u8(tileLocation + line + 1);
 
     /* A tile is 8x8 pixels; each horizontal line in a tile is two bytes.
       pixel# = 0 1 2 3 4 5 6 7
@@ -268,41 +281,52 @@ void GPU::renderBackground() {
       Pixel 7 color id: 01
 
       Pixel 0 is bit 7 of data1 and data2: */
-      int colorBit = xPos % 8;
-      colorBit -= 7;
-      colorBit *= -1;
+    int colorBit = xPos % 8;
+    colorBit -= 7;
+    colorBit *= -1;
 
-      int colorID = 0;
-      //int colorID = (data2 & (1 << colorBit));
-      //colorID <<= 1;
-      if (data2 & (1<<colorBit)){
-        colorID |= 2;
-      }
-      if (data1 & (1<<colorBit)) {
-        colorID |= 1;
-      }
-      //colorID |= (data1 & (1 << colorBit));
+    int colorID = 0;
+    // int colorID = (data2 & (1 << colorBit));
+    // colorID <<= 1;
+    if (data2 & (1 << colorBit)) {
+      colorID |= 2;
+    }
+    if (data1 & (1 << colorBit)) {
+      colorID |= 1;
+    }
+    // colorID |= (data1 & (1 << colorBit));
 
-      COLOR color = paletteLookup(colorID, BG_PALETTE_DATA);
-      u8 red = 0, green = 0, blue = 0;
-      switch(color) {
-        case WHITE:	red = 255; green = 255 ; blue = 255; break ;
-        case LIGHT_GRAY:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
-        case DARK_GRAY:	red = 0x77; green = 0x77 ; blue = 0x77; break ;
-        case BLACK: break; // -Wswitch warning prevention
-      }
+    COLOR color = paletteLookup(colorID, BG_PALETTE_DATA);
+    u8 red = 0, green = 0, blue = 0;
+    switch (color) {
+      case WHITE:
+        red = 255;
+        green = 255;
+        blue = 255;
+        break;
+      case LIGHT_GRAY:
+        red = 0xCC;
+        green = 0xCC;
+        blue = 0xCC;
+        break;
+      case DARK_GRAY:
+        red = 0x77;
+        green = 0x77;
+        blue = 0x77;
+        break;
+      case BLACK:
+        break;  // -Wswitch warning prevention
+    }
 
-      u8 scanline = mmu->read_u8(LCD_SCANLINE) ;
+    u8 scanline = mmu->read_u8(LCD_SCANLINE);
 
-      screenData[scanline][pixel][0] = red;
-      screenData[scanline][pixel][1] = green;
-      screenData[scanline][pixel][2] = blue;
+    screenData[scanline][pixel][0] = red;
+    screenData[scanline][pixel][1] = green;
+    screenData[scanline][pixel][2] = blue;
   }
 }
 
-void GPU::renderSprites() {
-
-}
+void GPU::renderSprites() {}
 
 // todo:+ comment on how this works
 GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
@@ -310,40 +334,60 @@ GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
   u8 palette = mmu->read_u8(address);
   u8 high = 0;
   u8 low = 0;
-  switch(colorID) {
-    case 0: high = 1; low = 0; break;
-    case 1: high = 3; low = 2; break;
-    case 2: high = 5; low = 4; break;
-    case 3: high = 7; low = 6; break;
+  switch (colorID) {
+    case 0:
+      high = 1;
+      low = 0;
+      break;
+    case 1:
+      high = 3;
+      low = 2;
+      break;
+    case 2:
+      high = 5;
+      low = 4;
+      break;
+    case 3:
+      high = 7;
+      low = 6;
+      break;
   }
   u8 color = 0;
-  if(palette&(1<<high)) {
-    color|=2;
+  if (palette & (1 << high)) {
+    color |= 2;
   }
-  if(palette&(1<<low)) {
-    color|=1;
+  if (palette & (1 << low)) {
+    color |= 1;
   }
 
-  switch(color) {
-    case 0: result = WHITE; break;
-    case 1: result = LIGHT_GRAY; break;
-    case 2: result = DARK_GRAY; break;
-    case 3: result = BLACK; break;
+  switch (color) {
+    case 0:
+      result = WHITE;
+      break;
+    case 1:
+      result = LIGHT_GRAY;
+      break;
+    case 2:
+      result = DARK_GRAY;
+      break;
+    case 3:
+      result = BLACK;
+      break;
   }
   return result;
 }
 
 void GPU::renderScreen() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 	glLoadIdentity();
- 	glRasterPos2i(-1, 1);
-	glPixelZoom(1, -1);
- 	glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
-	SDL_GL_SwapWindow(window);
+  glLoadIdentity();
+  glRasterPos2i(-1, 1);
+  glPixelZoom(1, -1);
+  glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
+  SDL_GL_SwapWindow(window);
 }
 
 void GPU::requestInterrupt(u8 interrupt) {
   u8 cpuInterrupts = mmu->read_u8(CPU_INTERRUPT_REQUEST);
   bitSet(cpuInterrupts, interrupt);
-  mmu->write_u8(CPU_INTERRUPT_REQUEST, interrupt);
+  mmu->write_u8(CPU_INTERRUPT_REQUEST, cpuInterrupts);
 }

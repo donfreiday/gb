@@ -9,13 +9,9 @@ gb::gb() {
   gpu.reset();
 }
 
-gb::~gb() {
+gb::~gb() {}
 
-}
-
-bool gb::loadROM(char* file) {
-  return cpu.mmu.load(file);
-}
+bool gb::loadROM(char* file) { return cpu.mmu.load(file); }
 
 void gb::run() {
   std::set<u16> breakpoints;
@@ -23,48 +19,45 @@ void gb::run() {
   bool quit = false;
   SDL_Event e;
 
-  while(!quit) {
-    while(SDL_PollEvent(&e) != 0) {
-      if(e.type == SDL_QUIT) {
+  while (!quit) {
+    while (SDL_PollEvent(&e) != 0) {
+      if (e.type == SDL_QUIT) {
         quit = true;
-      }
-      else if (e.type == SDL_KEYDOWN) {
-        switch(e.key.keysym.sym) {
+      } else if (e.type == SDL_KEYDOWN) {
+        switch (e.key.keysym.sym) {
           case SDLK_UP:
             printf("UP\n");
-          break;
+            break;
 
           case SDLK_DOWN:
             printf("DOWN\n");
-          break;
+            break;
 
           case SDLK_RIGHT:
             printf("RIGHT\n");
-          break;
+            break;
 
           case SDLK_LEFT:
             printf("LEFT\n");
-          break;
+            break;
 
           // Toggle breakpoint
           case SDLK_b: {
             unsigned int breakpoint = 0xFFFF;
             printf("Toggle breakpoint on PC: ");
             scanf("%X", &breakpoint);
-            if(breakpoints.count(breakpoint)) {
+            if (breakpoints.count(breakpoint)) {
               breakpoints.erase(breakpoint);
-            }
-            else {
+            } else {
               breakpoints.insert(breakpoint);
             }
             printf("Breakpoints: ");
-            for(u16 b : breakpoints) {
+            for (u16 b : breakpoints) {
               printf("%04X ", b);
             }
             printf("\n");
-          }
-          break;
-          
+          } break;
+
           // Disassemble
           case SDLK_d: {
             int length = 0;
@@ -72,28 +65,25 @@ void gb::run() {
             scanf("%X", &length);
 
             for (int pc = cpu.reg.pc; pc < cpu.reg.pc + length; pc++) {
-                printf("%04X: ", pc);
-              	u8 op = cpu.mmu.read_u8(pc);
-                u16 operand;
-                if (op == 0xCB) {
-                   op = cpu.mmu.read_u8(++pc);
-                   printf("%s", cpu.instructions_CB[op].disassembly);
-                }
-                else if (cpu.instructions[op].operandLength == 1) {
-                  operand = cpu.mmu.read_u8(pc++);
-                  printf(cpu.instructions[op].disassembly, operand); 
-                }
-                else if (cpu.instructions[op].operandLength == 2) {
-                  operand = cpu.mmu.read_u16(pc++);
-                  printf(cpu.instructions[op].disassembly, operand); 
-                  pc++;
-                }
-                else {
-                  printf("%s", cpu.instructions[op].disassembly); 
-                }
-                printf("   m:%d\n", (op == 0xCB) ? cpu.instructions_CB[op].cycles/4 : cpu.instructions[op].cycles/4);
-
-
+              printf("%04X: ", pc);
+              u8 op = cpu.mmu.read_u8(pc);
+              u16 operand;
+              if (op == 0xCB) {
+                operand = cpu.mmu.read_u8(++pc);
+                printf("%s", cpu.instructions_CB[op].disassembly);
+              } else if (cpu.instructions[op].operandLength == 1) {
+                operand = cpu.mmu.read_u8(pc++);
+                printf(cpu.instructions[op].disassembly, operand);
+              } else if (cpu.instructions[op].operandLength == 2) {
+                operand = cpu.mmu.read_u16(pc++);
+                printf(cpu.instructions[op].disassembly, operand);
+                pc++;
+              } else {
+                printf("%s", cpu.instructions[op].disassembly);
+              }
+              printf("   m:%d\n", (op == 0xCB)
+                                      ? cpu.instructions_CB[operand].cycles / 4
+                                      : cpu.instructions[op].cycles / 4);
             }
           }
 
@@ -101,11 +91,11 @@ void gb::run() {
           // List breakpoints
           case SDLK_l:
             printf("Breakpoints: ");
-            for(u16 b : breakpoints) {
+            for (u16 b : breakpoints) {
               printf("%04X ", b);
             }
             printf("\n");
-          break;
+            break;
 
           // Read memory word
           case SDLK_m: {
@@ -113,8 +103,7 @@ void gb::run() {
             printf("Memory address: ");
             scanf("%X", &address);
             printf("%04X: %04X\n", address, cpu.mmu.read_u16(address));
-          }
-          break;
+          } break;
 
           // Read memory byte
           case SDLK_n: {
@@ -122,43 +111,47 @@ void gb::run() {
             printf("Memory address: ");
             scanf("%X", &address);
             printf("%04X: %02X\n", address, cpu.mmu.read_u8(address));
-          }
-          break;
+          } break;
 
           // Display registers
           case SDLK_r:
-            printf("af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x\n\n", cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc, cpu.ime);
-          break;
+            printf(
+                "af=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X ime=%04x\n\n",
+                cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp,
+                cpu.reg.pc, cpu.ime);
+            break;
 
           // Dump nearest 10 values on the stack
           case SDLK_s:
-            for(int i=10; i>-10; i-=2) {
-              if(cpu.reg.sp+i <= 0xFFFE && cpu.reg.sp+i >= 0) {
-                printf("%04X:%04X\n", cpu.reg.sp+i, cpu.mmu.read_u16(cpu.reg.sp+i));
+            for (int i = 10; i > -10; i -= 2) {
+              if (cpu.reg.sp + i <= 0xFFFE && cpu.reg.sp + i >= 0) {
+                printf("%04X:%04X\n", cpu.reg.sp + i,
+                       cpu.mmu.read_u16(cpu.reg.sp + i));
               }
             }
-          break;
+            break;
 
           // Toggle verbose debugging
           case SDLK_v:
             verbose = !verbose;
-            verbose ? printf("Verbose debugging enabled\n") : printf("Verbose debugging disabled\n");
-          break;
+            verbose ? printf("Verbose debugging enabled\n")
+                    : printf("Verbose debugging disabled\n");
+            break;
 
           // Run till unimplemented instruction
           case SDLK_z:
             // Printing debug info makes this really slow
             cpu.debug = true;
-            cpu.debugVerbose = false;
+            cpu.debugVerbose = true;
             while (cpu.execute()) {
               gpu.step(cpu.cpu_clock_t);
               cpu.checkInterrupts();
-              if(breakpoints.count(cpu.reg.pc)) {
+              if (breakpoints.count(cpu.reg.pc)) {
                 printf("%04X: breakpoint\n", cpu.reg.pc);
                 break;
               }
             }
-          break;
+            break;
 
           // Execute
           case SDLK_x:
@@ -167,29 +160,34 @@ void gb::run() {
             cpu.execute();
             gpu.step(cpu.cpu_clock_t);
             cpu.checkInterrupts();
-          break;
+            break;
 
           // Reset
           case SDLK_q:
             cpu.reset();
             gpu.reset();
-          break;
+            break;
 
           default:
-          break;
+            break;
         }
       }
     }
   }
 }
 
-#define HELP "z: run\nx: step\nm: read memory word\nn: read memory byte\nr: registers\ns: stack\nb: toggle breakpoint on PC\nl: list breakpoints\nv: toggle verbose debugging\nh: help\n\n"
-#define TITLE "\n+------------------------+\n| gb: A Gameboy Emulator |\n+------------------------+\n"
+#define HELP                                                                  \
+  "z: run\nx: step\nm: read memory word\nn: read memory byte\nr: "            \
+  "registers\ns: stack\nb: toggle breakpoint on PC\nl: list breakpoints\nv: " \
+  "toggle verbose debugging\nh: help\n\n"
+#define TITLE                                               \
+  "\n+------------------------+\n| gb: A Gameboy Emulator " \
+  "|\n+------------------------+\n"
 
 int main(int argc, char* args[]) {
   gb core;
   printf(TITLE);
-  if (!core.loadROM(args[1])) { // todo: ROM is hard coded in mmu
+  if (!core.loadROM(args[1])) {  // todo: ROM is hard coded in mmu
     printf("Couldn't load %s\n", args[1]);
     return -1;
   }

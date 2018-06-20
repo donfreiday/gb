@@ -4,18 +4,16 @@
 #ifndef GB_MMU
 #define GB_MMU
 
-#include <fstream>
 #include <stdio.h>
+#include <fstream>
 #include "common.h"
 #include "joypad.h"
 
 class MMU {
+ public:
+  struct cart {};
 
-public:
-  struct cart {
-  };
-
-  unsigned char memory[0xFFFF]; // 16bit address bus
+  unsigned char memory[0xFFFF];  // 16bit address bus
 
   MMU();
   bool load(char* filename);
@@ -27,9 +25,8 @@ public:
 
   Joypad* joypad;
 
-private:
+ private:
   void DMA(u8 src);
-
 };
 
 #endif

@@ -4,13 +4,13 @@
 #include "common.h"
 
 class Joypad {
-public:
+ public:
   Joypad();
   void keyPressed(u8 key);
   void keyReleased(u8 key);
   u8 getState();
 
-private:
+ private:
   u8 state;
 };
 
