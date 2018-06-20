@@ -737,7 +737,6 @@ void CPU::xorReg(t reg1) {
 }
 
 bool CPU::execute() {
-	/*
 	// Blargg instruction timing data for main opcodes.
 	// Times are in machine cycles
 	u8 timings[256] = {
@@ -764,9 +763,9 @@ bool CPU::execute() {
 		 }
 	 }
 
-	// Blargg instruction timing data for main opcodes.
+	// Blargg instruction timing data for CB prefixed opcodes.
 	// Times are in machine cycles
-	u8 timings[256] = {
+	u8 timingsCB[256] = {
 	2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
     2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
     2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
@@ -784,11 +783,34 @@ bool CPU::execute() {
     2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
     2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2 };
 	for (int i = 0; i<256; i++) {
-		if(instructions_CB[i].cycles != timings[i]*4) {
+		if(instructions_CB[i].cycles != timingsCB[i]*4) {
 			printf("0x%02X: %s: should be %d\n", i, instructions_CB[i].disassembly, timings[i]*4); 
 		}
 	 }
-	 */
+
+	u8 timingsConditionalTaken[256] = {
+	1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1,
+    0,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1,
+    3,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1,
+    3,3,2,2,3,3,3,1,3,2,2,2,1,1,2,1,
+    1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+    1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+    1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+    2,2,2,2,2,2,0,2,1,1,1,1,1,1,2,1,
+    1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+    1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+    1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+    1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
+    5,3,4,4,6,4,2,4,5,4,4,0,6,6,2,4,
+    5,3,4,0,6,4,2,4,5,4,4,0,6,0,2,4,
+    3,3,2,0,0,4,2,4,4,1,4,0,0,0,2,4,
+    3,3,2,1,0,4,2,4,3,2,4,1,0,0,2,4 };
+	for (int i = 0; i<256; i++) {
+		if(instructions[i].cycles != timingsConditionalTaken[i]*4) {
+			printf("0x%02X: %s: %d/%d so add %d\n", i, instructions[i].disassembly, timingsConditionalTaken[i]*4, timings[i]*4, timingsConditionalTaken[i]*4-timings[i]*4); 
+		}
+	 }
+	 
 
 	if (debug) { printf("%04X: ", reg.pc); }
 
@@ -813,7 +835,7 @@ bool CPU::execute() {
   reg.pc += instructions[op].operandLength;
 
   // Update cpu clock
-  cpu_clock_t = (op == 0xCB) ? instructions_CB[op].cycles : instructions[op].cycles;
+  cpu_clock_t = instructions[op].cycles;
 
   // Go go go!
   switch(op) {
@@ -1153,6 +1175,7 @@ bool CPU::execute() {
 			printf("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n", instructions_CB[operand].disassembly, operand);
 		return false;
 		}
+		cpu_clock_t = instructions_CB[operand].cycles;
 	break;
 
 	// CALL nnnn
@@ -1315,6 +1338,7 @@ bool CPU::execute_CB(u8 op) {
 			return false;
 		break;
 	}
+	
 	return true;
 }
 

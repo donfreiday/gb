@@ -4,7 +4,9 @@
 #include "mmu.h"
 
 MMU::MMU() {
-
+  for (int i = 0; i<0xFFFF; i++) {
+    memory[i] = 0;
+  }
 }
 
 bool MMU::load(char* filename) {

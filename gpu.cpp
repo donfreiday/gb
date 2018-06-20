@@ -182,6 +182,8 @@ void GPU::step(u8 cycles) {
   status |= mode;
   mmu->write_u8(LCD_STAT, status);
   mmu->memory[LCD_SCANLINE] = scanline; // writes to this address are trapped in write_u8 and write_u16
+
+  printf("mode:%d\nscanline: %02X\nmodeclock:%d\nstatus:%02X\n\n",mode,scanline, modeclock, status);
 }
 
 // Write scanline to framebuffer
