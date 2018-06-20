@@ -116,7 +116,7 @@ public:
 
   // thx to cinoop
   // char const *disassembly; u8 operandLength; u8 cycles;
-  instruction instructions[256] = {
+  const instruction instructions[256] = {
     { "NOP", 0, 4 },                      // 0x00
     { "LD BC, 0x%04X", 2, 12 },           // 0x01
     { "LD (BC), A", 0, 8 },               // 0x02
@@ -374,7 +374,7 @@ public:
     { "CP 0x%02X", 1, 8 },                // 0xfe
     { "RST 0x38", 0, 16 },                // 0xff
   };
-  instruction instructions_CB[256] = {
+  const instruction instructions_CB[256] = {
     { "RLC B", 0, 8 },                    // 0x00
     { "RLC C", 0, 8 },                    // 0x01
     { "RLC D", 0, 8 },                    // 0x02
