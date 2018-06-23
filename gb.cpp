@@ -3,6 +3,8 @@
 
 #include "gb.h"
 
+#define DEBUG true
+
 gb::gb() {
   gpu.mmu = &cpu.mmu;
   cpu.mmu.joypad = &joypad;
@@ -11,7 +13,7 @@ gb::gb() {
 
 gb::~gb() {}
 
-bool gb::loadROM(char* file) { return cpu.mmu.load(file); }
+bool gb::loadROM() { return cpu.mmu.load(); }
 
 void gb::run() {
   std::set<u16> breakpoints;
@@ -176,22 +178,9 @@ void gb::run() {
   }
 }
 
-#define HELP                                                                  \
-  "z: run\nx: step\nm: read memory word\nn: read memory byte\nr: "            \
-  "registers\ns: stack\nb: toggle breakpoint on PC\nl: list breakpoints\nv: " \
-  "toggle verbose debugging\nh: help\n\n"
-#define TITLE                                               \
-  "\n+------------------------+\n| gb: A Gameboy Emulator " \
-  "|\n+------------------------+\n"
-
 int main(int argc, char* args[]) {
   gb core;
-  printf(TITLE);
-  if (!core.loadROM(args[1])) {  // todo: ROM is hard coded in mmu
-    printf("Couldn't load %s\n", args[1]);
-    return -1;
-  }
-  printf(HELP);
+  core.loadROM();
   core.run();
   return 0;
 }

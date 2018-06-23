@@ -14,9 +14,10 @@ class gb {
   gb();
   ~gb();
 
-  bool loadROM(char* file);
+  bool loadROM();
   void run();
 
+ private:
   CPU cpu;
   GPU gpu;
   Joypad joypad;

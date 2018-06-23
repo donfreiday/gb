@@ -16,7 +16,7 @@ class MMU {
   unsigned char memory[0xFFFF];  // 16bit address bus
 
   MMU();
-  bool load(char* filename);
+  bool load();
 
   u8 read_u8(u16 address);
   u16 read_u16(u16 address);
