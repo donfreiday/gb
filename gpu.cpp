@@ -50,7 +50,6 @@ void GPU::reset() {
   mmu->memory[LCD_SCANLINE] = scanline;
   mmu->memory[LCD_STAT] = 0x84;
   modeclock = 0;
-  mode = 0;
   memset(screenData, 0, sizeof(screenData));
   initSDL();
 }
@@ -104,12 +103,12 @@ void GPU::step(u8 cycles) {
 
   // If the LCD is disabled:
   if (!(bitTest(mmu->read_u8(LCD_CTL), LCD_CTL_DISPLAY_ENABLE))) {
-    modeclock = 0;
+    modeclock = 0; 
     scanline = 0;
-    mmu->memory[LCD_SCANLINE] = scanline;  // writes to this address are trapped
-                                           // in write_u8 and write_u16
-    mode = 0;
-    status &= (0xFF << 2);  // clear mode flags in LCD status register
+    mmu->memory[LCD_SCANLINE] = scanline;  // writes to this address are trapped in MMU
+    status &= (0xFF << 2);  // clear mode bits in LCD status register
+    mode = 2; // todo: hack to match BGB LCD timings
+    status |= mode;
     mmu->write_u8(LCD_STAT, status);
     return;
   }
@@ -142,14 +141,12 @@ void GPU::step(u8 cycles) {
         modeclock = 0;
         scanline++;
         if (scanline == 143) {
-          interrupt =
-              bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE1_INT_ENABLE);
+          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE1_INT_ENABLE);
           mode = 1;  // vblank
           renderScreen();
         } else {
           mode = 2;
-          interrupt =
-              bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
+          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
         }
       }
       break;
@@ -190,8 +187,7 @@ void GPU::step(u8 cycles) {
   mmu->memory[LCD_SCANLINE] =
       scanline;  // writes to this address are trapped in write_u8 and write_u16
 
-  // printf("mode:%d\nscanline:
-  // %02X\nmodeclock:%d\nstatus:%02X\n\n",mode,scanline, modeclock, status);
+  printf("mode:%d\nscanline:%02X\nmodeclock:%d\nstatus:%02X\n\n",mode,scanline, modeclock, status);
 }
 
 // Write scanline to framebuffer
