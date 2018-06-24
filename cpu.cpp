@@ -302,13 +302,8 @@ timingsConditionalTaken[i]*4-timings[i]*4);
           }
    }*/
 
-  if (debug) {
-    printf("%04X: ", reg.pc);
-  }
-
   // Fetch the opcode from MMU and increment PC
   u8 op = mmu.read_u8(reg.pc++);
-
   // Parse operand and print disassembly of instruction
   u16 operand;
   if (instructions[op].operandLength == 1) {

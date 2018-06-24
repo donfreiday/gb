@@ -4,12 +4,21 @@
 #include "gb.h"
 
 gb::gb() {
+  // Init debugger
   debugEnabled = true;
-  initscr();  // Initialize curses
+  disasmStartAddr = cpu.reg.pc;
+  runToBreak = false;
+
+  // Init curses
+  initscr();
+  cbreak();              // Disable TTY buffering, one character at a time
+  noecho();              // Suppress echoing of typed characters
+  keypad(stdscr, true);  // Capture special keys
+
+  // Init core
   gpu.mmu = &cpu.mmu;
   cpu.mmu.joypad = &joypad;
   gpu.reset();
-  disasmStartAddr = cpu.reg.pc;
 }
 
 gb::~gb() {
@@ -19,21 +28,35 @@ gb::~gb() {
 bool gb::loadROM() { return cpu.mmu.load(); }
 
 void gb::debug() {
-  cbreak();              // Disable TTY buffering, one character at a time
-  noecho();              // Suppress echoing of typed characters
-  keypad(stdscr, true);  // Capture special keys
+  if (runToBreak) {
+    if (breakpoints.count(cpu.reg.pc)) {
+      runToBreak = false;
+      disassemble();
+      display();
+      refresh();
+      return;
+    }
+    step();
+    return;
+  }
 
   switch (getch()) {
+    // Step
     case KEY_F(7):
-      disassemble();
       step();
+      disassemble();
       display();
+      refresh();
+      break;
+
+    // Run to break
+    case KEY_F(9):
+      runToBreak = true;
       break;
 
     case KEY_UP:
-      
       break;
-    
+
     case KEY_DOWN:
       break;
 
@@ -66,7 +89,6 @@ void gb::display() {
   mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[LCD_STAT]);
   mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LCD_SCROLLY]);
   mvprintw(y++, x, "if=%02X", cpu.mmu.memory[CPU_INTERRUPT_FLAG]);
-  refresh();
 }
 
 void gb::disassemble() {
@@ -75,7 +97,9 @@ void gb::disassemble() {
   u16 operand;
   u8 op;
   for (int i = 0; i < rows; i++) {
-    (pc == cpu.reg.pc) ? attron(A_STANDOUT) : attroff(A_STANDOUT); // Highlight currently executing line
+    (pc == cpu.reg.pc)
+        ? attron(A_STANDOUT)
+        : attroff(A_STANDOUT);  // Highlight currently executing line
     mvprintw(i, 0, "%04X: ", pc);
     op = cpu.mmu.read_u8(pc);
     if (op == 0xCB) {
@@ -93,7 +117,6 @@ void gb::disassemble() {
     }
     pc++;
   }
-  refresh();
 }
 
 /*case SDLK_d: {
@@ -127,15 +150,19 @@ void gb::disassemble() {
 void gb::run() {
   bool quit = false;
   SDL_Event e;
+  if (debugEnabled) {
+    disassemble();
+    display();
+    refresh();
+  }
 
   while (!quit) {
+    if (debugEnabled) {
+      debug();
+    } else {
+      step();
+    }
     while (SDL_PollEvent(&e) != 0) {
-      if (debugEnabled) {
-        debug();
-      } else {
-        step();
-      }
-
       switch (e.type) {
         case SDL_QUIT:
           quit = true;

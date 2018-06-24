@@ -19,7 +19,6 @@ class gb {
   bool loadROM();
   void run();
   
-  
   bool debugEnabled;
 
  private:
@@ -34,6 +33,7 @@ class gb {
   std::set<u16> breakpoints;
   int rows, cols; // Cursor position and terminal size
   u16 disasmStartAddr;
+  bool runToBreak;
   void debug();
   void disassemble();
   void display();
