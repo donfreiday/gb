@@ -4,13 +4,6 @@
 #include "cpu.h"
 #include "mmu.h"
 
-#define CPU_INTERRUPT_FLAG 0xFF0F
-#define CPU_INTERRUPT_ENABLE 0xFFFF
-
-#define LCD_SCANLINE 0xFF44
-#define LCD_STAT 0xFF41
-#define LCD_CTL 0xFF40
-
 #define FLAG_CARRY \
   4  // set if a carry occurred from the last arithmetic operation or if
      // register A is the smaller value when executing the CP instruction
@@ -54,6 +47,7 @@ void CPU::reset() {
   cycles = 0;
   ime = false;
   mmu.write_u8(CPU_INTERRUPT_FLAG, 0xE1);
+  //mmu.write_u8(LCD_CTL, 0x91);
   eiDelay = false;
   debug = false;
   debugVerbose = false;

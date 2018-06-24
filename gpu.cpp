@@ -3,37 +3,6 @@
 
 #include "gpu.h"
 
-#define LCD_SCROLLY 0xFF42
-#define LCD_SCROLLX 0xFF43
-#define LCD_SCANLINE 0xFF44
-#define LCD_COINCIDENCE 0xFF45
-#define BG_PALETTE_DATA 0xFF47
-#define LCD_WINDOWY 0xFF4A
-#define LCD_WINDOWX 0xFF4B
-#define CPU_INTERRUPT_REQUEST 0xFF0F
-
-// 8-bit LCD control register
-#define LCD_CTL 0xFF40
-#define LCD_CTL_DISPLAY_ENABLE 7
-#define LCD_CTL_WINDOW_TILE_MAP_SELECT 6  // 0 = 9800-9BFF, 1 = 9C00-9FFF
-#define LCD_CTL_WINDOW_ENABLE 5
-#define LCD_CTL_TILE_DATA_SELECT 4    // 0 = 8800-97FF, 1 = 9C00-9FFF
-#define LCD_CTL_BG_TILE_MAP_SELECT 3  // 0 = 9800-9BFF, 1 = 9C00-9FFF
-#define LCD_CTL_OBJ_SIZE 2            // 0 = 8x8, 1 = 8x16
-#define LCD_CTL_OBJ_ENABLE 1
-#define LCD_CTL_BG_ENABLE 0
-
-// Bits 6-3 are for interrupt selection
-#define LCD_STAT 0xFF41
-#define LCD_STAT_COINCIDENCE_INT_ENABLE 6
-#define LCD_STAT_MODE2_INT_ENABLE 5
-#define LCD_STAT_MODE1_INT_ENABLE 4
-#define LCD_STAT_MODE0_INT_ENABLE 3
-#define LCD_STAT_COINCIDENCE_FLAG 2  // 0: LYC != LY, 1: LYC=LY
-#define LCD_STAT_MODE_FLAG_HIGH \
-  1  // 00 = hblank, 01 = vblank, 10 = oam search, 11 = lcd driver data tx
-#define LCD_STAT_MODE_FLAG_LOW 0
-
 GPU::GPU() {}
 
 GPU::~GPU() {
@@ -383,7 +352,7 @@ void GPU::renderScreen() {
 }
 
 void GPU::requestInterrupt(u8 interrupt) {
-  u8 cpuInterrupts = mmu->read_u8(CPU_INTERRUPT_REQUEST);
+  u8 cpuInterrupts = mmu->read_u8(CPU_INTERRUPT_FLAG);
   bitSet(cpuInterrupts, interrupt);
-  mmu->write_u8(CPU_INTERRUPT_REQUEST, cpuInterrupts);
+  mmu->write_u8(CPU_INTERRUPT_FLAG, cpuInterrupts);
 }

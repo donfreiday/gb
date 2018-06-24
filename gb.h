@@ -8,6 +8,8 @@
 #include "cpu.h"
 #include "gpu.h"
 #include "joypad.h"
+#include <ncurses.h>
+#include <vector>
 
 class gb {
  public:
@@ -16,11 +18,25 @@ class gb {
 
   bool loadROM();
   void run();
+  
+  
+  bool debugEnabled;
 
  private:
+  void handleSDLKeydown(SDL_Keycode key);
+  void step();
+
   CPU cpu;
   GPU gpu;
   Joypad joypad;
+
+  // Debugger
+  std::set<u16> breakpoints;
+  int rows, cols; // Cursor position and terminal size
+  u16 disasmStartAddr;
+  void debug();
+  void disassemble();
+  void display();
 };
 
 #endif
