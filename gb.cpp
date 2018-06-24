@@ -80,7 +80,7 @@ void gb::disassemble() {
     op = cpu.mmu.read_u8(pc);
     if (op == 0xCB) {
       operand = cpu.mmu.read_u8(++pc);
-      printw("%s", cpu.instructions_CB[op].disassembly);
+      printw("%s", cpu.instructions_CB[operand].disassembly);
     } else if (cpu.instructions[op].operandLength == 1) {
       operand = cpu.mmu.read_u8(++pc);
       printw(cpu.instructions[op].disassembly, operand);
