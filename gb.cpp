@@ -3,17 +3,27 @@
 
 #include "gb.h"
 
+// curses color pairs
+#define RED 1
+#define GREEN 2
+#define WHITE 3
+
 gb::gb() {
   // Init debugger
   debugEnabled = true;
-  disasmStartAddr = cpu.reg.pc;
   runToBreak = false;
+  disasmOffset = 0;
 
   // Init curses
   initscr();
   cbreak();              // Disable TTY buffering, one character at a time
   noecho();              // Suppress echoing of typed characters
   keypad(stdscr, true);  // Capture special keys
+  start_color();
+  init_pair(RED, COLOR_RED, COLOR_BLACK);
+  init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
+  init_pair(WHITE, COLOR_WHITE, COLOR_BLACK);
+  getmaxyx(stdscr, yMax, xMax);
 
   // Init core
   gpu.mmu = &cpu.mmu;
@@ -28,12 +38,12 @@ gb::~gb() {
 bool gb::loadROM() { return cpu.mmu.load(); }
 
 void gb::debug() {
+  getmaxyx(stdscr, yMax, xMax);
   if (runToBreak) {
     if (breakpoints.count(cpu.reg.pc)) {
       runToBreak = false;
-      disassemble();
+      disasmOffset = 0;
       display();
-      refresh();
       return;
     }
     step();
@@ -43,10 +53,8 @@ void gb::debug() {
   switch (getch()) {
     // Step
     case KEY_F(7):
+      disasmOffset = 0;
       step();
-      disassemble();
-      display();
-      refresh();
       break;
 
     // Run to break
@@ -55,14 +63,25 @@ void gb::debug() {
       break;
 
     case KEY_UP:
+      disasmOffset--;
+      break;
+    
+    case KEY_PPAGE: // pageup
+      disasmOffset -= yMax;
       break;
 
     case KEY_DOWN:
+      disasmOffset++;
       break;
+    
+    case KEY_NPAGE: // pagedown
+      disasmOffset += yMax;
+    break;
 
     default:
       break;
   }
+  display();
 }
 
 void gb::step() {
@@ -73,7 +92,54 @@ void gb::step() {
 
 // Use curses to print registers, etc
 void gb::display() {
-  int x = 40;
+  clear();  // Clear screen
+
+  // Find current PC in disassembly
+  // todo: rethink this, use a better search algorithm
+  int index = 0;
+  for (std::vector<gb::disassembly>::size_type i = 0; i < disasm.size(); i++) {
+    if (disasm[i].pc == cpu.reg.pc) {
+      index = i;
+      break;
+    }
+  }
+
+  // Calculate bounds of disassembly display
+  int start = index - (yMax / 2);
+  int end = index + (yMax / 2);
+
+  // todo: redo these bounds checks in a less awful way
+  while (start + disasmOffset < 0) {
+    disasmOffset++;
+  }
+  while (end + disasmOffset > (int)disasm.size()) {
+    disasmOffset--;
+  }
+  start += disasmOffset;
+  end += disasmOffset;
+
+  // Print disassembly
+  for (int i = start; i < end; i++) {
+    attroff(A_STANDOUT);
+    if (breakpoints.count(disasm[i].pc)) {
+      attron(COLOR_PAIR(RED));
+    } else if (disasm[i].pc == cpu.reg.pc) {
+      attron(A_STANDOUT);
+    } 
+    else {
+      attron(COLOR_PAIR(WHITE));
+    }
+    printw("%04X: ", disasm[i].pc);
+    if (disasm[i].operandSize > 0) {
+      printw(disasm[i].str.c_str(), disasm[i].operand);
+    } else {
+      printw(disasm[i].str.c_str());
+    }
+    printw("\n");
+  }
+
+  // Registers
+  int x = xMax / 2;
   int y = 0;
   mvprintw(y++, x, "af= %04X", cpu.reg.af);
   mvprintw(y++, x, "bc= %04X", cpu.reg.bc);
@@ -89,9 +155,10 @@ void gb::display() {
   mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[LCD_STAT]);
   mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LCD_SCROLLY]);
   mvprintw(y++, x, "if=%02X", cpu.mmu.memory[CPU_INTERRUPT_FLAG]);
+  refresh();
 }
 
-void gb::disassemble() {
+/*void gb::disassemble() {
   getmaxyx(stdscr, rows, cols);  // Update screen boundaries
   u16 pc = disasmStartAddr;
   u16 operand;
@@ -116,6 +183,34 @@ void gb::disassemble() {
       printw("%s", cpu.instructions[op].disassembly);
     }
     pc++;
+  }
+}*/
+void gb::disassemble() {
+  u16 operand, pc = 0;
+  u8 op;
+  while (pc < cpu.mmu.getRomSize()) {
+    disassembly d;
+    d.pc = pc;
+    op = cpu.mmu.read_u8(pc);
+    if (op == 0xCB) {
+      d.operandSize = 0;
+      operand = cpu.mmu.read_u8(++pc);
+      d.str = cpu.instructions_CB[operand].disassembly;
+    } else if (cpu.instructions[op].operandLength == 1) {
+      d.operandSize = 1;
+      d.operand = cpu.mmu.read_u8(++pc);
+      d.str = cpu.instructions[op].disassembly;
+    } else if (cpu.instructions[op].operandLength == 2) {
+      d.operandSize = 2;
+      d.operand = cpu.mmu.read_u16(++pc);
+      d.str = cpu.instructions[op].disassembly;
+      pc++;
+    } else {
+      d.operandSize = 0;
+      d.str = cpu.instructions[op].disassembly;
+    }
+    pc++;
+    disasm.push_back(d);
   }
 }
 
@@ -150,10 +245,10 @@ void gb::disassemble() {
 void gb::run() {
   bool quit = false;
   SDL_Event e;
+
   if (debugEnabled) {
     disassemble();
     display();
-    refresh();
   }
 
   while (!quit) {

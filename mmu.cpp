@@ -75,3 +75,8 @@ void MMU::DMA(u8 src) {
     write_u8(0xFE00 + i, read_u8(srcAddress + i));
   }
 }
+
+// todo: 
+int MMU::getRomSize() {
+  return 32000;
+}
