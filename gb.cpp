@@ -4,7 +4,7 @@
 #include "gb.h"
 
 // curses color pairs
-#define RED 1
+#define CYAN 1
 #define GREEN 2
 #define WHITE 3
 
@@ -20,7 +20,7 @@ gb::gb() {
   noecho();              // Suppress echoing of typed characters
   keypad(stdscr, true);  // Capture special keys
   start_color();
-  init_pair(RED, COLOR_RED, COLOR_BLACK);
+  init_pair(CYAN, COLOR_CYAN , COLOR_BLACK);
   init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
   init_pair(WHITE, COLOR_WHITE, COLOR_BLACK);
   getmaxyx(stdscr, yMax, xMax);
@@ -134,22 +134,22 @@ void gb::display() {
 
   // Print disassembly
   for (int i = start; i < end; i++) {
-    attroff(A_STANDOUT);
+    attroff(A_STANDOUT | A_BOLD);
     attron(COLOR_PAIR(WHITE));
 
-    // Cursor position is green
+    // Cursor position is highlighted
     if (cursorPos == i) {
-      attron(COLOR_PAIR(GREEN));
+      attron(A_STANDOUT);
+    }
+
+    // Current PC is bold
+    if (disasm[i].pc == cpu.reg.pc) {
+      attron(A_BOLD);
     }
 
     // Breakpoints are red
     if (std::find(breakpoints.begin(), breakpoints.end(), disasm[i].pc)!=breakpoints.end()) {
-      attron(COLOR_PAIR(RED));
-    }
-
-    // Current PC is highlighted
-    if (disasm[i].pc == cpu.reg.pc) {
-      attron(A_STANDOUT);
+      attron(COLOR_PAIR(CYAN));
     }
 
     printw("%04X: ", disasm[i].pc);
