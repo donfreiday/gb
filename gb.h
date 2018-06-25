@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <ncurses.h>
 #include <stdio.h>
+#include <algorithm>
 #include <set>
 #include <vector>
 #include "common.h"
@@ -41,8 +42,9 @@ class gb {
     std::string str;
     u8 operandSize;
     u16 operand;
+    bool operator==(const u16& rhs) const { return pc == rhs; }
   };
-  std::vector<disassembly> disasm;
+  std::vector<disassembly> disasm; // todo: use a better suited data structure
   void disassemble();          // Populate disasm
   int getDisasmIndex(u16 pc);  // Finds element with given PC
 

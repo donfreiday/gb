@@ -40,7 +40,7 @@ bool gb::loadROM() { return cpu.mmu.load(); }
 void gb::debug() {
   getmaxyx(stdscr, yMax, xMax);
   if (runToBreak) {
-    if (breakpoints.count(cpu.reg.pc)) {
+    if (std::find(breakpoints.begin(), breakpoints.end(), cpu.reg.pc) != breakpoints.end()) {
       runToBreak = false;
       cursorPos = getDisasmIndex(
           cpu.reg.pc);  // Snap cursor to last executed instruction
@@ -54,7 +54,7 @@ void gb::debug() {
   switch (getch()) {
     // Breakpoint
     case KEY_F(2): {
-      if (breakpoints.count(disasm[cursorPos].pc)) {
+      if (std::find(breakpoints.begin(), breakpoints.end(), disasm[cursorPos].pc) != breakpoints.end()) {
         breakpoints.erase(disasm[cursorPos].pc);
       } else {
         breakpoints.insert(disasm[cursorPos].pc);
@@ -103,14 +103,11 @@ void gb::step() {
 }
 
 // Find current PC in disassembly
-// todo: rethink this, use a better search algorithm
+// todo: rethink this, use a better search algorithm / data structure
 int gb::getDisasmIndex(u16 pc) {
-  for (std::vector<gb::disassembly>::size_type i = 0; i < disasm.size(); i++) {
-    if (disasm[i].pc == pc) {
-      return i;
-    }
-  }
-  return 0;
+  std::vector<disassembly>::iterator it; 
+  it = find(disasm.begin(), disasm.end(), pc);
+  return std::distance(disasm.begin(), it);
 }
 
 // Use curses to print disassembly, registers, etc
@@ -146,7 +143,7 @@ void gb::display() {
     }
 
     // Breakpoints are red
-    if (breakpoints.count(disasm[i].pc)) {
+    if (std::find(breakpoints.begin(), breakpoints.end(), disasm[i].pc)!=breakpoints.end()) {
       attron(COLOR_PAIR(RED));
     }
 
