@@ -46,7 +46,8 @@ class gb {
   };
 
   std::vector<disassembly> disasm;
-  int disasmOffset;
+  int cursorPos;
+  bool cursorToPC;
  
 };
 

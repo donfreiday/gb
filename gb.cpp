@@ -12,7 +12,8 @@ gb::gb() {
   // Init debugger
   debugEnabled = true;
   runToBreak = false;
-  disasmOffset = 0;
+  cursorPos = 0;
+  cursorToPC = false;
 
   // Init curses
   initscr();
@@ -42,7 +43,7 @@ void gb::debug() {
   if (runToBreak) {
     if (breakpoints.count(cpu.reg.pc)) {
       runToBreak = false;
-      disasmOffset = 0;
+      cursorToPC = true;
       display();
       return;
     }
@@ -53,7 +54,7 @@ void gb::debug() {
   switch (getch()) {
     // Step
     case KEY_F(7):
-      disasmOffset = 0;
+      cursorToPC = true;
       step();
       break;
 
@@ -63,19 +64,20 @@ void gb::debug() {
       break;
 
     case KEY_UP:
-      disasmOffset--;
+      //disasmOffset--;
+      cursorPos--;
       break;
     
     case KEY_PPAGE: // pageup
-      disasmOffset -= yMax;
+      //disasmOffset -= yMax;
       break;
 
     case KEY_DOWN:
-      disasmOffset++;
+      cursorPos++;
       break;
     
     case KEY_NPAGE: // pagedown
-      disasmOffset += yMax;
+      //disasmOffset += yMax;
     break;
 
     default:
@@ -100,6 +102,10 @@ void gb::display() {
   for (std::vector<gb::disassembly>::size_type i = 0; i < disasm.size(); i++) {
     if (disasm[i].pc == cpu.reg.pc) {
       index = i;
+      if (cursorToPC) {
+        cursorPos = i;
+        cursorToPC = false;
+      }
       break;
     }
   }
@@ -108,15 +114,17 @@ void gb::display() {
   int start = index - (yMax / 2);
   int end = index + (yMax / 2);
 
-  // todo: redo these bounds checks in a less awful way
-  while (start + disasmOffset < 0) {
-    disasmOffset++;
+  start += cursorPos;
+  end += cursorPos;
+
+  if (start <= 0) {
+    end -= start;
+    start = 0;
   }
-  while (end + disasmOffset > (int)disasm.size()) {
-    disasmOffset--;
+
+  if (end > (int)disasm.size()) {
+    end = disasm.size();
   }
-  start += disasmOffset;
-  end += disasmOffset;
 
   // Print disassembly
   for (int i = start; i < end; i++) {
@@ -124,9 +132,10 @@ void gb::display() {
     if (breakpoints.count(disasm[i].pc)) {
       attron(COLOR_PAIR(RED));
     } else if (disasm[i].pc == cpu.reg.pc) {
-      attron(A_STANDOUT);
-    } 
-    else {
+      attron(A_STANDOUT | COLOR_PAIR(WHITE));
+    } else if(cursorPos == i) {
+      attron(COLOR_PAIR(GREEN));
+    } else {
       attron(COLOR_PAIR(WHITE));
     }
     printw("%04X: ", disasm[i].pc);
@@ -139,6 +148,7 @@ void gb::display() {
   }
 
   // Registers
+  attron(COLOR_PAIR(WHITE));
   int x = xMax / 2;
   int y = 0;
   mvprintw(y++, x, "af= %04X", cpu.reg.af);
