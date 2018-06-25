@@ -14,6 +14,7 @@ gb::gb() {
   runToBreak = false;
   cursorPos = 0;
   cursorToPC = false;
+  cursorPC = 0;
 
   // Init curses
   initscr();
@@ -52,6 +53,16 @@ void gb::debug() {
   }
 
   switch (getch()) {
+    // Breakpoint
+    case KEY_F(2): {
+      if (breakpoints.count(cursorPC)) {
+        breakpoints.erase(cursorPC);
+      } else {
+        breakpoints.insert(cursorPC);
+      }
+      break;
+    }
+
     // Step
     case KEY_F(7):
       cursorToPC = true;
@@ -64,21 +75,20 @@ void gb::debug() {
       break;
 
     case KEY_UP:
-      //disasmOffset--;
       cursorPos--;
       break;
-    
-    case KEY_PPAGE: // pageup
-      //disasmOffset -= yMax;
+
+    case KEY_PPAGE:  // pageup
+      cursorPos -= yMax + 2;
       break;
 
     case KEY_DOWN:
       cursorPos++;
       break;
-    
-    case KEY_NPAGE: // pagedown
-      //disasmOffset += yMax;
-    break;
+
+    case KEY_NPAGE:  // pagedown
+      cursorPos += yMax - 2;
+      break;
 
     default:
       break;
@@ -92,22 +102,26 @@ void gb::step() {
   cpu.checkInterrupts();
 }
 
-// Use curses to print registers, etc
+// Find current PC in disassembly
+// todo: rethink this, use a better search algorithm
+int gb::getDisasmIndex(u16 pc) {
+  for (std::vector<gb::disassembly>::size_type i = 0; i < disasm.size(); i++) {
+    if (disasm[i].pc == pc) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+// Use curses to print disassembly, registers, etc
+// todo: overhaul, partial screen draws, etc
 void gb::display() {
   clear();  // Clear screen
 
-  // Find current PC in disassembly
-  // todo: rethink this, use a better search algorithm
-  int index = 0;
-  for (std::vector<gb::disassembly>::size_type i = 0; i < disasm.size(); i++) {
-    if (disasm[i].pc == cpu.reg.pc) {
-      index = i;
-      if (cursorToPC) {
-        cursorPos = i;
-        cursorToPC = false;
-      }
-      break;
-    }
+  int index = getDisasmIndex(cpu.reg.pc);
+  if (cursorToPC) {
+    cursorPos = index;
+    cursorToPC = false;
   }
 
   // Calculate bounds of disassembly display
@@ -129,15 +143,24 @@ void gb::display() {
   // Print disassembly
   for (int i = start; i < end; i++) {
     attroff(A_STANDOUT);
+    attron(COLOR_PAIR(WHITE));
+
+    // Cursor position is green
+    if (cursorPos == i) {
+      attron(COLOR_PAIR(GREEN));
+      cursorPC = disasm[i].pc;
+    } 
+
+    // Breakpoints are red
     if (breakpoints.count(disasm[i].pc)) {
       attron(COLOR_PAIR(RED));
-    } else if (disasm[i].pc == cpu.reg.pc) {
-      attron(A_STANDOUT | COLOR_PAIR(WHITE));
-    } else if(cursorPos == i) {
-      attron(COLOR_PAIR(GREEN));
-    } else {
-      attron(COLOR_PAIR(WHITE));
-    }
+    } 
+    
+    // Current PC is highlighted
+    if (disasm[i].pc == cpu.reg.pc) {
+      attron(A_STANDOUT);
+    } 
+
     printw("%04X: ", disasm[i].pc);
     if (disasm[i].operandSize > 0) {
       printw(disasm[i].str.c_str(), disasm[i].operand);
@@ -168,33 +191,6 @@ void gb::display() {
   refresh();
 }
 
-/*void gb::disassemble() {
-  getmaxyx(stdscr, rows, cols);  // Update screen boundaries
-  u16 pc = disasmStartAddr;
-  u16 operand;
-  u8 op;
-  for (int i = 0; i < rows; i++) {
-    (pc == cpu.reg.pc)
-        ? attron(A_STANDOUT)
-        : attroff(A_STANDOUT);  // Highlight currently executing line
-    mvprintw(i, 0, "%04X: ", pc);
-    op = cpu.mmu.read_u8(pc);
-    if (op == 0xCB) {
-      operand = cpu.mmu.read_u8(++pc);
-      printw("%s", cpu.instructions_CB[operand].disassembly);
-    } else if (cpu.instructions[op].operandLength == 1) {
-      operand = cpu.mmu.read_u8(++pc);
-      printw(cpu.instructions[op].disassembly, operand);
-    } else if (cpu.instructions[op].operandLength == 2) {
-      operand = cpu.mmu.read_u16(++pc);
-      printw(cpu.instructions[op].disassembly, operand);
-      pc++;
-    } else {
-      printw("%s", cpu.instructions[op].disassembly);
-    }
-    pc++;
-  }
-}*/
 void gb::disassemble() {
   u16 operand, pc = 0;
   u8 op;
@@ -223,34 +219,6 @@ void gb::disassemble() {
     disasm.push_back(d);
   }
 }
-
-/*case SDLK_d: {
-  int length = 0;
-  printf("Disassemble how many bytes: ");
-  scanf("%X", &length);
-
-  for (int pc = cpu.reg.pc; pc < cpu.reg.pc + length; pc++) {
-    printf("%04X: ", pc);
-    u8 op = cpu.mmu.read_u8(pc);
-    u16 operand;
-    if (op == 0xCB) {
-      operand = cpu.mmu.read_u8(++pc);
-      printf("%s", cpu.instructions_CB[op].disassembly);
-    } else if (cpu.instructions[op].operandLength == 1) {
-      operand = cpu.mmu.read_u8(pc++);
-      printf(cpu.instructions[op].disassembly, operand);
-    } else if (cpu.instructions[op].operandLength == 2) {
-      operand = cpu.mmu.read_u16(pc++);
-      printf(cpu.instructions[op].disassembly, operand);
-      pc++;
-    } else {
-      printf("%s", cpu.instructions[op].disassembly);
-    }
-    printf("   m:%d\n", (op == 0xCB)
-                            ? cpu.instructions_CB[operand].cycles / 4
-                            : cpu.instructions[op].cycles / 4);
-  }
-}*/
 
 void gb::run() {
   bool quit = false;

@@ -48,6 +48,8 @@ class gb {
   std::vector<disassembly> disasm;
   int cursorPos;
   bool cursorToPC;
+  u16 cursorPC;
+  int getDisasmIndex(u16 pc);
  
 };
 
