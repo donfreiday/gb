@@ -13,7 +13,6 @@ gb::gb() {
   debugEnabled = true;
   runToBreak = false;
   cursorPos = 0;
-  cursorToPC = false;
 
   // Init curses
   initscr();
@@ -43,7 +42,8 @@ void gb::debug() {
   if (runToBreak) {
     if (breakpoints.count(cpu.reg.pc)) {
       runToBreak = false;
-      cursorToPC = true;
+      cursorPos = getDisasmIndex(
+          cpu.reg.pc);  // Snap cursor to last executed instruction
       display();
       return;
     }
@@ -64,8 +64,9 @@ void gb::debug() {
 
     // Step
     case KEY_F(7):
-      cursorToPC = true;
       step();
+      cursorPos = getDisasmIndex(
+          cpu.reg.pc);  // Snap cursor to last executed instruction
       break;
 
     // Run to break
@@ -117,13 +118,8 @@ int gb::getDisasmIndex(u16 pc) {
 void gb::display() {
   clear();  // Clear screen
 
-  int index = getDisasmIndex(cpu.reg.pc);
-  if (cursorToPC) {
-    cursorPos = index;
-    cursorToPC = false;
-  }
-
   // Calculate bounds of disassembly display
+  int index = getDisasmIndex(cpu.reg.pc);
   int start = index - (yMax / 2);
   int end = index + (yMax / 2);
 
@@ -147,17 +143,17 @@ void gb::display() {
     // Cursor position is green
     if (cursorPos == i) {
       attron(COLOR_PAIR(GREEN));
-    } 
+    }
 
     // Breakpoints are red
     if (breakpoints.count(disasm[i].pc)) {
       attron(COLOR_PAIR(RED));
-    } 
-    
+    }
+
     // Current PC is highlighted
     if (disasm[i].pc == cpu.reg.pc) {
       attron(A_STANDOUT);
-    } 
+    }
 
     printw("%04X: ", disasm[i].pc);
     if (disasm[i].operandSize > 0) {

@@ -2,14 +2,14 @@
 #define GB_CORE
 
 #include <SDL2/SDL.h>
+#include <ncurses.h>
 #include <stdio.h>
 #include <set>
+#include <vector>
 #include "common.h"
 #include "cpu.h"
 #include "gpu.h"
 #include "joypad.h"
-#include <ncurses.h>
-#include <vector>
 
 class gb {
  public:
@@ -18,7 +18,7 @@ class gb {
 
   bool loadROM();
   void run();
-  
+
   bool debugEnabled;
 
  private:
@@ -30,9 +30,9 @@ class gb {
   Joypad joypad;
 
   // Debugger
-  int yMax, xMax; // Terminal dimensions
+  int yMax, xMax;  // Terminal dimensions
   std::set<u16> breakpoints;
-  bool runToBreak; // Run till breakpoint
+  bool runToBreak;  // Run till breakpoint
   void debug();
 
   // Disassembler
@@ -43,15 +43,12 @@ class gb {
     u16 operand;
   };
   std::vector<disassembly> disasm;
-  void disassemble(); // Populate disasm
-  int getDisasmIndex(u16 pc); // Finds element with given PC
+  void disassemble();          // Populate disasm
+  int getDisasmIndex(u16 pc);  // Finds element with given PC
 
   // Prints disassembly, registers, etc
   void display();
-  int cursorPos;   // By disasm index
-  bool cursorToPC; // Snap cursor to last executed instruction
-
- 
+  int cursorPos;  // By disasm index
 };
 
 #endif
