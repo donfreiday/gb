@@ -30,26 +30,27 @@ class gb {
   Joypad joypad;
 
   // Debugger
-  int yMax, xMax;
+  int yMax, xMax; // Terminal dimensions
   std::set<u16> breakpoints;
-  bool runToBreak;
+  bool runToBreak; // Run till breakpoint
   void debug();
-  void disassemble();
-  void display();
 
+  // Disassembler
   struct disassembly {
     u16 pc;
     std::string str;
     u8 operandSize;
     u16 operand;
-
   };
-
   std::vector<disassembly> disasm;
-  int cursorPos;
-  bool cursorToPC;
-  u16 cursorPC;
-  int getDisasmIndex(u16 pc);
+  void disassemble(); // Populate disasm
+  int getDisasmIndex(u16 pc); // Finds element with given PC
+
+  // Prints disassembly, registers, etc
+  void display();
+  int cursorPos;   // By disasm index
+  bool cursorToPC; // Snap cursor to last executed instruction
+
  
 };
 

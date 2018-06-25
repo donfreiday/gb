@@ -14,7 +14,6 @@ gb::gb() {
   runToBreak = false;
   cursorPos = 0;
   cursorToPC = false;
-  cursorPC = 0;
 
   // Init curses
   initscr();
@@ -55,10 +54,10 @@ void gb::debug() {
   switch (getch()) {
     // Breakpoint
     case KEY_F(2): {
-      if (breakpoints.count(cursorPC)) {
-        breakpoints.erase(cursorPC);
+      if (breakpoints.count(disasm[cursorPos].pc)) {
+        breakpoints.erase(disasm[cursorPos].pc);
       } else {
-        breakpoints.insert(cursorPC);
+        breakpoints.insert(disasm[cursorPos].pc);
       }
       break;
     }
@@ -148,7 +147,6 @@ void gb::display() {
     // Cursor position is green
     if (cursorPos == i) {
       attron(COLOR_PAIR(GREEN));
-      cursorPC = disasm[i].pc;
     } 
 
     // Breakpoints are red
