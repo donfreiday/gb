@@ -128,11 +128,9 @@ void gb::display() {
 
   // Calculate bounds of disassembly display
   int index = getDisasmIndex(cpu.reg.pc);
+  index += cursorPos;
   int start = index - (yMax / 2);
   int end = index + (yMax / 2);
-
-  start += cursorPos;
-  end += cursorPos;
 
   if (start <= 0) {
     end -= start;
@@ -190,6 +188,25 @@ void gb::display() {
   mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[LCD_STAT]);
   mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LCD_SCROLLY]);
   mvprintw(y++, x, "if=%02X", cpu.mmu.memory[CPU_INTERRUPT_FLAG]);
+
+  // Print stack
+  y += 5;
+  x -= 11;
+  u8 stackDispSize = 28; // bytes
+  start = cpu.reg.sp;
+  if (start < stackDispSize) {
+    start = stackDispSize;
+  }
+  end = start - stackDispSize;
+  for (int i = start; i >= end; i -= 2) {
+    if (i == cpu.reg.sp) {
+      attron(A_STANDOUT);
+    } else {
+      attroff(A_STANDOUT);
+    }
+    mvprintw(y++, x, "%04X:%02X%02X", i, cpu.mmu.memory[i+1], cpu.mmu.memory[i]);
+  }
+
   refresh();
 }
 
