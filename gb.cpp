@@ -19,6 +19,7 @@ gb::gb() {
   cbreak();              // Disable TTY buffering, one character at a time
   noecho();              // Suppress echoing of typed characters
   keypad(stdscr, true);  // Capture special keys
+  curs_set(0);           // Hide the cursor
   start_color();
   init_pair(CYAN, COLOR_CYAN , COLOR_BLACK);
   init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
@@ -75,25 +76,35 @@ void gb::debug() {
       break;
 
     case KEY_UP:
-      cursorPos--;
+      cursorMove(-1);
       break;
 
     case KEY_PPAGE:  // pageup
-      cursorPos -= yMax + 2;
+      cursorMove(-(yMax - 2));
       break;
 
     case KEY_DOWN:
-      cursorPos++;
+      cursorMove(1);
       break;
 
     case KEY_NPAGE:  // pagedown
-      cursorPos += yMax - 2;
+      cursorMove(yMax - 2);
       break;
 
     default:
       break;
   }
   display();
+}
+
+void gb::cursorMove(int distance) {
+  cursorPos += distance;
+  if (cursorPos < 0) {
+    cursorPos = 0;
+  }
+  if (cursorPos > (int)disasm.size()) {
+    cursorPos = disasm.size();
+  }
 }
 
 void gb::step() {

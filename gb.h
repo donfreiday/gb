@@ -51,6 +51,7 @@ class gb {
   // Prints disassembly, registers, etc
   void display();
   int cursorPos;  // By disasm index
+  void cursorMove(int distance);
 };
 
 #endif
