@@ -64,6 +64,11 @@ void gb::debug() {
       break;
     }
 
+    // Watch memory
+    case KEY_F(3):
+
+      break;
+
     // Step
     case KEY_F(7):
       step();

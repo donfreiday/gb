@@ -33,6 +33,7 @@ class gb {
   // Debugger
   int yMax, xMax;  // Terminal dimensions
   std::set<u16> breakpoints;
+  std::set<u16> watches; // Memory 
   bool runToBreak;  // Run till breakpoint
   void debug();
 
