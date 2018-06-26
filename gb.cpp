@@ -20,6 +20,7 @@ gb::gb() {
   noecho();              // Suppress echoing of typed characters
   keypad(stdscr, true);  // Capture special keys
   curs_set(0);           // Hide the cursor
+  timeout(1);            // Nonblocking getch()
   start_color();
   init_pair(CYAN, COLOR_CYAN , COLOR_BLACK);
   init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
@@ -89,6 +90,10 @@ void gb::debug() {
 
     case KEY_NPAGE:  // pagedown
       cursorMove(yMax - 2);
+      break;
+    
+    case ERR: // no input
+      return; // don't redraw display
       break;
 
     default:
