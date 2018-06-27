@@ -212,11 +212,11 @@ void gb::display() {
   mvprintw(y++, x, "ime=%c", cpu.ime ? 1 : '.');
   y = 0;
   x += 11;
-  mvprintw(y++, x, "lcdc=%02X", cpu.mmu.memory[LCD_CTL]);
-  mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[LCD_STAT]);
-  mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LCD_SCANLINE]);
-  mvprintw(y++, x, "ie=%02X", cpu.mmu.memory[CPU_INTERRUPT_ENABLE]);
-  mvprintw(y++, x, "if=%02X", cpu.mmu.memory[CPU_INTERRUPT_FLAG]);
+  mvprintw(y++, x, "lcdc=%02X", cpu.mmu.memory[LCDC]);
+  mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[STAT]);
+  mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LY]);
+  mvprintw(y++, x, "ie=%02X", cpu.mmu.memory[IE]);
+  mvprintw(y++, x, "if=%02X", cpu.mmu.memory[IF]);
 
   // Print stack
   y += 5;
@@ -236,6 +236,23 @@ void gb::display() {
     mvprintw(y++, x, "%04X:%02X%02X", i, cpu.mmu.memory[i + 1],
              cpu.mmu.memory[i]);
   }
+
+  // Print IO map
+  attroff(A_STANDOUT);
+  y = 0;
+  x = xMax / 2;
+  mvprintw(y++, x, "%02X FF40 LCDC", cpu.mmu.memory[LCDC]);
+  mvprintw(y++, x, "%02X FF41 STAT", cpu.mmu.memory[STAT]);
+  mvprintw(y++, x, "%02X FF42 SCY", cpu.mmu.memory[SCY]);
+  mvprintw(y++, x, "%02X FF43 SCX", cpu.mmu.memory[SCX]);
+  mvprintw(y++, x, "%02X FF44 LY", cpu.mmu.memory[LY]);
+  mvprintw(y++, x, "%02X FF45 LYC", cpu.mmu.memory[LYC]);
+  mvprintw(y++, x, "%02X FF46 DMA", cpu.mmu.memory[DMA]);
+  mvprintw(y++, x, "%02X FF47 BGP", cpu.mmu.memory[BGP]);
+  mvprintw(y++, x, "%02X FF48 OBP0", cpu.mmu.memory[OBP0]);
+  mvprintw(y++, x, "%02X FF49 OBP1", cpu.mmu.memory[OBP1]);
+  mvprintw(y++, x, "%02X FF4A WY", cpu.mmu.memory[WY]);
+  mvprintw(y++, x, "%02X FF4B WX", cpu.mmu.memory[WX]);
 
   refresh();
 }

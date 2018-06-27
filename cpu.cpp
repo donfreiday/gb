@@ -47,8 +47,8 @@ void CPU::reset() {
   cycles = 0;
   ime = false;
   mmu.reset();
-  mmu.write_u8(CPU_INTERRUPT_FLAG, 0xE1);
-  //mmu.write_u8(LCD_CTL, 0x91);
+  mmu.write_u8(IF, 0xE1);
+  // mmu.write_u8(LCD_CTL, 0x91);
   eiDelay = false;
   debug = false;
   debugVerbose = false;
@@ -225,102 +225,14 @@ void CPU::xorReg(t reg1) {
 }
 
 bool CPU::execute() {
-  /*// Blargg instruction timing data for main opcodes.
-  // Times are in machine cycles
-  u8 timings[256] = {
-          1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1,
-          0,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1,
-          2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1,
-          2,3,2,2,3,3,3,1,2,2,2,2,1,1,2,1,
-          1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-          1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-          1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-          2,2,2,2,2,2,0,2,1,1,1,1,1,1,2,1,
-          1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-          1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-          1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-          1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-          2,3,3,4,3,4,2,4,2,4,3,0,3,6,2,4,
-          2,3,3,0,3,4,2,4,2,4,3,0,3,0,2,4,
-          3,3,2,0,0,4,2,4,4,1,4,0,0,0,2,4,
-          3,3,2,1,0,4,2,4,3,2,4,1,0,0,2,4
-  };
-   for (int i = 0; i<256; i++) {
-           if(instructions[i].cycles != timings[i]*4) {
-                  printf("0x%02X: %s: should be %d\n", i,
-instructions[i].disassembly, timings[i]*4);
-           }
-   }
-
-  // Blargg instruction timing data for CB prefixed opcodes.
-  // Times are in machine cycles
-  u8 timingsCB[256] = {
-  2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,3,2,2,2,2,2,2,2,3,2,
-2,2,2,2,2,2,3,2,2,2,2,2,2,2,3,2,
-  2,2,2,2,2,2,3,2,2,2,2,2,2,2,3,2,
-2,2,2,2,2,2,3,2,2,2,2,2,2,2,3,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2,
-2,2,2,2,2,2,4,2,2,2,2,2,2,2,4,2 };
-  for (int i = 0; i<256; i++) {
-          if(instructions_CB[i].cycles != timingsCB[i]*4) {
-                  printf("0x%02X: %s: should be %d\n", i,
-instructions_CB[i].disassembly, timings[i]*4);
-          }
-   }
-
-  u8 timingsConditionalTaken[256] = {
-  1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1,
-0,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1,
-3,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1,
-3,3,2,2,3,3,3,1,3,2,2,2,1,1,2,1,
-1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-2,2,2,2,2,2,0,2,1,1,1,1,1,1,2,1,
-1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,
-5,3,4,4,6,4,2,4,5,4,4,0,6,6,2,4,
-5,3,4,0,6,4,2,4,5,4,4,0,6,0,2,4,
-3,3,2,0,0,4,2,4,4,1,4,0,0,0,2,4,
-3,3,2,1,0,4,2,4,3,2,4,1,0,0,2,4 };
-  for (int i = 0; i<256; i++) {
-          if(instructions[i].cycles != timingsConditionalTaken[i]*4) {
-                  printf("0x%02X: %s: %d/%d so add %d\n", i,
-instructions[i].disassembly, timingsConditionalTaken[i]*4, timings[i]*4,
-timingsConditionalTaken[i]*4-timings[i]*4);
-          }
-   }*/
-
   // Fetch the opcode from MMU and increment PC
   u8 op = mmu.read_u8(reg.pc++);
   // Parse operand and print disassembly of instruction
   u16 operand;
   if (instructions[op].operandLength == 1) {
     operand = mmu.read_u8(reg.pc);
-    if (debug) {
-      printf(instructions[op].disassembly, operand);
-    }
   } else if (instructions[op].operandLength == 2) {
     operand = mmu.read_u16(reg.pc);
-    if (debug) {
-      printf(instructions[op].disassembly, operand);
-    }
-  } else {
-    if (debug) {
-      printf("%s", instructions[op].disassembly);
-    }
   }
 
   // Adjust PC
@@ -797,32 +709,11 @@ timingsConditionalTaken[i]*4-timings[i]*4);
   cpu_clock_m = cpu_clock_t / 4;
   cycles += cpu_clock_t;
 
-  if (debugVerbose) {
-    printf(
-        "\naf=%04X bc=%04X de=%04X hl=%04X sp=%04X pc=%04X lcdc=%02X stat=%02X "
-        "ly=%02X ie=%02x if=%02X",
-        reg.af, reg.bc, reg.de, reg.hl, reg.sp, reg.pc, mmu.read_u8(LCD_CTL),
-        mmu.read_u8(LCD_STAT), mmu.read_u8(LCD_SCANLINE), ime,
-        mmu.read_u8(CPU_INTERRUPT_FLAG));
-    printf(" flags=");
-    bitTest(reg.f, FLAG_ZERO) ? printf("Z") : printf("z");
-    bitTest(reg.f, FLAG_SUBTRACT) ? printf("N") : printf("n");
-    bitTest(reg.f, FLAG_HALF_CARRY) ? printf("H") : printf("h");
-    bitTest(reg.f, FLAG_CARRY) ? printf("C") : printf("c");
-  }
-  if (debug || debugVerbose) {
-    printf("\n");
-  }
-
   return true;
 }
 
 // extended instruction set via 0xCB prefix
 bool CPU::execute_CB(u8 op) {
-  if (debug) {
-    printf(": %s", instructions_CB[op].disassembly);
-  }
-
   switch (op) {
     // RL C
     case 0x11:
@@ -860,9 +751,9 @@ void CPU::checkInterrupts() {
     eiDelay = false;
     return;
   }
-  u8 requested = mmu.read_u8(CPU_INTERRUPT_FLAG);
+  u8 requested = mmu.read_u8(IF);
   if (requested > 0) {
-    u8 enabled = mmu.read_u8(CPU_INTERRUPT_ENABLE);
+    u8 enabled = mmu.read_u8(IE);
     for (u8 i = 0; i < 5; i++) {
       if (bitTest(requested, i)) {
         if (bitTest(enabled, i)) {
@@ -875,9 +766,7 @@ void CPU::checkInterrupts() {
 
 void CPU::doInterrupt(u8 interrupt) {
   ime = false;  // IME = disabled
-  mmu.write_u8(CPU_INTERRUPT_FLAG,
-               mmu.read_u8(CPU_INTERRUPT_FLAG) &
-                   ~interrupt);  // Reset bit in Interrupt Request Register
+  mmu.write_u8(IF, mmu.read_u8(IF) & ~interrupt);  // Reset bit in Interrupt Request Register
   reg.sp -= 2;
   mmu.write_u16(reg.sp, reg.pc);  // Push PC to the stack
 

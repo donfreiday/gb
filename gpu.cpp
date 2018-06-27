@@ -16,8 +16,8 @@ void GPU::reset() {
   width = 160;
   height = 144;
   scanline = 0;
-  mmu->memory[LCD_SCANLINE] = scanline;
-  mmu->memory[LCD_STAT] = 0x84;
+  mmu->memory[LY] = scanline;
+  mmu->memory[STAT] = 0x84;
   modeclock = 0;
   memset(screenData, 0, sizeof(screenData));
   initSDL();
@@ -68,17 +68,17 @@ It takes 456 cpu cycles to draw one scanline and move on to the next.
 
 */
 void GPU::step(u8 cycles) {
-  u8 status = mmu->read_u8(LCD_STAT);
+  u8 status = mmu->read_u8(STAT);
 
   // If the LCD is disabled:
-  if (!(bitTest(mmu->read_u8(LCD_CTL), LCD_CTL_DISPLAY_ENABLE))) {
+  if (!(bitTest(mmu->read_u8(LCDC), LCDC_DISPLAY_ENABLE))) {
     modeclock = 0; 
     scanline = 0;
-    mmu->memory[LCD_SCANLINE] = scanline;  // writes to this address are trapped in MMU
+    mmu->memory[LY] = scanline;  // writes to this address are trapped in MMU
     status &= (0xFF << 2);  // clear mode bits in LCD status register
     mode = 2; // todo: hack to match BGB LCD timings
     status |= mode;
-    mmu->write_u8(LCD_STAT, status);
+    mmu->write_u8(STAT, status);
     return;
   }
 
@@ -99,7 +99,7 @@ void GPU::step(u8 cycles) {
       if (modeclock >= 172) {
         modeclock = 0;
         mode = 0;  // hblank
-        interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE0_INT_ENABLE);
+        interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE0_INT_ENABLE);
         renderScanline();
       }
       break;
@@ -110,12 +110,12 @@ void GPU::step(u8 cycles) {
         modeclock = 0;
         scanline++;
         if (scanline == 143) {
-          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE1_INT_ENABLE);
+          interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE1_INT_ENABLE);
           mode = 1;  // vblank
           renderScreen();
         } else {
           mode = 2;
-          interrupt = bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
+          interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE2_INT_ENABLE);
         }
       }
       break;
@@ -128,7 +128,7 @@ void GPU::step(u8 cycles) {
         if (scanline > 153) {
           mode = 2;  // restart scanning mode
           interrupt =
-              bitTest(mmu->read_u8(LCD_STAT), LCD_STAT_MODE2_INT_ENABLE);
+              bitTest(mmu->read_u8(STAT), STAT_MODE2_INT_ENABLE);
           requestInterrupt(0);
           scanline = 0;
         }
@@ -141,31 +141,28 @@ void GPU::step(u8 cycles) {
   }
 
   // Handle coincidence flag and check for interrupt enabled
-  if (scanline == mmu->read_u8(LCD_COINCIDENCE)) {
-    bitSet(status, LCD_STAT_COINCIDENCE_FLAG);
-    if (bitTest(status, LCD_STAT_COINCIDENCE_INT_ENABLE)) {
+  if (scanline == mmu->read_u8(LYC)) {
+    bitSet(status, STAT_LYC_FLAG);
+    if (bitTest(status, STAT_LYC_INT_ENABLE)) {
       requestInterrupt(1);
     }
   } else {
-    bitClear(status, LCD_STAT_COINCIDENCE_FLAG);
+    bitClear(status, STAT_LYC_FLAG);
   }
 
   status &= (0xFF << 2);  // clear the mode flag bits
   status |= mode;
-  mmu->write_u8(LCD_STAT, status);
-  mmu->memory[LCD_SCANLINE] =
-      scanline;  // writes to this address are trapped in write_u8 and write_u16
-
-  //printf("mode:%d\nscanline:%02X\nmodeclock:%d\nstatus:%02X\n\n",mode,scanline, modeclock, status);
+  mmu->write_u8(STAT, status);
+  mmu->memory[LY] = scanline;  // writes to this address are trapped in mmu
 }
 
 // Write scanline to framebuffer
 void GPU::renderScanline() {
-  u8 control = mmu->read_u8(LCD_CTL);
-  if (bitTest(control, LCD_CTL_BG_ENABLE)) {
+  u8 control = mmu->read_u8(LCDC);
+  if (bitTest(control, LCDC_BG_ENABLE)) {
     renderBackground();
   }
-  if (bitTest(control, LCD_CTL_OBJ_ENABLE)) {
+  if (bitTest(control, LCDC_OBJ_ENABLE)) {
     renderSprites();
   }
 }
@@ -189,18 +186,18 @@ void GPU::renderScanline() {
   Each tile is 8x8 pixels or 16 bytes.
 */
 void GPU::renderBackground() {
-  u16 tileData = mmu->read_u8(LCD_CTL) & (1 << 4) ? 0x8000 : 0x8800;
-  u16 bgTileMap = mmu->read_u8(LCD_CTL) & (1 << 3) ? 0x9C00 : 0x9800;
+  u16 tileData = mmu->read_u8(LCDC) & (1 << 4) ? 0x8000 : 0x8800;
+  u16 bgTileMap = mmu->read_u8(LCDC) & (1 << 3) ? 0x9C00 : 0x9800;
 
   // yPos calculates which of 32 vertical tiles the current scanline is drawing
-  u8 yPos = mmu->read_u8(LCD_SCROLLY) + mmu->read_u8(LCD_SCANLINE);
+  u8 yPos = mmu->read_u8(SCY) + mmu->read_u8(LY);
 
   // Determine which of the 8 vertical pixels of the current tile the scanline
   // is on
   u16 tileRow = (((u8)(yPos / 8)) * 32);
 
   for (int pixel = 0; pixel < 160; pixel++) {
-    u8 xPos = pixel + mmu->read_u8(LCD_SCROLLX);
+    u8 xPos = pixel + mmu->read_u8(SCX);
 
     // Determine which of the 32 horizontal tiles this xPos falls within
     u16 tileCol = (xPos / 8);
@@ -261,7 +258,7 @@ void GPU::renderBackground() {
     }
     // colorID |= (data1 & (1 << colorBit));
 
-    COLOR color = paletteLookup(colorID, BG_PALETTE_DATA);
+    COLOR color = paletteLookup(colorID, BGP);
     u8 red = 0, green = 0, blue = 0;
     switch (color) {
       case WHITE:
@@ -283,11 +280,11 @@ void GPU::renderBackground() {
         break;  // -Wswitch warning prevention
     }
 
-    u8 scanline = mmu->read_u8(LCD_SCANLINE);
+    u8 sline = mmu->read_u8(LY);
 
-    screenData[scanline][pixel][0] = red;
-    screenData[scanline][pixel][1] = green;
-    screenData[scanline][pixel][2] = blue;
+    screenData[sline][pixel][0] = red;
+    screenData[sline][pixel][1] = green;
+    screenData[sline][pixel][2] = blue;
   }
 }
 
@@ -354,7 +351,7 @@ void GPU::renderScreen() {
 }
 
 void GPU::requestInterrupt(u8 interrupt) {
-  u8 cpuInterrupts = mmu->read_u8(CPU_INTERRUPT_FLAG);
+  u8 cpuInterrupts = mmu->read_u8(IF);
   bitSet(cpuInterrupts, interrupt);
-  mmu->write_u8(CPU_INTERRUPT_FLAG, cpuInterrupts);
+  mmu->write_u8(IF, cpuInterrupts);
 }

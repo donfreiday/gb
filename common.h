@@ -5,7 +5,6 @@ typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long long int u64;
-
 typedef signed char s8;
 typedef signed short s16;
 typedef signed int s32;
@@ -26,35 +25,43 @@ void bitClear(t &num, u8 pos) {
   num &= ~(1 << pos);
 }
 
-const u16 LCD_SCROLLY = 0xFF42;
-const u16 LCD_SCROLLX = 0xFF43;
-const u16 LCD_SCANLINE = 0xFF44;
-const u16 LCD_COINCIDENCE = 0xFF45;
-const u16 BG_PALETTE_DATA = 0xFF47;
-const u16 LCD_WINDOWY = 0xFF4A;
-const u16 LCD_WINDOWX = 0xFF4B;
-const u16 CPU_INTERRUPT_FLAG = 0xFF0F;
-const u16 CPU_INTERRUPT_ENABLE = 0xFFFF;
+const u16 IF = 0xFF0F;    // Interrupt flag
+const u16 LCDC = 0xFF40;  // LCD control
+const u16 STAT = 0xFF41;  // LCD status
+const u16 SCY = 0xFF42;   // BG scroll Y
+const u16 SCX = 0xFF43;   // BG scroll X
+const u16 LY = 0xFF44;    // Scanline
+const u16 LYC = 0xFF45;   // Scanline coincidence
+const u16 DMA = 0xFF46;   // DMA Transfer and Start Address
+const u16 BGP = 0xFF47;   // BG Palette Data
+const u16 OBP0 = 0xFF48;  // Object Palette 0 Data
+const u16 OBP1 = 0xFF49;  // Object Palette 1 Data
+const u16 WY = 0xFF4A;    // Window Y
+const u16 WX = 0xFF4B;    // Window X
+const u16 IE = 0xFFFF;    // Interrupt enable
 
-// 8-bit LCD control register
-const u16 LCD_CTL = 0xFF40;
-const u8 LCD_CTL_DISPLAY_ENABLE = 7;
-const u8 LCD_CTL_WINDOW_TILE_MAP_SELECT = 6;  // 0 = 9800-9BFF, 1 = 9C00-9FFF
-const u8 LCD_CTL_WINDOW_ENABLE = 5;
-const u8 LCD_CTL_TILE_DATA_SELECT = 4;    // 0 = 8800-97FF, 1 = 9C00-9FFF
-const u8 LCD_CTL_BG_TILE_MAP_SELECT = 3;  // 0 = 9800-9BFF, 1 = 9C00-9FFF
-const u8 LCD_CTL_OBJ_SIZE = 2;            // 0 = 8x8, 1 = 8x16
-const u8 LCD_CTL_OBJ_ENABLE = 1;
-const u8 LCD_CTL_BG_ENABLE = 0;
+// LCDC bits
+const u8 LCDC_DISPLAY_ENABLE = 7;
+const u8 LCDC_WINDOW_TILE_MAP_SELECT = 6;  // 0 = 9800-9BFF, 1 = 9C00-9FFF
+const u8 LCDC_WINDOW_ENABLE = 5;
+const u8 LCDC_TILE_DATA_SELECT = 4;    // 0 = 8800-97FF, 1 = 9C00-9FFF
+const u8 LCDC_BG_TILE_MAP_SELECT = 3;  // 0 = 9800-9BFF, 1 = 9C00-9FFF
+const u8 LCDC_OBJ_SIZE = 2;            // 0 = 8x8, 1 = 8x16
+const u8 LCDC_OBJ_ENABLE = 1;
+const u8 LCDC_BG_ENABLE = 0;
 
-// Bits 6-3 are for interrupt selection
-const u16 LCD_STAT = 0xFF41;
-const u8 LCD_STAT_COINCIDENCE_INT_ENABLE = 6;
-const u8 LCD_STAT_MODE2_INT_ENABLE = 5;
-const u8 LCD_STAT_MODE1_INT_ENABLE = 4;
-const u8 LCD_STAT_MODE0_INT_ENABLE = 3;
-const u8 LCD_STAT_COINCIDENCE_FLAG = 2;  // 0: LYC != LY, 1: LYC=LY
-const u8 LCD_STAT_MODE_FLAG_HIGH = 1;  // 00 = hblank, 01 = vblank, 10 = oam search, 11 = lcd driver data tx
-const u8 LCD_STAT_MODE_FLAG_LOW = 0;
+// STAT bits; 6-3 are for interrupt selection
+// 0-2: Mode :
+// 00 = hblank
+// 01 = vblank
+// 10 = oam search
+// 11 = lcd driver data tx
+const u8 STAT_LYC_INT_ENABLE = 6;
+const u8 STAT_MODE2_INT_ENABLE = 5;
+const u8 STAT_MODE1_INT_ENABLE = 4;
+const u8 STAT_MODE0_INT_ENABLE = 3;
+const u8 STAT_LYC_FLAG = 2;  // 0: LYC != LY, 1: LYC=LY
+const u8 STAT_MODE_HIGH = 1;
+const u8 STAT_MODE_LOW = 0;
 
 #endif
