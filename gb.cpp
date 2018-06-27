@@ -137,10 +137,8 @@ void gb::display() {
   clear();  // Clear screen
 
   // Calculate bounds of disassembly display
-  int index = getDisasmIndex(cpu.reg.pc);
-  index += cursorPos;
-  int start = index - (yMax / 2);
-  int end = index + (yMax / 2);
+  int start = cursorPos - (yMax / 2);
+  int end = cursorPos + (yMax / 2);
 
   if (start <= 0) {
     end -= start;
