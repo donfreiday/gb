@@ -25,7 +25,6 @@ gb::gb() {
   init_pair(CYAN, COLOR_CYAN, COLOR_BLACK);
   init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
   init_pair(WHITE, COLOR_WHITE, COLOR_BLACK);
-  getmaxyx(stdscr, yMax, xMax);
 
   // Init core
   gpu.mmu = &cpu.mmu;
@@ -40,7 +39,6 @@ gb::~gb() {
 bool gb::loadROM() { return cpu.mmu.load(); }
 
 void gb::debug() {
-  getmaxyx(stdscr, yMax, xMax);
   if (runToBreak) {
     if (std::find(breakpoints.begin(), breakpoints.end(), cpu.reg.pc) !=
         breakpoints.end()) {
@@ -137,6 +135,7 @@ int gb::getDisasmIndex(u16 pc) {
 // todo: overhaul, partial screen draws, etc
 void gb::display() {
   clear();  // Clear screen
+  getmaxyx(stdscr, yMax, xMax);
 
   // Calculate bounds of disassembly display
   int start = cursorPos - (yMax / 2);
