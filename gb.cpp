@@ -39,6 +39,14 @@ gb::~gb() {
 bool gb::loadROM() { return cpu.mmu.load(); }
 
 void gb::debug() {
+    // todo: this is a hack
+  if (cpu.mmu.unmapBootrom) {
+    disasm.clear();
+    disassemble();
+    cursorPos = getDisasmIndex(cpu.reg.pc);
+    cpu.mmu.unmapBootrom = false;
+  }
+
   if (runToBreak) {
     if (std::find(breakpoints.begin(), breakpoints.end(), cpu.reg.pc) !=
         breakpoints.end()) {
@@ -197,6 +205,8 @@ void gb::display() {
   mvprintw(y++, x, "lcdc=%02X", cpu.mmu.memory[LCD_CTL]);
   mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[LCD_STAT]);
   mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LCD_SCANLINE]);
+  mvprintw(y++, x, "cnt=todo");
+  mvprintw(y++, x, "ie=%02X", cpu.mmu.memory[CPU_INTERRUPT_ENABLE]);
   mvprintw(y++, x, "if=%02X", cpu.mmu.memory[CPU_INTERRUPT_FLAG]);
 
   // Print stack

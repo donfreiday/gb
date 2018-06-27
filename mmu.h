@@ -27,6 +27,8 @@ class MMU {
 
   Joypad* joypad;
 
+  bool unmapBootrom;
+
  private:
   void DMA(u8 src);
 };

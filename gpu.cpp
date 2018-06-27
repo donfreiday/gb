@@ -349,6 +349,8 @@ void GPU::renderScreen() {
   glPixelZoom(1, -1);
   glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
   SDL_GL_SwapWindow(window);
+  memset(screenData, 0xFF, sizeof(screenData)); // Clear buffer for next frame
+
 }
 
 void GPU::requestInterrupt(u8 interrupt) {

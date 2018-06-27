@@ -4,6 +4,8 @@
 #include "mmu.h"
 
 MMU::MMU() {
+  unmapBootrom = false;
+
   for (int i = 0; i < 0xFFFF; i++) {
     memory[i] = 0;
   }
@@ -48,6 +50,11 @@ u16 MMU::read_u16(u16 address) { return *(u16*)(memory + address); }
 
 void MMU::write_u8(u16 address, u8 value) {
   switch(address) {
+  // Block writes to LCD_STAT
+  // todo: BGB does this, but is this correct behavior?
+  case 0xFF41:
+    break;
+
   // Reset the current scanline if the game tries to write to it
   case 0xFF44: 
     memory[address] = 0;
@@ -60,7 +67,7 @@ void MMU::write_u8(u16 address, u8 value) {
 
   // unmap bootrom, map rom. todo: hack hack hack
   case 0xFF50: {
-    printf("\nunmap bootrom, map rom. todo: hack hack hack\n");
+    unmapBootrom = true;
     std::ifstream file;
     file.open("tetris.gb", std::ios::binary);
     file.seekg(file.beg);
