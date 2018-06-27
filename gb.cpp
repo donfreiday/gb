@@ -201,8 +201,11 @@ void gb::display() {
 
   // Registers
   attron(COLOR_PAIR(WHITE));
-  int x = xMax / 3;
+  int x = xMax / 4;
   int y = 0;
+  attron(A_BOLD);
+  mvprintw(y++, x, "Registers");
+  attroff(A_BOLD);
   mvprintw(y++, x, "af= %04X", cpu.reg.af);
   mvprintw(y++, x, "bc= %04X", cpu.reg.bc);
   mvprintw(y++, x, "de= %04X", cpu.reg.de);
@@ -210,7 +213,7 @@ void gb::display() {
   mvprintw(y++, x, "sp= %04X", cpu.reg.sp);
   mvprintw(y++, x, "pc= %04X", cpu.reg.pc);
   mvprintw(y++, x, "ime=%c", cpu.ime ? 1 : '.');
-  y = 0;
+  y = 1;
   x += 11;
   mvprintw(y++, x, "lcdc=%02X", cpu.mmu.memory[LCDC]);
   mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[STAT]);
@@ -221,6 +224,9 @@ void gb::display() {
   // Print stack
   y += 5;
   x -= 11;
+  attron(A_BOLD);
+  mvprintw(y++, x, "Stack");
+  attroff(A_BOLD);
   u8 stackDispSize = 28;  // bytes
   start = cpu.reg.sp;
   if (start < stackDispSize) {
@@ -240,7 +246,10 @@ void gb::display() {
   // Print IO map
   attroff(A_STANDOUT);
   y = 0;
-  x = xMax / 2;
+  x += 24;
+  attron(A_BOLD);
+  mvprintw(y++, x, "LCD");
+  attroff(A_BOLD);
   mvprintw(y++, x, "%02X FF40 LCDC", cpu.mmu.memory[LCDC]);
   mvprintw(y++, x, "%02X FF41 STAT", cpu.mmu.memory[STAT]);
   mvprintw(y++, x, "%02X FF42 SCY", cpu.mmu.memory[SCY]);
@@ -253,6 +262,49 @@ void gb::display() {
   mvprintw(y++, x, "%02X FF49 OBP1", cpu.mmu.memory[OBP1]);
   mvprintw(y++, x, "%02X FF4A WY", cpu.mmu.memory[WY]);
   mvprintw(y++, x, "%02X FF4B WX", cpu.mmu.memory[WX]);
+  
+  // LCDC
+  y += 2;
+  attron(A_BOLD);
+  mvprintw(y++, x, "LCDC (FF40)");
+  attroff(A_BOLD);
+  bool set;
+  set = bitTest(cpu.mmu.memory[LCDC], LCDC_DISPLAY_ENABLE);
+  mvprintw(y++, x, "%d LCD %s", set, set ? "on" : "off");
+  set = bitTest(cpu.mmu.memory[LCDC], LCDC_WINDOW_TILE_MAP_SELECT);
+  mvprintw(y++, x, "%d WIN %s", set, set ? "9c00-9fff" : "9800-9bff");
+  set = bitTest(cpu.mmu.memory[LCDC], LCDC_WINDOW_ENABLE);
+  mvprintw(y++, x, "%d WIN %s", set, set ? "on" : "off");
+  set = bitTest(cpu.mmu.memory[LCDC], LCDC_TILE_DATA_SELECT);
+  mvprintw(y++, x, "%d CHR %s", set, set ? "8000-8FFF" : "8800-97FF");
+  set = bitTest(cpu.mmu.memory[LCDC], LCDC_BG_TILE_MAP_SELECT);
+  mvprintw(y++, x, "%d BG  %s", set, set ? "9c00-9fff" : "9800-9bff");
+  set = bitTest(cpu.mmu.memory[LCDC], LCDC_OBJ_SIZE);
+  mvprintw(y++, x, "%d OBJ %s", set, set ? "8x16" : "8x8");
+  set = bitTest(cpu.mmu.memory[LCDC], LCDC_OBJ_ENABLE);
+  mvprintw(y++, x, "%d OBJ %s", set, set ? "on" : "off");
+  set = bitTest(cpu.mmu.memory[LCDC], LCDC_BG_ENABLE);
+  mvprintw(y++, x, "%d BG  %s", set, set ? "on" : "off");
+  
+  // More IO map
+  y = 0;
+  x += 16;
+  attron(A_BOLD);
+  mvprintw(y++, x, "various");
+  attroff(A_BOLD);
+  mvprintw(y++, x, "%02X FF70 SVBK", cpu.mmu.memory[SVBK]);  // CGB only
+  mvprintw(y++, x, "%02X FF4F VBK", cpu.mmu.memory[VBK]);    // CGB only
+  mvprintw(y++, x, "%02X FF4D KEY1", cpu.mmu.memory[KEY1]);  // CGB only
+  mvprintw(y++, x, "%02X FF00 JOYP", cpu.mmu.memory[JOYP]);
+  mvprintw(y++, x, "%02X FF01 SB", cpu.mmu.memory[SB]);
+  mvprintw(y++, x, "%02X FF02 SC", cpu.mmu.memory[SC]);
+  mvprintw(y++, x, "%02X FF04 DIV", cpu.mmu.memory[DIV]);
+  mvprintw(y++, x, "%02X FF05 TIMA", cpu.mmu.memory[TIMA]);
+  mvprintw(y++, x, "%02X FF06 TMA", cpu.mmu.memory[TMA]);
+  mvprintw(y++, x, "%02X FF07 TAC", cpu.mmu.memory[TAC]);
+  mvprintw(y++, x, "%02X FF0F IF", cpu.mmu.memory[IF]);
+  mvprintw(y++, x, "%02X FFFF IE", cpu.mmu.memory[IE]);
+  y += 2;
 
   refresh();
 }

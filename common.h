@@ -25,6 +25,14 @@ void bitClear(t &num, u8 pos) {
   num &= ~(1 << pos);
 }
 
+const u16 JOYP = 0xFF00;  // P1/Joypad
+const u16 SB = 0xFF01;    // Serial transfer data
+const u16 SC = 0xFF02;    // Serial transfer control
+const u16 DIV = 0xFF04;   // Divider register
+const u16 TIMA = 0xFF05;  // Timer counter
+const u16 TMA = 0xFF06;   // Timer modulo
+const u16 TAC = 0xFF07;   // Timer control
+
 const u16 IF = 0xFF0F;    // Interrupt flag
 const u16 LCDC = 0xFF40;  // LCD control
 const u16 STAT = 0xFF41;  // LCD status
@@ -38,6 +46,9 @@ const u16 OBP0 = 0xFF48;  // Object Palette 0 Data
 const u16 OBP1 = 0xFF49;  // Object Palette 1 Data
 const u16 WY = 0xFF4A;    // Window Y
 const u16 WX = 0xFF4B;    // Window X
+const u16 KEY1 = 0xFF4D;  // CGB: Prepare speed switch
+const u16 VBK = 0xFF4F;   // CGB: VRAM Bank
+const u16 SVBK = 0xFF70;  // CGB: WRAM Bank
 const u16 IE = 0xFFFF;    // Interrupt enable
 
 // LCDC bits
