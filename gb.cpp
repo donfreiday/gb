@@ -22,7 +22,7 @@ gb::gb() {
   curs_set(0);           // Hide the cursor
   timeout(1);            // Nonblocking getch()
   start_color();
-  init_pair(CYAN, COLOR_CYAN , COLOR_BLACK);
+  init_pair(CYAN, COLOR_CYAN, COLOR_BLACK);
   init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
   init_pair(WHITE, COLOR_WHITE, COLOR_BLACK);
   getmaxyx(stdscr, yMax, xMax);
@@ -42,7 +42,8 @@ bool gb::loadROM() { return cpu.mmu.load(); }
 void gb::debug() {
   getmaxyx(stdscr, yMax, xMax);
   if (runToBreak) {
-    if (std::find(breakpoints.begin(), breakpoints.end(), cpu.reg.pc) != breakpoints.end()) {
+    if (std::find(breakpoints.begin(), breakpoints.end(), cpu.reg.pc) !=
+        breakpoints.end()) {
       runToBreak = false;
       cursorPos = getDisasmIndex(
           cpu.reg.pc);  // Snap cursor to last executed instruction
@@ -56,7 +57,8 @@ void gb::debug() {
   switch (getch()) {
     // Breakpoint
     case KEY_F(2): {
-      if (std::find(breakpoints.begin(), breakpoints.end(), disasm[cursorPos].pc) != breakpoints.end()) {
+      if (std::find(breakpoints.begin(), breakpoints.end(),
+                    disasm[cursorPos].pc) != breakpoints.end()) {
         breakpoints.erase(disasm[cursorPos].pc);
       } else {
         breakpoints.insert(disasm[cursorPos].pc);
@@ -96,9 +98,9 @@ void gb::debug() {
     case KEY_NPAGE:  // pagedown
       cursorMove(yMax - 2);
       break;
-    
-    case ERR: // no input
-      return; // don't redraw display
+
+    case ERR:  // no input
+      return;  // don't redraw display
       break;
 
     default:
@@ -126,7 +128,7 @@ void gb::step() {
 // Find current PC in disassembly
 // todo: rethink this, use a better search algorithm / data structure
 int gb::getDisasmIndex(u16 pc) {
-  std::vector<disassembly>::iterator it; 
+  std::vector<disassembly>::iterator it;
   it = find(disasm.begin(), disasm.end(), pc);
   return std::distance(disasm.begin(), it);
 }
@@ -165,7 +167,8 @@ void gb::display() {
     }
 
     // Breakpoints are red
-    if (std::find(breakpoints.begin(), breakpoints.end(), disasm[i].pc)!=breakpoints.end()) {
+    if (std::find(breakpoints.begin(), breakpoints.end(), disasm[i].pc) !=
+        breakpoints.end()) {
       attron(COLOR_PAIR(CYAN));
     }
 
@@ -200,7 +203,7 @@ void gb::display() {
   // Print stack
   y += 5;
   x -= 11;
-  u8 stackDispSize = 28; // bytes
+  u8 stackDispSize = 28;  // bytes
   start = cpu.reg.sp;
   if (start < stackDispSize) {
     start = stackDispSize;
@@ -212,7 +215,8 @@ void gb::display() {
     } else {
       attroff(A_STANDOUT);
     }
-    mvprintw(y++, x, "%04X:%02X%02X", i, cpu.mmu.memory[i+1], cpu.mmu.memory[i]);
+    mvprintw(y++, x, "%04X:%02X%02X", i, cpu.mmu.memory[i + 1],
+             cpu.mmu.memory[i]);
   }
 
   refresh();
