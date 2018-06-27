@@ -39,7 +39,7 @@ gb::~gb() {
 bool gb::loadROM() { return cpu.mmu.load(); }
 
 void gb::debug() {
-    // todo: this is a hack
+  // todo: this is a hack
   if (cpu.mmu.unmapBootrom) {
     disasm.clear();
     disassemble();
@@ -75,6 +75,16 @@ void gb::debug() {
     // Watch memory
     case KEY_F(3):
 
+      break;
+
+    // Reset
+    case KEY_F(5):
+      cpu.reset();
+      gpu.reset();
+      disasm.clear();
+      disassemble();
+      cursorPos = getDisasmIndex(cpu.reg.pc);
+      display();
       break;
 
     // Step
@@ -190,7 +200,7 @@ void gb::display() {
 
   // Registers
   attron(COLOR_PAIR(WHITE));
-  int x = xMax / 2;
+  int x = xMax / 3;
   int y = 0;
   mvprintw(y++, x, "af= %04X", cpu.reg.af);
   mvprintw(y++, x, "bc= %04X", cpu.reg.bc);
@@ -199,13 +209,11 @@ void gb::display() {
   mvprintw(y++, x, "sp= %04X", cpu.reg.sp);
   mvprintw(y++, x, "pc= %04X", cpu.reg.pc);
   mvprintw(y++, x, "ime=%c", cpu.ime ? 1 : '.');
-  mvprintw(y++, x, "ima=todo");
   y = 0;
   x += 11;
   mvprintw(y++, x, "lcdc=%02X", cpu.mmu.memory[LCD_CTL]);
   mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[LCD_STAT]);
   mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LCD_SCANLINE]);
-  mvprintw(y++, x, "cnt=todo");
   mvprintw(y++, x, "ie=%02X", cpu.mmu.memory[CPU_INTERRUPT_ENABLE]);
   mvprintw(y++, x, "if=%02X", cpu.mmu.memory[CPU_INTERRUPT_FLAG]);
 
@@ -284,7 +292,7 @@ void gb::run() {
         case SDL_KEYDOWN:
           handleSDLKeydown(e.key.keysym.sym);
           break;
-        
+
         case SDL_KEYUP:
           handleSDLKeyup(e.key.keysym.sym);
           break;

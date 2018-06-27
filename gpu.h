@@ -20,6 +20,8 @@ class GPU {
 
   MMU* mmu;
 
+
+
  private:
   u8 screenData[144][160][3];
   SDL_Window* window;
