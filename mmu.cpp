@@ -32,26 +32,46 @@ bool MMU::load() {
   return true;
 }
 
-u8 MMU::read_u8(u16 address) { return memory[address]; }
+u8 MMU::read_u8(u16 address) { 
+  switch(address) {
+    case 0xFF00: // Joypad
+      return joypad->read(memory[0xFF00]);
+      break;
+
+    default:
+      return memory[address]; 
+      break;
+  }  
+}
 
 u16 MMU::read_u16(u16 address) { return *(u16*)(memory + address); }
 
 void MMU::write_u8(u16 address, u8 value) {
+  switch(address) {
   // Reset the current scanline if the game tries to write to it
-  if (address == 0xFF44) {
+  case 0xFF44: 
     memory[address] = 0;
-  } else if (address == 0xFF46) {
+    break;
+
+  // DMA
+  case 0xFF46:
     DMA(value);
-  } else if (address == 0xFF50) {
-    // unmap bootrom, map rom. todo: hack hack hack
+    break;
+
+  // unmap bootrom, map rom. todo: hack hack hack
+  case 0xFF50: {
     printf("\nunmap bootrom, map rom. todo: hack hack hack\n");
     std::ifstream file;
     file.open("tetris.gb", std::ios::binary);
     file.seekg(file.beg);
     file.read((char*)(memory), 0x100);
     file.close();
-  } else {
+    break;
+  }
+  
+  default:
     memory[address] = value;
+    break;
   }
 }
 

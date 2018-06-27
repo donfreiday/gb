@@ -24,6 +24,7 @@ class gb {
 
  private:
   void handleSDLKeydown(SDL_Keycode key);
+  void handleSDLKeyup(SDL_Keycode key);
   void step();
 
   CPU cpu;

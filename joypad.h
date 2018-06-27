@@ -2,13 +2,15 @@
 #define GB_JOYPAD
 
 #include "common.h"
+#include <SDL2/SDL.h>
 
 class Joypad {
  public:
   Joypad();
-  void keyPressed(u8 key);
-  void keyReleased(u8 key);
-  u8 getState();
+  void keyPressed(SDL_Keycode key);
+  void keyReleased(SDL_Keycode key);
+  u8 read(u8 request);
+  u8 write();
 
  private:
   u8 state;

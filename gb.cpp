@@ -274,6 +274,10 @@ void gb::run() {
         case SDL_KEYDOWN:
           handleSDLKeydown(e.key.keysym.sym);
           break;
+        
+        case SDL_KEYUP:
+          handleSDLKeyup(e.key.keysym.sym);
+          break;
 
         default:
           break;
@@ -289,19 +293,32 @@ void gb::handleSDLKeydown(SDL_Keycode key) {
       break;
 
     case SDLK_UP:
-      printw("UP\n");
-      break;
-
     case SDLK_DOWN:
-      printw("DOWN\n");
-      break;
-
     case SDLK_RIGHT:
-      printw("RIGHT\n");
+    case SDLK_LEFT:
+    case SDLK_z:
+    case SDLK_x:
+    case SDLK_RETURN:
+    case SDLK_SPACE:
+      joypad.keyPressed(key);
       break;
 
+    default:
+      break;
+  }
+}
+
+void gb::handleSDLKeyup(SDL_Keycode key) {
+  switch (key) {
+    case SDLK_UP:
+    case SDLK_DOWN:
+    case SDLK_RIGHT:
     case SDLK_LEFT:
-      printw("LEFT\n");
+    case SDLK_z:
+    case SDLK_x:
+    case SDLK_RETURN:
+    case SDLK_SPACE:
+      joypad.keyReleased(key);
       break;
 
     default:
