@@ -4,11 +4,12 @@
 #include "mmu.h"
 
 MMU::MMU() {
-  unmapBootrom = false;
+  reset();
+}
 
-  for (int i = 0; i < 0xFFFF; i++) {
-    memory[i] = 0;
-  }
+void MMU::reset() {
+ unmapBootrom = false;
+ memset(memory, 0, sizeof(memory));
 }
 
 bool MMU::load() {

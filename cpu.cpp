@@ -46,6 +46,7 @@ void CPU::reset() {
   cpu_clock_t = 0;
   cycles = 0;
   ime = false;
+  mmu.reset();
   mmu.write_u8(CPU_INTERRUPT_FLAG, 0xE1);
   //mmu.write_u8(LCD_CTL, 0x91);
   eiDelay = false;

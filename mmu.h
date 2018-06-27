@@ -17,6 +17,7 @@ class MMU {
 
   MMU();
   bool load();
+  void reset();
 
   u8 read_u8(u16 address);
   u16 read_u16(u16 address);
