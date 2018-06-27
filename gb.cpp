@@ -81,6 +81,7 @@ void gb::debug() {
     case KEY_F(5):
       cpu.reset();
       gpu.reset();
+      cpu.mmu.load();
       disasm.clear();
       disassemble();
       cursorPos = getDisasmIndex(cpu.reg.pc);
