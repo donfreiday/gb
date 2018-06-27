@@ -196,7 +196,7 @@ void gb::display() {
   x += 11;
   mvprintw(y++, x, "lcdc=%02X", cpu.mmu.memory[LCD_CTL]);
   mvprintw(y++, x, "stat=%02X", cpu.mmu.memory[LCD_STAT]);
-  mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LCD_SCROLLY]);
+  mvprintw(y++, x, "ly=%02X", cpu.mmu.memory[LCD_SCANLINE]);
   mvprintw(y++, x, "if=%02X", cpu.mmu.memory[CPU_INTERRUPT_FLAG]);
 
   // Print stack
