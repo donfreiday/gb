@@ -4,7 +4,7 @@
 #include "gb.h"
 
 // curses color pairs
-#define CYAN 1
+#define RED 1
 #define GREEN 2
 #define WHITE 3
 
@@ -22,7 +22,7 @@ gb::gb() {
   curs_set(0);           // Hide the cursor
   timeout(1);            // Nonblocking getch()
   start_color();
-  init_pair(CYAN, COLOR_CYAN, COLOR_BLACK);
+  init_pair(RED, COLOR_RED, COLOR_BLACK);
   init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
   init_pair(WHITE, COLOR_WHITE, COLOR_BLACK);
 
@@ -174,6 +174,15 @@ void gb::display() {
     attroff(A_STANDOUT | A_BOLD);
     attron(COLOR_PAIR(WHITE));
 
+    // Breakpoints bullets
+    if (std::find(breakpoints.begin(), breakpoints.end(), disasm[i].pc) != breakpoints.end()) {
+      attron(COLOR_PAIR(RED) | A_BOLD);
+      printw("*");
+      attroff(COLOR_PAIR(RED) | A_BOLD);
+    } else {
+      printw(" ");
+    }
+
     // Cursor position is highlighted
     if (cursorPos == i) {
       attron(A_STANDOUT);
@@ -182,12 +191,6 @@ void gb::display() {
     // Current PC is bold
     if (disasm[i].pc == cpu.reg.pc) {
       attron(A_BOLD);
-    }
-
-    // Breakpoints are red
-    if (std::find(breakpoints.begin(), breakpoints.end(), disasm[i].pc) !=
-        breakpoints.end()) {
-      attron(COLOR_PAIR(CYAN));
     }
 
     printw("%04X: ", disasm[i].pc);
@@ -266,29 +269,29 @@ void gb::display() {
   // LCDC
   y += 2;
   attron(A_BOLD);
-  mvprintw(y++, x, "LCDC (FF40)");
+  mvprintw(y++, x, "  LCDC (FF40)");
   attroff(A_BOLD);
   bool set;
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_DISPLAY_ENABLE);
-  mvprintw(y++, x, "%d LCD %s", set, set ? "on" : "off");
+  mvprintw(y++, x, "%c LCD %s", set ? '*' : ' ', set ? "on" : "off");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_WINDOW_TILE_MAP_SELECT);
-  mvprintw(y++, x, "%d WIN %s", set, set ? "9c00-9fff" : "9800-9bff");
+  mvprintw(y++, x, "%c WIN %s", set ? '*' : ' ', set ? "9c00-9fff" : "9800-9bff");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_WINDOW_ENABLE);
-  mvprintw(y++, x, "%d WIN %s", set, set ? "on" : "off");
+  mvprintw(y++, x, "%c WIN %s", set ? '*' : ' ', set ? "on" : "off");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_TILE_DATA_SELECT);
-  mvprintw(y++, x, "%d CHR %s", set, set ? "8000-8FFF" : "8800-97FF");
+  mvprintw(y++, x, "%c CHR %s", set ? '*' : ' ', set ? "8000-8FFF" : "8800-97FF");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_BG_TILE_MAP_SELECT);
-  mvprintw(y++, x, "%d BG  %s", set, set ? "9c00-9fff" : "9800-9bff");
+  mvprintw(y++, x, "%c BG  %s", set ? '*' : ' ', set ? "9c00-9fff" : "9800-9bff");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_OBJ_SIZE);
-  mvprintw(y++, x, "%d OBJ %s", set, set ? "8x16" : "8x8");
+  mvprintw(y++, x, "%c OBJ %s", set ? '*' : ' ', set ? "8x16" : "8x8");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_OBJ_ENABLE);
-  mvprintw(y++, x, "%d OBJ %s", set, set ? "on" : "off");
+  mvprintw(y++, x, "%c OBJ %s", set ? '*' : ' ', set ? "on" : "off");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_BG_ENABLE);
-  mvprintw(y++, x, "%d BG  %s", set, set ? "on" : "off");
+  mvprintw(y++, x, "%c BG  %s", set ? '*' : ' ', set ? "on" : "off");
   
   // More IO map
   y = 0;
-  x += 18;
+  x += 20;
   attron(A_BOLD);
   mvprintw(y++, x, "various");
   attroff(A_BOLD);
@@ -308,19 +311,19 @@ void gb::display() {
   // STAT
   y += 2;
   attron(A_BOLD);
-  mvprintw(y++, x, "STAT (FF41)");
+  mvprintw(y++, x, "  STAT (FF41)");
   attroff(A_BOLD);
   set = bitTest(cpu.mmu.memory[STAT], STAT_LYC_INT_ENABLE);
-  mvprintw(y++, x, "%d b6 LY=LYC int", set);
+  mvprintw(y++, x, "%c b6 LY=LYC int", set ? '*' : ' ');
   set = bitTest(cpu.mmu.memory[STAT], STAT_MODE2_INT_ENABLE);
-  mvprintw(y++, x, "%d b5 OAM (mode2) int", set);
+  mvprintw(y++, x, "%c b5 OAM (mode2) int", set ? '*' : ' ');
   set = bitTest(cpu.mmu.memory[STAT], STAT_MODE1_INT_ENABLE);
-  mvprintw(y++, x, "%d b4 VBlank (mode1) int", set);
+  mvprintw(y++, x, "%c b4 VBlank (mode1) int", set ? '*' : ' ');
   set = bitTest(cpu.mmu.memory[STAT], STAT_MODE0_INT_ENABLE);
-  mvprintw(y++, x, "%d b3 HBlank (mode0) int", set);
+  mvprintw(y++, x, "%c b3 HBlank (mode0) int", set ? '*' : ' ');
   set = bitTest(cpu.mmu.memory[STAT], STAT_LYC_FLAG);
-  mvprintw(y++, x, "%d b2 LY=LYC", set);
-  mvprintw(y++, x, "%d mode", (cpu.mmu.memory[STAT] & 3)); // low two bits
+  mvprintw(y++, x, "%c b2 LY=LYC", set ? '*' : ' ');
+  mvprintw(y++, x, "  Mode %d", (cpu.mmu.memory[STAT] & 3)); // low two bits
 
   refresh();
 }
