@@ -299,6 +299,11 @@ bool CPU::execute() {
       reg.de = operand;
       break;
 
+    // LD (DE), A
+    case 0x12:
+      mmu.write_u8(reg.de, reg.a);
+      break;
+
     // INC DE
     case 0x13:
       incrementReg(reg.de);
@@ -483,6 +488,11 @@ bool CPU::execute() {
       reg.a = reg.l;
       break;
 
+    // LD A, (HL)
+    case 0x7E:
+      reg.a = mmu.read_u8(reg.hl);
+      break;
+
     // ADD A, (HL)
     case 0x86:
       add(mmu.read_u8(reg.hl));
@@ -552,6 +562,16 @@ bool CPU::execute() {
       reg.pc = operand;
       break;
 
+    // CALL NZ, 0x%04X
+    case 0xC4:
+      if (!bitTest(reg.f, FLAG_ZERO)) {
+        cpu_clock_t += 12;
+        reg.sp -= 2;
+        mmu.write_u16(reg.sp, reg.pc);
+        reg.pc = operand;
+      }
+      break;
+
     // PUSH BC
     case 0xC5:
       reg.sp -= 2;
@@ -571,6 +591,14 @@ bool CPU::execute() {
     case 0xC9:
       reg.pc = mmu.read_u16(reg.sp);
       reg.sp += 2;
+      break;
+
+    // JP Z, 0x%04X
+    case 0xCA:
+      if (bitTest(reg.f, FLAG_ZERO)) {
+        reg.pc = operand;
+        cpu_clock_t += 4;
+      }
       break;
 
     // CB is a prefix
@@ -770,7 +798,8 @@ void CPU::checkInterrupts() {
 
 void CPU::doInterrupt(u8 interrupt) {
   ime = false;  // IME = disabled
-  mmu.write_u8(IF, mmu.read_u8(IF) & ~interrupt);  // Reset bit in Interrupt Request Register
+  mmu.write_u8(IF, mmu.read_u8(IF) &
+                       ~interrupt);  // Reset bit in Interrupt Request Register
   reg.sp -= 2;
   mmu.write_u16(reg.sp, reg.pc);  // Push PC to the stack
 
