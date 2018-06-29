@@ -10,6 +10,7 @@ MMU::MMU() {
 void MMU::reset() {
  unmapBootrom = false;
  memset(memory, 0, sizeof(memory));
+ memory[JOYP] = 0xCF; // 11001111
 }
 
 bool MMU::load() {
