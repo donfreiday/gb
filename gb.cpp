@@ -305,20 +305,6 @@ void gb::display() {
   mvprintw(y++, x, "%02X FF0F IF", cpu.mmu.memory[IF]);
   mvprintw(y++, x, "%02X FFFF IE", cpu.mmu.memory[IE]);
 
-/*// STAT bits; 6-3 are for interrupt selection
-// 0-2: Mode :
-// 00 = hblank
-// 01 = vblank
-// 10 = oam search
-// 11 = lcd driver data tx
-const u8 STAT_LYC_INT_ENABLE = 6;
-const u8 STAT_MODE2_INT_ENABLE = 5;
-const u8 STAT_MODE1_INT_ENABLE = 4;
-const u8 STAT_MODE0_INT_ENABLE = 3;
-const u8 STAT_LYC_FLAG = 2;  // 0: LYC != LY, 1: LYC=LY
-const u8 STAT_MODE_HIGH = 1;
-const u8 STAT_MODE_LOW = 0;*/
-
   // STAT
   y += 2;
   attron(A_BOLD);
