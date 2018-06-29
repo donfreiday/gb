@@ -97,7 +97,9 @@ void gb::debug() {
 
     // Run to break
     case KEY_F(9):
+      step(); // get past breakpoint at current PC
       runToBreak = true;
+      return; // skip display()
       break;
 
     case KEY_UP:
