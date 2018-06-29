@@ -20,6 +20,8 @@ class GPU {
 
   MMU* mmu;
   int modeclock;
+  int mode;
+  u8 scanline;
 
  private:
   u8 screenData[144][160][3];
@@ -28,9 +30,6 @@ class GPU {
 
   int width;
   int height;
-
-  int mode;
-  u8 scanline;
 
   bool initSDL();  // Starts up SDL and creates window
   void initGL();

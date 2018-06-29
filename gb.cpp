@@ -326,7 +326,15 @@ void gb::display() {
   set = bitTest(cpu.mmu.memory[STAT], STAT_LYC_FLAG);
   mvprintw(y++, x, "%c b2 LY=LYC", set ? '*' : ' ');
   mvprintw(y++, x, "  Mode %d", (cpu.mmu.memory[STAT] & 3)); // low two bits
-  mvprintw(y++, x, "  Modeclock %d", gpu.modeclock);
+
+  y += 2;
+  x += 2;
+  attron(A_BOLD);
+  mvprintw(y++, x, "GPU");
+  attroff(A_BOLD);
+  mvprintw(y++, x, "Mode %d", gpu.mode);
+  mvprintw(y++, x, "Modeclock %d", gpu.modeclock);
+  mvprintw(y++, x, "Scanline %02X", gpu.scanline);
 
   refresh();
 }
