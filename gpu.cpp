@@ -74,11 +74,11 @@ void GPU::step(u8 cycles) {
   if (!(bitTest(mmu->read_u8(LCDC), LCDC_DISPLAY_ENABLE))) {
     modeclock = 0; 
     scanline = 0;
-    mmu->memory[LY] = scanline;  // writes to this address are trapped in MMU
-    status &= (0xFF << 2);  // clear mode bits in LCD status register
     mode = 2; // todo: hack to match BGB LCD timings
+    status &= (0xFF << 2);  // clear mode bits in LCD status register
     status |= mode;
-    mmu->write_u8(STAT, status);
+    mmu->memory[STAT] = status;
+    mmu->memory[LY] = scanline;  // writes to this address are trapped in MMU
     return;
   }
 
@@ -152,7 +152,7 @@ void GPU::step(u8 cycles) {
 
   status &= (0xFF << 2);  // clear the mode flag bits
   status |= mode;
-  mmu->write_u8(STAT, status);
+  mmu->memory[STAT] = status;
   mmu->memory[LY] = scanline;  // writes to this address are trapped in mmu
 }
 
