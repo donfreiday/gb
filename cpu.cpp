@@ -576,9 +576,11 @@ bool CPU::execute() {
     // CB is a prefix
     case 0xCB:
       if (!execute_CB(operand)) {
-        printf("^^^ Unimplemented instruction: %02X ^^^\n", op);
-        printf("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n",
+        clear();
+        printw("^^^ Unimplemented instruction: %02X ^^^\n", op);
+        printw("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n",
                instructions_CB[operand].disassembly, operand);
+        refresh();
         return false;
       }
       cpu_clock_t = instructions_CB[operand].cycles;
@@ -699,9 +701,11 @@ bool CPU::execute() {
       break;
 
     default:
-      printf("^^^ Unimplemented instruction: 0x%02X ^^^\n\n", op);
-      printf("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n",
+      clear();
+      printw("^^^ Unimplemented instruction: 0x%02X ^^^\n\n", op);
+      printw("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n",
              instructions[op].disassembly, op);
+      refresh();
       return false;
       break;
   }

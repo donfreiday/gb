@@ -139,7 +139,10 @@ void gb::cursorMove(int distance) {
 }
 
 void gb::step() {
-  cpu.execute();
+  // Stop running on unimplemented opcodes
+  if (!cpu.execute()) {
+    runToBreak = false;
+  }
   gpu.step(cpu.cpu_clock_t);
   cpu.checkInterrupts();
 }

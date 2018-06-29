@@ -5,6 +5,7 @@
 #define GB_CPU
 
 #include <stdio.h>
+#include <ncurses.h>
 #include "common.h"
 #include "mmu.h"
 
