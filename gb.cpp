@@ -270,6 +270,7 @@ void gb::display() {
   
   // LCDC
   y += 2;
+  x -= 2;
   attron(A_BOLD);
   mvprintw(y++, x, "  LCDC (FF40)");
   attroff(A_BOLD);
@@ -293,7 +294,7 @@ void gb::display() {
   
   // More IO map
   y = 0;
-  x += 20;
+  x += 22;
   attron(A_BOLD);
   mvprintw(y++, x, "various");
   attroff(A_BOLD);
@@ -312,6 +313,7 @@ void gb::display() {
 
   // STAT
   y += 2;
+  x -= 2;
   attron(A_BOLD);
   mvprintw(y++, x, "  STAT (FF41)");
   attroff(A_BOLD);
