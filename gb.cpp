@@ -222,7 +222,7 @@ void gb::display() {
   mvprintw(y++, x, "if=%02X", cpu.mmu.memory[IF]);
 
   // Print stack
-  y += 5;
+  y += 3;
   x -= 11;
   attron(A_BOLD);
   mvprintw(y++, x, "Stack");
@@ -288,7 +288,7 @@ void gb::display() {
   
   // More IO map
   y = 0;
-  x += 16;
+  x += 18;
   attron(A_BOLD);
   mvprintw(y++, x, "various");
   attroff(A_BOLD);
@@ -304,7 +304,37 @@ void gb::display() {
   mvprintw(y++, x, "%02X FF07 TAC", cpu.mmu.memory[TAC]);
   mvprintw(y++, x, "%02X FF0F IF", cpu.mmu.memory[IF]);
   mvprintw(y++, x, "%02X FFFF IE", cpu.mmu.memory[IE]);
+
+/*// STAT bits; 6-3 are for interrupt selection
+// 0-2: Mode :
+// 00 = hblank
+// 01 = vblank
+// 10 = oam search
+// 11 = lcd driver data tx
+const u8 STAT_LYC_INT_ENABLE = 6;
+const u8 STAT_MODE2_INT_ENABLE = 5;
+const u8 STAT_MODE1_INT_ENABLE = 4;
+const u8 STAT_MODE0_INT_ENABLE = 3;
+const u8 STAT_LYC_FLAG = 2;  // 0: LYC != LY, 1: LYC=LY
+const u8 STAT_MODE_HIGH = 1;
+const u8 STAT_MODE_LOW = 0;*/
+
+  // STAT
   y += 2;
+  attron(A_BOLD);
+  mvprintw(y++, x, "STAT (FF41)");
+  attroff(A_BOLD);
+  set = bitTest(cpu.mmu.memory[STAT], STAT_LYC_INT_ENABLE);
+  mvprintw(y++, x, "%d b6 LY=LYC int", set);
+  set = bitTest(cpu.mmu.memory[STAT], STAT_MODE2_INT_ENABLE);
+  mvprintw(y++, x, "%d b5 OAM (mode2) int", set);
+  set = bitTest(cpu.mmu.memory[STAT], STAT_MODE1_INT_ENABLE);
+  mvprintw(y++, x, "%d b4 VBlank (mode1) int", set);
+  set = bitTest(cpu.mmu.memory[STAT], STAT_MODE0_INT_ENABLE);
+  mvprintw(y++, x, "%d b3 HBlank (mode0) int", set);
+  set = bitTest(cpu.mmu.memory[STAT], STAT_LYC_FLAG);
+  mvprintw(y++, x, "%d b2 LY=LYC", set);
+  mvprintw(y++, x, "%d mode", (cpu.mmu.memory[STAT] & 3)); // low two bits
 
   refresh();
 }
