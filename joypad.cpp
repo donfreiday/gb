@@ -99,15 +99,14 @@ void Joypad::keyReleased(SDL_Keycode key) {
 }
 
 u8 Joypad::read(u8 request) { 
-    u8 result = 0;
+    u8 result = 0xC0; // bits 6-7 always poll high
+    result |= (request & 0x30); // Bits 4-5 (selectors) are from request
 
     // Directions
     if (bitTest(request, 4)) {
-        bitSet(result, 4);
         result |= (state >> 4); 
     } else { // Buttons
-        bitSet(result, 5);
-        result |= (state << 4) >> 4; // Clear high bits and shift back
+        result |= (state & 0x0F); // Clear high bits
     }
     return result;
 }

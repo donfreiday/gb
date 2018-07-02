@@ -52,6 +52,11 @@ u16 MMU::read_u16(u16 address) { return *(u16*)(memory + address); }
 
 void MMU::write_u8(u16 address, u8 value) {
   switch(address) {
+  // Joypad
+  case 0xFF00:
+    memory[address] = joypad->read(value);
+    break;
+
   // CPU IF always polls high on bits 5-7
   case 0xFF0F:
     value |= 0xE0;

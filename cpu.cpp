@@ -798,8 +798,12 @@ void CPU::checkInterrupts() {
 
 void CPU::doInterrupt(u8 interrupt) {
   ime = false;  // IME = disabled
-  mmu.write_u8(IF, mmu.read_u8(IF) &
-                       ~interrupt);  // Reset bit in Interrupt Request Register
+
+  // Reset bit in Interrupt Request Register
+  u8 flags = mmu.read_u8(IF);
+  bitClear(flags, interrupt);
+  mmu.write_u8(IF, interrupt);
+
   reg.sp -= 2;
   mmu.write_u16(reg.sp, reg.pc);  // Push PC to the stack
 
