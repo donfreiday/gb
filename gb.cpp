@@ -198,10 +198,16 @@ void gb::display() {
       attron(A_BOLD);
     }
 
-    printw("%04X: ", disasm[i].pc);
-    if (disasm[i].operandSize > 0) {
+    printw("%04X: %02X ", disasm[i].pc, cpu.mmu.memory[disasm[i].pc]);
+    if (disasm[i].operandSize == 1) {
+      printw("%02X     ", cpu.mmu.memory[disasm[i].pc + 1]);
       printw(disasm[i].str.c_str(), disasm[i].operand);
-    } else {
+    } else if(disasm[i].operandSize == 2) {
+      printw("%02X %02X  ", cpu.mmu.memory[disasm[i].pc + 1], cpu.mmu.memory[disasm[i].pc + 2]);
+      printw(disasm[i].str.c_str(), disasm[i].operand);
+    }
+    else {
+      printw("       ");
       printw(disasm[i].str.c_str());
     }
     printw("\n");
@@ -209,7 +215,7 @@ void gb::display() {
 
   // Registers
   attron(COLOR_PAIR(WHITE));
-  int x = xMax / 4;
+  int x = xMax / 3;
   int y = 0;
   attron(A_BOLD);
   mvprintw(y++, x, "Registers");
