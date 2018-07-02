@@ -101,6 +101,10 @@ class CPU {
   template <typename t>
   void add(t n);
 
+  // Add n to reg1.
+  template <typename t>
+  void add(t &reg1, t n);
+
   bool execute();
   bool execute_CB(u8 op);  // execute extended instruction set
 

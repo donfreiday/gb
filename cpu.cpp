@@ -151,6 +151,23 @@ void CPU::add(t n) {
   }
 }
 
+// Add n to reg1.
+  template <typename t>
+  void CPU::add(t &reg1, t n) {
+    reg.f = 0;
+    if ((reg1 + n) > 0xFF) {
+      bitSet(reg.f, FLAG_CARRY);
+    }
+    if ((reg1 & 0xF) + (n & 0xF) > 0xF) {
+      bitSet(reg.f, FLAG_HALF_CARRY);
+    }
+    bitClear(reg.f, FLAG_SUBTRACT);
+    reg1 += n;
+    if (reg1 == 0) {
+      bitSet(reg.f, FLAG_ZERO);
+    }
+  }
+
 // Compare A with n. This is basically an A - n subtraction instruction but the
 // results are thrown away.
 template <typename t>
@@ -325,10 +342,21 @@ bool CPU::execute() {
       rotateLeft(reg.a);
       break;
 
+    // ADD HL, DE
+    case 0x19:
+      add(reg.hl, reg.de);
+    break;
+
+
     // LD A, (DE)
     case 0x1A:
       reg.a = mmu.read_u8(reg.de);
       break;
+
+    // INC E
+    case 0x1C:
+      incrementReg(reg.e);
+    break;
 
     // DEC E
     case 0x1D:
@@ -393,6 +421,11 @@ bool CPU::execute() {
       reg.a = mmu.read_u8(reg.hl++);
       break;
 
+    // INC L
+    case 0x2C:
+      incrementReg(reg.l);
+      break;
+
     // CPL
     // Complement A register. (Flip all bits.)
     case 0x2F:
@@ -417,6 +450,14 @@ bool CPU::execute() {
       incrementReg(byte);
       mmu.write_u8(reg.hl, byte);
     } break;
+
+    // DEC (HL)
+    case 0x35: {
+      u8 val = mmu.read_u8(reg.hl);
+      decrementReg(val);
+      mmu.write_u8(reg.hl, val);
+    }
+    break;
 
     // LD (HL), nn
     case 0x36:
@@ -448,10 +489,25 @@ bool CPU::execute() {
       reg.c = reg.a;
       break;
 
+    // LD D, (HL)
+    case 0x56:
+      reg.d = mmu.read_u8(reg.hl);
+    break;
+
     // LD D, A
     case 0x57:
       reg.d = reg.a;
       break;
+
+    // LD E, A
+    case 0x5F:
+      reg.e = reg.a;
+    break;
+
+    // LD E, (HL)
+    case 0x5E:
+      reg.e = mmu.read_u8(reg.hl);
+    break;
 
     // LD H, A
     case 0x67:
@@ -672,6 +728,11 @@ bool CPU::execute() {
       andReg(operand);
       break;
 
+    // JP HL
+    case 0xE9:
+      reg.pc = reg.hl;
+    break;
+
     // LD (nnnn), A
     case 0xEA:
       mmu.write_u8(operand, reg.a);
@@ -766,6 +827,11 @@ bool CPU::execute_CB(u8 op) {
     case 0x7C:
       bitTestReg(reg.h, 7);
       break;
+
+    // RES 0, A
+    case 0x87:
+      bitClear(reg.a, 0);
+    break;
 
     default:
       return false;
