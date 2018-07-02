@@ -52,6 +52,12 @@ u16 MMU::read_u16(u16 address) { return *(u16*)(memory + address); }
 
 void MMU::write_u8(u16 address, u8 value) {
   switch(address) {
+  // CPU IF always polls high on bits 5-7
+  case 0xFF0F:
+    value |= 0xE0;
+    memory[address] = value;
+    break;
+
   // Block writes to LCD_STAT
   // todo: BGB does this, but is this correct behavior?
   case 0xFF41:
