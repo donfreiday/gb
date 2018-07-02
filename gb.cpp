@@ -42,7 +42,7 @@ void gb::debug() {
   // todo: this is a hack
   if (cpu.mmu.unmapBootrom) {
     disasm.clear();
-    disassemble();
+    disassemble(0);
     cursorPos = getDisasmIndex(cpu.reg.pc);
     cpu.mmu.unmapBootrom = false;
   }
@@ -83,7 +83,7 @@ void gb::debug() {
       gpu.reset();
       cpu.mmu.load();
       disasm.clear();
-      disassemble();
+      disassemble(0);
       cursorPos = getDisasmIndex(cpu.reg.pc);
       display();
       break;
@@ -100,6 +100,15 @@ void gb::debug() {
       step(); // get past breakpoint at current PC
       runToBreak = true;
       return; // skip display()
+      break;
+    
+    // hack to disassemble from current cursor
+    case KEY_F(12):
+      for (int i = disasm.size(); i > getDisasmIndex(cpu.reg.pc); i--) {
+        disasm.erase(disasm.begin() + i);
+      }
+      disassemble(cpu.reg.pc);
+      cursorPos = getDisasmIndex(cpu.reg.pc);
       break;
 
     case KEY_UP:
@@ -350,8 +359,8 @@ void gb::display() {
   refresh();
 }
 
-void gb::disassemble() {
-  u16 operand, pc = 0;
+void gb::disassemble(u16 initPC) {
+  u16 operand, pc = initPC;
   u8 op;
   while (pc < cpu.mmu.getRomSize()) {
     disassembly d;
@@ -384,7 +393,7 @@ void gb::run() {
   SDL_Event e;
 
   if (debugEnabled) {
-    disassemble();
+    disassemble(0);
     display();
   }
 

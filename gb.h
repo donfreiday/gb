@@ -47,7 +47,7 @@ class gb {
     bool operator==(const u16& rhs) const { return pc == rhs; }
   };
   std::vector<disassembly> disasm; // todo: use a better suited data structure
-  void disassemble();          // Populate disasm
+  void disassemble(u16 initPC);          // Populate disasm
   int getDisasmIndex(u16 pc);  // Finds element with given PC
 
   // Prints disassembly, registers, etc
