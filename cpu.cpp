@@ -90,13 +90,44 @@ void CPU::incrementReg(t &reg1) {
 template <typename t>
 void CPU::rotateRightCarry(t &reg1) {
   reg.f = 0;
-  if (bitTest(reg.a, 1)) {
-    bitSet(reg.f,
-           FLAG_CARRY);  // Low bit of register is shifted into carry flag
+  // Low bit of register is shifted into carry flag
+  if (bitTest(reg1, 1)) {
+    bitSet(reg.f, FLAG_CARRY);
   }
-  reg.a >>= 1;  // Shift register right, high bit becomes 0
+  reg1 >>= 1;  // Shift register right, high bit becomes 0
   if (bitTest(reg.f, FLAG_CARRY)) {
-    bitSet(reg.a, 7);  // Carry flag shifts into high bit of register
+    bitSet(reg1, 7);  // Carry flag shifts into high bit of register
+  }
+  if (reg1 == 0) {
+    bitSet(reg.f, FLAG_ZERO);
+  }
+}
+
+template <typename t>
+void CPU::rotateRight(t &reg1) {
+  bool prevCarry = bitTest(reg.f, FLAG_CARRY);
+  reg.f = 0;
+  bool carry = bitTest(reg1, 0);
+  reg1 >>= 1;
+  reg1 += (prevCarry << 7);
+  if (carry) {
+    bitSet(reg.f, FLAG_CARRY);
+  }
+  if (reg1 == 0) {
+    bitSet(reg.f, FLAG_ZERO);
+  }
+}
+
+template <typename t>
+void CPU::rotateLeftCarry(t &reg1) {
+  reg.f = 0;
+  // High bit is shifted into carry flag
+  if (bitTest(reg1, 7)) {
+    bitSet(reg.f, FLAG_CARRY);
+  }
+  reg.a <<= 1;  // Shift register left, low bit becomes 0
+  if (bitTest(reg.f, FLAG_CARRY)) {
+    reg1++;
   }
   if (reg1 == 0) {
     bitSet(reg.f, FLAG_ZERO);
@@ -271,12 +302,12 @@ bool CPU::execute() {
 
     // LD (BC), A
     case 0x02:
-
+      mmu.write_u8(reg.bc, reg.a);
       break;
 
     // INC BC
     case 0x03:
-
+      incrementReg(reg.bc);
       break;
 
     // INC B
@@ -296,22 +327,22 @@ bool CPU::execute() {
 
     // RLCA
     case 0x07:
-
+      rotateLeftCarry(operand);
       break;
 
-    // LD (0x%04X), SP
+    // LD nnnn, SP
     case 0x08:
-
+      mmu.write_u16(operand, reg.sp);
       break;
 
     // ADD HL, BC
     case 0x09:
-
+      add(reg.hl, reg.bc);
       break;
 
     // LD A, (BC)
     case 0x0A:
-
+      reg.a = mmu.read_u8(reg.bc);
       break;
 
     // DEC BC
@@ -343,7 +374,7 @@ bool CPU::execute() {
 
     // STOP
     case 0x10:
-
+      // todo: GBC speed modes
       break;
 
     // LD DE, nnnn
@@ -363,7 +394,7 @@ bool CPU::execute() {
 
     // INC D
     case 0x14:
-
+      incrementReg(reg.d);
       break;
 
     // DEC D
@@ -377,7 +408,6 @@ bool CPU::execute() {
       break;
 
     // RL A
-    // Rotate A left through Carry flag.
     case 0x17:
       rotateLeft(reg.a);
       break;
@@ -399,7 +429,7 @@ bool CPU::execute() {
 
     // DEC DE
     case 0x1B:
-
+      decrementReg(reg.de);
       break;
 
     // INC E
@@ -419,7 +449,7 @@ bool CPU::execute() {
 
     // RRA
     case 0x1F:
-
+      rotateRight(reg.a);
       break;
 
     // JR nz nn
@@ -452,17 +482,19 @@ bool CPU::execute() {
 
     // DEC H
     case 0x25:
-
+      decrementReg(reg.h);
       break;
 
     // LD H, 0x%02X
     case 0x26:
-
+      reg.h = operand;
       break;
 
     // DAA
+    // BCD: todo: restudy
     case 0x27:
-
+      printw("Unimplemented instruction: 0x27: DAA\n");
+      return false;
       break;
 
     // JR Z, nn

@@ -70,6 +70,12 @@ class CPU {
   void rotateRightCarry(t &reg1);
 
   template <typename t>
+  void rotateRight(t &reg1);
+
+  template <typename t>
+  void rotateLeftCarry(t &reg1);
+
+  template <typename t>
   void rotateLeft(t &reg1);
 
   template <typename t>
