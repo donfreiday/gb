@@ -498,6 +498,11 @@ bool CPU::execute() {
       add(mmu.read_u8(reg.hl));
       break;
 
+    // ADD A
+    case 0x87:
+      add(reg.a);
+    break;
+
     // SUB B
     case 0x90:
       subtract(reg.b);
@@ -605,7 +610,7 @@ bool CPU::execute() {
     case 0xCB:
       if (!execute_CB(operand)) {
         clear();
-        printw("^^^ Unimplemented instruction: %04X: %02X ^^^\n", reg.pc--, op);
+        printw("^^^ Unimplemented instruction: %04X: %02X ^^^\n", --reg.pc, op);
         printw("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n",
                instructions_CB[operand].disassembly, operand);
         refresh();
@@ -730,7 +735,7 @@ bool CPU::execute() {
 
     default:
       clear();
-      printw("^^^ Unimplemented instruction: %04X: 0x%02X ^^^\n\n", reg.pc--, op);
+      printw("^^^ Unimplemented instruction: %04X: 0x%02X ^^^\n\n", --reg.pc, op);
       printw("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n",
              instructions[op].disassembly, op);
       refresh();
