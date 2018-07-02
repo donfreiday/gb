@@ -676,7 +676,7 @@ bool CPU::execute() {
     case 0xEF:
       reg.sp -= 2;
       mmu.write_u16(reg.sp, reg.pc);
-      reg.pc = operand;
+      reg.pc = 0x28;
       break;
 
     // LDH A, (0xFF00 + nn)
