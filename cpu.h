@@ -4,8 +4,8 @@
 #ifndef GB_CPU
 #define GB_CPU
 
-#include <stdio.h>
 #include <ncurses.h>
+#include <stdio.h>
 #include "common.h"
 #include "mmu.h"
 
@@ -60,6 +60,10 @@ class CPU {
   CPU();
   void reset();
 
+  // Test bit b in register r
+  template <typename t>
+  void bit(u8 bit, t reg1);
+
   template <typename t>
   void decrementReg(t &reg1);
 
@@ -78,14 +82,24 @@ class CPU {
   template <typename t>
   void rotateLeft(t &reg1);
 
+  // Shift n left into Carry. LSB of n set to 0.
+  template <typename t>
+  void sla(t &reg1);
+
+  // Shift n right into Carry. MSB set to 0.
+  template <typename t>
+  void srl(t &reg1);
+
+  // Shift n right into Carry. MSB doesn't change.
+  template <typename t>
+  void sra(t &reg1);
+
   template <typename t>
   void subtract(t n);
 
   // Subtract n + Carry flag from A.
   template <typename t>
   void subtractCarry(t n);
-
-  void bitTestReg(u8 reg1, u8 pos);
 
   // Logical OR n with register A, result in A.
   template <typename t>
