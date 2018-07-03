@@ -669,72 +669,74 @@ bool CPU::execute() {
 
       // LD C, B
     case 0x48:
-
+      reg.c = reg.b;
       break;
 
     // LD C, C
     case 0x49:
-
+      // reg.c = reg.c
       break;
 
     // LD C, D
     case 0x4A:
-
+      reg.c = reg.d;
       break;
 
     // LD C, E
     case 0x4B:
-
+      reg.c = reg.e;
       break;
 
     // LD C, H
     case 0x4C:
-
+      reg.c = reg.h;
       break;
 
     // LD C, L
     case 0x4D:
-
+      reg.c = reg.l;
       break;
 
     // LD C, (HL)
     case 0x4E:
-
+      reg.c = mmu.read_u8(reg.hl);
       break;
 
     // LD C, A
     case 0x4F:
       reg.c = reg.a;
       break;
+
     // LD D, B
     case 0x50:
-
+      reg.d = reg.b;
       break;
 
     // LD D, C
     case 0x51:
-
+      reg.d = reg.c;
       break;
 
     // LD D, D
     case 0x52:
-
+      // reg.d = reg.d;
       break;
 
     // LD D, E
     case 0x53:
-
+      reg.d = reg.e;
       break;
 
     // LD D, H
     case 0x54:
-
+      reg.d = reg.h;
       break;
 
     // LD D, L
     case 0x55:
-
+      reg.d = reg.l;
       break;
+
     // LD D, (HL)
     case 0x56:
       reg.d = mmu.read_u8(reg.hl);
@@ -747,32 +749,32 @@ bool CPU::execute() {
 
     // LD E, B
     case 0x58:
-
+      reg.e = reg.b;
       break;
 
     // LD E, C
     case 0x59:
-
+      reg.e = reg.c;
       break;
 
     // LD E, D
     case 0x5A:
-
+      reg.e = reg.d;
       break;
 
     // LD E, E
     case 0x5B:
-
+      // reg.e = reg.e;
       break;
 
     // LD E, H
     case 0x5C:
-
+      reg.e = reg.h;
       break;
 
     // LD E, L
     case 0x5D:
-
+      reg.e = reg.l;
       break;
 
     // LD E, (HL)
@@ -787,37 +789,37 @@ bool CPU::execute() {
 
     // LD H, B
     case 0x60:
-
+      reg.h = reg.b;
       break;
 
     // LD H, C
     case 0x61:
-
+      reg.h = reg.c;
       break;
 
     // LD H, D
     case 0x62:
-
+      reg.h = reg.d;
       break;
 
     // LD H, E
     case 0x63:
-
+      reg.h = reg.e;
       break;
 
     // LD H, H
     case 0x64:
-
+      // reg.h = reg.h;
       break;
 
     // LD H, L
     case 0x65:
-
+      reg.h = reg.l;
       break;
 
     // LD H, (HL)
     case 0x66:
-
+      reg.h = mmu.read_u8(reg.hl);
       break;
 
     // LD H, A
@@ -827,77 +829,78 @@ bool CPU::execute() {
 
     // LD L, B
     case 0x68:
-
+      reg.l = reg.b;
       break;
 
     // LD L, C
     case 0x69:
-
+      reg.l = reg.c;
       break;
 
     // LD L, D
     case 0x6A:
-
+      reg.l = reg.d;
       break;
 
     // LD L, E
     case 0x6B:
-
+      reg.l = reg.e;
       break;
 
     // LD L, H
     case 0x6C:
-
+      reg.l = reg.h;
       break;
 
     // LD L, L
     case 0x6D:
-
+      // reg.l = reg.l;
       break;
 
     // LD L, (HL)
     case 0x6E:
-
+      reg.l = mmu.read_u8(reg.hl);
       break;
 
     // LD L, A
     case 0x6F:
-
+      reg.l = reg.a;
       break;
 
     // LD (HL), B
     case 0x70:
-
+      mmu.write_u8(reg.hl, reg.b);
       break;
 
     // LD (HL), C
     case 0x71:
-
+      mmu.write_u8(reg.hl, reg.c);
       break;
 
     // LD (HL), D
     case 0x72:
-
+      mmu.write_u8(reg.hl, reg.d);
       break;
 
     // LD (HL), E
     case 0x73:
-
+      mmu.write_u8(reg.hl, reg.e);
       break;
 
     // LD (HL), H
     case 0x74:
-
+      mmu.write_u8(reg.hl, reg.h);
       break;
 
     // LD (HL), L
     case 0x75:
-
+      mmu.write_u8(reg.hl, reg.l);
       break;
 
     // HALT
     case 0x76:
-
+      printw("Todo: 0x76 Halt\n");
+      return false;
       break;
 
     // LD (HL), A
@@ -912,12 +915,12 @@ bool CPU::execute() {
 
     // LD A, C
     case 0x79:
-      andReg(reg.c);
+      reg.a = reg.c;
       break;
 
     // LD A, D
     case 0x7A:
-
+      reg.a = reg.d;
       break;
 
     // LD A, E
@@ -942,37 +945,37 @@ bool CPU::execute() {
 
     // LD A, A
     case 0x7F:
-
+      // reg.a = reg.a;
       break;
 
     // ADD A, B
     case 0x80:
-
+      add(reg.b);
       break;
 
     // ADD A, C
     case 0x81:
-
+      add(reg.c);
       break;
 
     // ADD A, D
     case 0x82:
-
+      add(reg.d);
       break;
 
     // ADD A, E
     case 0x83:
-
+      add(reg.e);
       break;
 
     // ADD A, H
     case 0x84:
-
+      add(reg.h);
       break;
 
     // ADD A, L
     case 0x85:
-
+      add(reg.l);
       break;
 
     // ADD A, (HL)
@@ -987,7 +990,7 @@ bool CPU::execute() {
 
     // ADC B
     case 0x88:
-
+      
       break;
 
     // ADC C
