@@ -13,7 +13,7 @@ class Joypad {
   u8 write();
 
  private:
-  u8 state;
+  u8 buttons, directions;
 };
 
 #endif

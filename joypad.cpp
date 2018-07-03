@@ -13,100 +13,103 @@
  Todo: INT 60 - Joypad Interrupt
  */
 
-/* state:
- Bit 7 - down
- Bit 6 - up
- Bit 5 - left
- Bit 4 - right
- Bit 3 - start
- Bit 2 - select
- Bit 1 - b
- Bit 0 - a
- */
+#define DOWN 3   // 0000 1000
+#define UP 2     // 0000 0100
+#define LEFT 1   // 0000 0010
+#define RIGHT 0  // 0000 0001
 
-Joypad::Joypad() { state = 0xFF; }
+#define START 3   // 0000 1000
+#define SELECT 2  // 0000 0100
+#define B 1       // 0000 0010
+#define A 0       // 0000 0001
+
+Joypad::Joypad() {
+  buttons = 0xDF;     // 1110 1111
+  directions = 0xEF;  // 1101 1111
+}
 
 void Joypad::keyPressed(SDL_Keycode key) {
   switch (key) {
     case SDLK_DOWN:
-      bitClear(state, 7);
+      bitClear(directions, DOWN);
       break;
 
     case SDLK_UP:
-      bitClear(state, 6);
+      bitClear(directions, UP);
       break;
 
     case SDLK_LEFT:
-      bitClear(state, 5);
+      bitClear(directions, LEFT);
       break;
 
     case SDLK_RIGHT:
-      bitClear(state, 4);
+      bitClear(directions, RIGHT);
       break;
 
     case SDLK_RETURN:
-      bitClear(state, 3);
+      bitClear(buttons, START);
       break;
 
     case SDLK_SPACE:
-      bitClear(state, 2);
+      bitClear(buttons, SELECT);
       break;
 
     case SDLK_z:
-      bitClear(state, 1);
+      bitClear(buttons, A);
       break;
 
     case SDLK_x:
-      bitClear(state, 0);
+      bitClear(buttons, B);
       break;
   }
 }
 
 void Joypad::keyReleased(SDL_Keycode key) {
-    switch(key) {
+  switch (key) {
     case SDLK_DOWN:
-      bitSet(state, 7);
+      bitSet(directions, DOWN);
       break;
 
     case SDLK_UP:
-      bitSet(state, 6);
+      bitSet(directions, UP);
       break;
 
     case SDLK_LEFT:
-      bitSet(state, 5);
+      bitSet(directions, LEFT);
       break;
 
     case SDLK_RIGHT:
-      bitSet(state, 4);
+      bitSet(directions, RIGHT);
       break;
 
     case SDLK_RETURN:
-      bitSet(state, 3);
+      bitSet(buttons, START);
       break;
 
     case SDLK_SPACE:
-      bitSet(state, 2);
+      bitSet(buttons, SELECT);
       break;
 
     case SDLK_z:
-      bitSet(state, 1);
+      bitSet(buttons, A);
       break;
 
     case SDLK_x:
-      bitSet(state, 0);
+      bitSet(buttons, B);
       break;
-    }
+  }
 }
 
-u8 Joypad::read(u8 request) { 
-    u8 result = 0xC0; // bits 6-7 always poll high
-    result |= (request & 0x30); // Bits 4-5 (selectors) are from request
+u8 Joypad::read(u8 request) {
+// Directions
+  if (!bitTest(request, 4)) {
+    return directions;
+  } 
+  
+  // Buttons
+  else if (!bitTest(request, 5)) {
+    return buttons;
+  }
 
-    // Directions
-    if (bitTest(request, 4)) {
-        result |= (state >> 4); 
-    } else { // Buttons
-        result |= (state & 0x0F); // Clear high bits
-    }
-    return result;
+  return 0xFF;
 }
