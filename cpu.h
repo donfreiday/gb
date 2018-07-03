@@ -79,7 +79,11 @@ class CPU {
   void rotateLeft(t &reg1);
 
   template <typename t>
-  void subtract(t num);
+  void subtract(t n);
+
+  // Subtract n + Carry flag from A.
+  template <typename t>
+  void subtractCarry(t n);
 
   void bitTestReg(u8 reg1, u8 pos);
 
@@ -110,6 +114,10 @@ class CPU {
   // Add n to reg1.
   template <typename t>
   void add(t &reg1, t n);
+
+  // Add n + carry flag to A
+  template <typename t>
+  void addCarry(t n);
 
   bool execute();
   bool execute_CB(u8 op);  // execute extended instruction set

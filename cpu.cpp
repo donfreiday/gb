@@ -150,16 +150,34 @@ void CPU::rotateLeft(t &reg1) {
 }
 
 template <typename t>
-void CPU::subtract(t num) {
+void CPU::subtract(t n) {
   reg.f = 0;
-  if (reg.a < num) {
+  if (reg.a < n) {
     bitSet(reg.f, FLAG_CARRY);
   }
-  if ((reg.a & 0xF) < (num & 0xF)) {
+  if ((reg.a & 0xF) < (n & 0xF)) {
     bitSet(reg.f, FLAG_HALF_CARRY);
   }
   bitSet(reg.f, FLAG_SUBTRACT);
-  reg.a -= num;
+  reg.a -= n;
+  if (reg.a == 0) {
+    bitSet(reg.f, FLAG_ZERO);
+  }
+}
+
+// Subtract n + Carry flag from A.
+// todo: verify this
+template <typename t>
+void CPU::subtractCarry(t n) {
+  u8 prevCarry = bitTest(reg.f, FLAG_CARRY);
+  if (reg.a < n + prevCarry) {
+    bitSet(reg.f, FLAG_CARRY);
+  }
+  if ((reg.a & 0x0F) < ((n + prevCarry) & 0x0F)) {
+    bitSet(reg.f, FLAG_HALF_CARRY);
+  }
+  bitSet(reg.f, FLAG_SUBTRACT);
+  reg.a -= (n + prevCarry);
   if (reg.a == 0) {
     bitSet(reg.f, FLAG_ZERO);
   }
@@ -195,6 +213,28 @@ void CPU::add(t &reg1, t n) {
   bitClear(reg.f, FLAG_SUBTRACT);
   reg1 += n;
   if (reg1 == 0) {
+    bitSet(reg.f, FLAG_ZERO);
+  }
+}
+
+// Add n + carry flag to A
+// todo: is this correct? verify
+template <typename t>
+void CPU::addCarry(t n) {
+  u8 prevCarry = bitTest(reg.f, FLAG_CARRY);
+  reg.f = 0;
+
+  if (reg.a + n + prevCarry > 0xFF) {
+    bitSet(reg.f, FLAG_CARRY);
+  }
+
+  if ((reg.a & 0x0F) + (n & 0x0F) + prevCarry > 0x0F) {
+    bitSet(reg.f, FLAG_HALF_CARRY);
+  }
+
+  reg.a += n + prevCarry;
+
+  if (reg.a == 0) {
     bitSet(reg.f, FLAG_ZERO);
   }
 }
@@ -494,6 +534,7 @@ bool CPU::execute() {
     // BCD: todo: restudy
     case 0x27:
       printw("Unimplemented instruction: 0x27: DAA\n");
+      refresh();
       return false;
       break;
 
@@ -900,6 +941,7 @@ bool CPU::execute() {
     // HALT
     case 0x76:
       printw("Todo: 0x76 Halt\n");
+      refresh();
       return false;
       break;
 
@@ -990,42 +1032,42 @@ bool CPU::execute() {
 
     // ADC B
     case 0x88:
-      
+      addCarry(reg.b);
       break;
 
     // ADC C
     case 0x89:
-
+      addCarry(reg.c);
       break;
 
     // ADC D
     case 0x8A:
-
+      addCarry(reg.d);
       break;
 
     // ADC E
     case 0x8B:
-
+      addCarry(reg.e);
       break;
 
     // ADC H
     case 0x8C:
-
+      addCarry(reg.h);
       break;
 
     // ADC L
     case 0x8D:
-
+      addCarry(reg.l);
       break;
 
     // ADC (HL)
     case 0x8E:
-
+      addCarry(mmu.read_u8(reg.hl));
       break;
 
     // ADC A
     case 0x8F:
-
+      addCarry(reg.a);
       break;
 
     // SUB B
@@ -1035,82 +1077,82 @@ bool CPU::execute() {
 
     // SUB C
     case 0x91:
-
+      subtract(reg.c);
       break;
 
     // SUB D
     case 0x92:
-
+      subtract(reg.d);
       break;
 
     // SUB E
     case 0x93:
-
+      subtract(reg.e);
       break;
 
     // SUB H
     case 0x94:
-
+      subtract(reg.h);
       break;
 
     // SUB L
     case 0x95:
-
+      subtract(reg.l);
       break;
 
     // SUB (HL)
     case 0x96:
-
+      subtract(mmu.read_u8(reg.hl));
       break;
 
     // SUB A
     case 0x97:
-
+      subtract(reg.a);
       break;
 
     // SBC B
     case 0x98:
-
+      subtractCarry(reg.b);
       break;
 
     // SBC C
     case 0x99:
-
+      subtractCarry(reg.c);
       break;
 
     // SBC D
     case 0x9A:
-
+      subtractCarry(reg.d);
       break;
 
     // SBC E
     case 0x9B:
-
+      subtractCarry(reg.e);
       break;
 
     // SBC H
     case 0x9C:
-
+      subtractCarry(reg.h);
       break;
 
     // SBC L
     case 0x9D:
-
+      subtractCarry(reg.l);
       break;
 
     // SBC (HL)
     case 0x9E:
-
+      subtractCarry(mmu.read_u8(reg.hl));
       break;
 
     // SBC A
     case 0x9F:
-
+      subtractCarry(reg.a);
       break;
 
     // AND B
     case 0xA0:
-
+      andReg(reg.b);
       break;
 
     // AND C
@@ -1120,27 +1162,27 @@ bool CPU::execute() {
 
     // AND D
     case 0xA2:
-
+      andReg(reg.d);
       break;
 
     // AND E
     case 0xA3:
-
+      andReg(reg.e);
       break;
 
     // AND H
     case 0xA4:
-
+      andReg(reg.h);
       break;
 
     // AND L
     case 0xA5:
-
+      andReg(reg.l);
       break;
 
     // AND (HL)
     case 0xA6:
-
+      andReg(mmu.read_u8(reg.hl));
       break;
 
     // AND A
@@ -1150,7 +1192,7 @@ bool CPU::execute() {
 
     // XOR B
     case 0xA8:
-
+      xorReg(reg.b);
       break;
 
     // XOR C
@@ -1160,27 +1202,27 @@ bool CPU::execute() {
 
     // XOR D
     case 0xAA:
-
+      xorReg(reg.d);
       break;
 
     // XOR E
     case 0xAB:
-
+      xorReg(reg.e);
       break;
 
     // XOR H
     case 0xAC:
-
+      xorReg(reg.h);
       break;
 
     // XOR L
     case 0xAD:
-
+      xorReg(reg.l);
       break;
 
     // XOR (HL)
     case 0xAE:
-
+      xorReg(mmu.read_u8(reg.hl));
       break;
 
     // XOR A
@@ -1204,62 +1246,62 @@ bool CPU::execute() {
 
     // OR D
     case 0xB2:
-
+      orReg(reg.d);
       break;
 
     // OR E
     case 0xB3:
-
+      orReg(reg.e);
       break;
 
     // OR H
     case 0xB4:
-
+      orReg(reg.h);
       break;
 
     // OR L
     case 0xB5:
-
+      orReg(reg.l);
       break;
 
     // OR (HL)
     case 0xB6:
-
+      orReg(mmu.read_u8(reg.hl));
       break;
 
     // OR A
     case 0xB7:
-
+      orReg(reg.a);
       break;
 
     // CP B
     case 0xB8:
-
+      compare(reg.b);
       break;
 
     // CP C
     case 0xB9:
-
+      compare(reg.c);
       break;
 
     // CP D
     case 0xBA:
-
+      compare(reg.d);
       break;
 
     // CP E
     case 0xBB:
-
+      compare(reg.e);
       break;
 
     // CP H
     case 0xBC:
-
+      compare(reg.h);
       break;
 
     // CP L
     case 0xBD:
-
+      compare(reg.l);
       break;
 
     // CP (HL)
@@ -1269,7 +1311,7 @@ bool CPU::execute() {
 
     // CP A
     case 0xBF:
-
+      compare(reg.a);
       break;
 
     // RET NZ
@@ -1289,7 +1331,10 @@ bool CPU::execute() {
 
     // JP NZ, 0x%04X
     case 0xC2:
-
+      if (!bitTest(reg.f, FLAG_ZERO)) {
+        reg.pc = operand;
+        cpu_clock_t += 4;
+      }
       break;
 
     // JP nnnn
@@ -1315,13 +1360,14 @@ bool CPU::execute() {
 
     // ADD A, 0x%02X
     case 0xC6:
-
+      add(operand);
       break;
 
     // RST 0x00
     case 0xC7:
-
+      reg.pc = 0x00;
       break;
+
     // RET Z
     case 0xC8:
       if (bitTest(reg.f, FLAG_ZERO)) {
@@ -1360,7 +1406,12 @@ bool CPU::execute() {
 
     // CALL Z, 0x%04X
     case 0xCC:
-
+      if (bitTest(reg.f, FLAG_ZERO)) {
+        cpu_clock_t += 12;
+        reg.sp -= 2;
+        mmu.write_u16(reg.sp, reg.pc);
+        reg.pc = operand;
+      }
       break;
 
     // CALL nnnn
@@ -1372,17 +1423,21 @@ bool CPU::execute() {
 
     // ADC 0x%02X
     case 0xCE:
-
+      addCarry(operand);
       break;
 
     // RST 0x08
     case 0xCF:
-
+      reg.pc = 0x08;
       break;
 
     // RET NC
     case 0xD0:
-
+      if (!bitTest(reg.f, FLAG_CARRY)) {
+        cpu_clock_t += 12;
+        reg.pc = mmu.read_u16(reg.sp);
+        reg.sp += 2;
+      }
       break;
 
     // POP DE
@@ -1393,17 +1448,27 @@ bool CPU::execute() {
 
     // JP NC, 0x%04X
     case 0xD2:
-
+      if (!bitTest(reg.f, FLAG_CARRY)) {
+        cpu_clock_t += 4;
+        reg.pc = operand;
+      }
       break;
 
     // UNKNOWN
     case 0xD3:
-
+      printw("CPU: 0xD3 UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // CALL NC, 0x%04X
     case 0xD4:
-
+      if (!bitTest(reg.f, FLAG_CARRY)) {
+        cpu_clock_t += 12;
+        reg.sp -= 2;
+        mmu.write_u16(reg.sp, reg.pc);
+        reg.pc = operand;
+      }
       break;
 
     // PUSH DE
@@ -1414,17 +1479,21 @@ bool CPU::execute() {
 
     // SUB 0x%02X
     case 0xD6:
-
+      subtract(operand);
       break;
 
     // RST 0x10
     case 0xD7:
-
+      reg.pc = 0x10;
       break;
 
     // RET C
     case 0xD8:
-
+      if (bitTest(reg.f, FLAG_CARRY)) {
+        cpu_clock_t += 12;
+        reg.pc = mmu.read_u16(reg.sp);
+        reg.sp += 2;
+      }
       break;
 
     // RETI
@@ -1436,32 +1505,44 @@ bool CPU::execute() {
 
     // JP C, 0x%04X
     case 0xDA:
-
+      if (bitTest(reg.f, FLAG_CARRY)) {
+        cpu_clock_t += 4;
+        reg.pc = operand;
+      }
       break;
 
     // UNKNOWN
     case 0xDB:
-
+      printw("CPU: 0xDB UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // CALL C, 0x%04X
     case 0xDC:
-
+      if (bitTest(reg.f, FLAG_CARRY)) {
+        cpu_clock_t += 12;
+        reg.sp -= 2;
+        mmu.write_u16(reg.sp, reg.pc);
+        reg.pc = operand;
+      }
       break;
 
     // UNKNOWN
     case 0xDD:
-
+      printw("CPU: 0xDD UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // SBC 0x%02X
     case 0xDE:
-
+      subtractCarry(operand);
       break;
 
     // RST 0x18
     case 0xDF:
-
+      reg.pc = 0x18;
       break;
 
     // LDH (0xFF00 + nn), A
@@ -1482,12 +1563,16 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xE3:
-
+      printw("CPU: 0xE3 UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // UNKNOWN
     case 0xE4:
-
+      printw("CPU: 0xE4 UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // PUSH HL
@@ -1503,12 +1588,12 @@ bool CPU::execute() {
 
     // RST 0x20
     case 0xE7:
-
+      reg.pc = 0x20;
       break;
 
     // ADD SP,0x%02X
     case 0xE8:
-
+      add(reg.sp, operand);
       break;
 
     // JP HL
@@ -1523,22 +1608,28 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xEB:
-
+      printw("CPU: 0xEB UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // UNKNOWN
     case 0xEC:
-
+      printw("CPU: 0xEC UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // UNKNOWN
     case 0xED:
-
+      printw("CPU: 0xED UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // XOR 0x%02X
     case 0xEE:
-
+      xorReg(operand);
       break;
 
     // RST 0x28
@@ -1561,7 +1652,7 @@ bool CPU::execute() {
 
     // LD A, (0xFF00 + C)
     case 0xF2:
-
+      reg.a = mmu.read_u8(0xFF00 + reg.c);
       break;
 
     // DI
@@ -1571,7 +1662,9 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xF4:
-
+      printw("CPU: 0xF4 UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // PUSH AF
@@ -1582,22 +1675,22 @@ bool CPU::execute() {
 
     // OR 0x%02X
     case 0xF6:
-
+      orReg(operand);
       break;
 
     // RST 0x30
     case 0xF7:
-
+      reg.pc = 0x30;
       break;
 
     // LD HL, SP+0x%02X
     case 0xF8:
-
+      reg.hl = reg.sp + operand;
       break;
 
     // LD SP, HL
     case 0xF9:
-
+      reg.sp = reg.hl;
       break;
 
     // LD A, (nnnn)
@@ -1613,33 +1706,27 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xFC:
-
+      printw("CPU: 0xFC UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // UNKNOWN
     case 0xFD:
-
+      printw("CPU: 0xFD UNKNOWN\n");
+      refresh();
+      return false;
       break;
 
     // CP nn
     // Implied subtraction (A - nn) and set flags
     case 0xFE:
-      reg.f = 0;
-      if (reg.a < operand) {
-        bitSet(reg.f, FLAG_CARRY);
-      }
-      if ((reg.a & 0xF) < (operand & 0xF)) {
-        bitSet(reg.f, FLAG_HALF_CARRY);
-      }
-      bitSet(reg.f, FLAG_SUBTRACT);
-      if ((reg.a - operand) == 0) {
-        bitSet(reg.f, FLAG_ZERO);
-      }
+      compare(operand);
       break;
 
     // RST 0x38
     case 0xFF:
-
+      reg.pc = 0x38;
       break;
 
     default:
