@@ -507,7 +507,7 @@ bool CPU::execute() {
 
     // ADD HL, HL
     case 0x29:
-
+      add(reg.hl, reg.hl);
       break;
 
     // LDI A, (HL)
