@@ -403,7 +403,7 @@ void gb::run() {
 
   while (!quit) {
     // Process events each vsync
-    if(cpu.mmu.memory[LY] == 144 && SDL_PollEvent(&e)) {
+    if (cpu.mmu.memory[LY] == 144 && SDL_PollEvent(&e)) {
       switch (e.type) {
         case SDL_QUIT:
           quit = true;
@@ -416,6 +416,15 @@ void gb::run() {
         case SDL_KEYUP:
           handleSDLKeyup(e.key.keysym.sym);
           break;
+
+        case SDL_WINDOWEVENT:
+          switch (e.window.event) {
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+              runToBreak = false;
+              cursorPos = cpu.reg.pc;
+              display();
+              break;
+          }
 
         default:
           break;
