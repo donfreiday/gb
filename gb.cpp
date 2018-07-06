@@ -252,9 +252,9 @@ void gb::display() {
   mvprintw(y++, x, "Stack");
   attroff(A_BOLD);
   u8 stackDispSize = 28;  // bytes
-  start = cpu.reg.sp;
-  if (start < stackDispSize) {
-    start = stackDispSize;
+  start = cpu.reg.sp + (stackDispSize / 2);
+  if (start > 0xFFFF) {
+    start = 0xFFFF;
   }
   end = start - stackDispSize;
   for (int i = start; i >= end; i -= 2) {
