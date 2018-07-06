@@ -72,9 +72,9 @@ void GPU::step(u8 cycles) {
 
   // If the LCD is disabled:
   if (!(bitTest(mmu->read_u8(LCDC), LCDC_DISPLAY_ENABLE))) {
-    modeclock = 0; 
+    modeclock = 0;
     scanline = 0;
-    mode = 2; // todo: hack to match BGB LCD timings
+    mode = 2;               // todo: hack to match BGB LCD timings
     status &= (0xFF << 2);  // clear mode bits in LCD status register
     status |= mode;
     mmu->memory[STAT] = status;
@@ -127,8 +127,7 @@ void GPU::step(u8 cycles) {
         scanline++;
         if (scanline > 153) {
           mode = 2;  // restart scanning mode
-          interrupt =
-              bitTest(mmu->read_u8(STAT), STAT_MODE2_INT_ENABLE);
+          interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE2_INT_ENABLE);
           requestInterrupt(0);
           scanline = 0;
         }
@@ -280,15 +279,111 @@ void GPU::renderBackground() {
         break;  // -Wswitch warning prevention
     }
 
-    u8 sline = mmu->read_u8(LY);
-
-    screenData[sline][pixel][0] = red;
-    screenData[sline][pixel][1] = green;
-    screenData[sline][pixel][2] = blue;
+    screenData[scanline][pixel][0] = red;
+    screenData[scanline][pixel][1] = green;
+    screenData[scanline][pixel][2] = blue;
   }
 }
 
-void GPU::renderSprites() {}
+/*
+Sprite data: 8000-8fff, 40 tiles
+
+Each sprite has 4 bytes of attributes fe00-fe9f (OAM attribute table)
+Byte 0: Y position - 16
+Byte 1: X pos - 8
+Byte 2: Pattern number / sprite ID to lookup in sprite data
+Byte 3: attributes
+
+Attributes:
+bit 7: sprite to bg priority
+  0: Sprite above bg and window
+  1: sprite behind bg and window, unless bg/win are white
+bit 6: y flip
+bit 5: x flip
+bit 4: palette number
+  0: palette from ff48
+  1: palette from ff49
+bit 3-0: unused for DMG
+*/
+
+void GPU::renderSprites() {
+  u8 ySize = bitTest(mmu->memory[LCDC], LCDC_OBJ_SIZE) ? 16 : 8;
+  for (u8 sprite = 0; sprite < 40; sprite++) {
+    u8 index = sprite * 4;  // each oam attribute entry is 4 bytes
+    u8 yPos = mmu->memory[OAM_ATTRIB + index] - 16;
+    u8 xPos = mmu->memory[OAM_ATTRIB + index + 1] - 8;
+    u8 tileLocation = mmu->memory[OAM_ATTRIB + index + 2];
+    u8 attributes = mmu->memory[OAM_ATTRIB + index + 3];
+    bool yFlip = bitTest(attributes, 6);
+    bool xFlip = bitTest(attributes, 5);
+
+    // Is sprite located on the current scanline?
+    if (scanline >= yPos && scanline < (yPos + ySize)) {
+      u8 line = scanline - yPos;
+      if (yFlip) {
+        line -= ySize;
+        line *= -1;
+      }
+      line *= 2;
+
+      u16 tileData = (OAM_DATA + (tileLocation * 16)) + line;
+      u8 data1 = mmu->memory[tileData];
+      u8 data2 = mmu->memory[tileData + 1];
+
+      for (int tilePixel = 7; tilePixel >= 0; tilePixel--) {
+        int colorBit = tilePixel;
+        if (xFlip) {
+          colorBit -= 7;
+          colorBit *= -1;
+        }
+
+        u8 colorID = 0;
+        if (data2 & (1 << colorBit)) {
+          colorID |= 2;
+        }
+        if (data1 & (1 << colorBit)) {
+          colorID |= 1;
+        }
+
+        u16 paletteAddress = bitTest(attributes, 4) ? 0xFF49 : 0xFF48;
+        COLOR color = paletteLookup(colorID, paletteAddress);
+
+        // white is transparent
+        if (color == WHITE) {
+          continue;
+        }
+
+        u8 red = 0, green = 0, blue = 0;
+        switch (color) {
+          case WHITE:
+            red = 255;
+            green = 255;
+            blue = 255;
+            break;
+          case LIGHT_GRAY:
+            red = 0xCC;
+            green = 0xCC;
+            blue = 0xCC;
+            break;
+          case DARK_GRAY:
+            red = 0x77;
+            green = 0x77;
+            blue = 0x77;
+            break;
+          case BLACK:
+            break;  // -Wswitch warning prevention
+        }
+
+        u8 pixel = xPos - tilePixel;
+        pixel += 7;
+
+        screenData[scanline][pixel][0] = red;
+        screenData[scanline][pixel][1] = green;
+        screenData[scanline][pixel][2] = blue;
+      }
+    }
+  }
+}
 
 // todo:+ comment on how this works
 GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
@@ -346,8 +441,7 @@ void GPU::renderScreen() {
   glPixelZoom(1, -1);
   glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
   SDL_GL_SwapWindow(window);
-  memset(screenData, 0xFF, sizeof(screenData)); // Clear buffer for next frame
-
+  memset(screenData, 0xFF, sizeof(screenData));  // Clear buffer for next frame
 }
 
 void GPU::requestInterrupt(u8 interrupt) {

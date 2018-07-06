@@ -25,6 +25,9 @@ void bitClear(t &num, u8 pos) {
   num &= ~(1 << pos);
 }
 
+const u16 OAM_ATTRIB = 0xFE00; // Sprite attribute table
+const u16 OAM_DATA = 0x8000; // Sprite data
+
 const u16 JOYP = 0xFF00;  // P1/Joypad
 const u16 SB = 0xFF01;    // Serial transfer data
 const u16 SC = 0xFF02;    // Serial transfer control
