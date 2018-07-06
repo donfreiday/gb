@@ -31,7 +31,7 @@ class MMU {
   bool unmapBootrom;
 
  private:
-  void DMA(u8 src);
+  void DMA(u16 src);
 };
 
 #endif

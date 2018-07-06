@@ -8,6 +8,7 @@ MMU::MMU() { reset(); }
 void MMU::reset() {
   unmapBootrom = false;
   memset(memory, 0, sizeof(memory));
+  memory[JOYP] = 0xCF;
 }
 
 bool MMU::load() {
@@ -96,8 +97,6 @@ void MMU::write_u16(u16 address, u16 value) {
   // Reset the current scanline if the game tries to write to it
   if (address == 0xFF44) {
     *(u16*)(memory + address) = 0;
-  } else if (address == 0xFF46) {
-    DMA(value);
   } else {
     *(u16*)(memory + address) = value;
   }
@@ -105,11 +104,10 @@ void MMU::write_u16(u16 address, u16 value) {
 
 // Source address is: (data that was being written to FF46) / 100 or
 // equivalently, data << 8 Destination is: sprite RAM FE00-FE9F, 0xA0 bytes
-void MMU::DMA(u8 src) {
-  u16 srcAddress = src;
-  srcAddress <<= 8;
+void MMU::DMA(u16 src) {
+  src <<= 8;
   for (u8 i = 0; i < 0xA0; i++) {
-    write_u8(0xFE00 + i, read_u8(srcAddress + i));
+    memory[OAM_ATTRIB + i] = memory[src + i];
   }
 }
 
