@@ -236,7 +236,7 @@ void gb::display() {
   mvprintw(y++, x, "hl= %04X", cpu.reg.hl);
   mvprintw(y++, x, "sp= %04X", cpu.reg.sp);
   mvprintw(y++, x, "pc= %04X", cpu.reg.pc);
-  mvprintw(y++, x, "ime=%c", cpu.ime ? 1 : '.');
+  mvprintw(y++, x, "ime=%d", (cpu.ime ? 1 : 0));
   y = 1;
   x += 11;
   mvprintw(y++, x, "lcdc=%02X", cpu.mmu.memory[LCDC]);

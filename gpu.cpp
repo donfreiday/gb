@@ -122,13 +122,15 @@ void GPU::step(u8 cycles) {
 
     // vblank, 456 cycles (10 scanlines)
     case 1:
+      if (scanline == 144) {
+        requestInterrupt(0);
+      }
       if (modeclock >= 456) {
         modeclock = 0;
         scanline++;
         if (scanline > 153) {
           mode = 2;  // restart scanning mode
           interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE2_INT_ENABLE);
-          requestInterrupt(0);
           scanline = 0;
         }
       }
@@ -305,7 +307,7 @@ bit 4: palette number
   1: palette from ff49
 bit 3-0: unused for DMG
 */
-
+u8 prevXpos = 0;
 void GPU::renderSprites() {
   u8 ySize = bitTest(mmu->memory[LCDC], LCDC_OBJ_SIZE) ? 16 : 8;
   for (u8 sprite = 0; sprite < 40; sprite++) {
@@ -316,6 +318,13 @@ void GPU::renderSprites() {
     u8 attributes = mmu->memory[OAM_ATTRIB + index + 3];
     bool yFlip = bitTest(attributes, 6);
     bool xFlip = bitTest(attributes, 5);
+
+    if(OAM_ATTRIB + index == 0xFe00) {
+      if(xPos!=prevXpos) {
+        prevXpos = xPos;
+      }
+    }
+
 
     // Is sprite located on the current scanline?
     if (scanline >= yPos && scanline < (yPos + ySize)) {
