@@ -72,11 +72,6 @@ void gb::debug() {
       break;
     }
 
-    // Watch memory
-    case KEY_F(3):
-
-      break;
-
     // Reset
     case KEY_F(5):
       cpu.reset();
@@ -110,7 +105,7 @@ void gb::debug() {
       disassemble(cpu.reg.pc);
       cursorPos = getDisasmIndex(cpu.reg.pc);
       break;
-
+    
     case KEY_UP:
       cursorMove(-1);
       break;

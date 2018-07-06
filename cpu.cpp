@@ -601,7 +601,7 @@ bool CPU::execute() {
 
     // DEC HL
     case 0x2B:
-
+      decrementReg(reg.hl);
       break;
 
     // INC L
@@ -611,7 +611,7 @@ bool CPU::execute() {
 
     // DEC L
     case 0x2D:
-
+      decrementReg(reg.l);
       break;
 
     // LD L, nn
@@ -629,7 +629,10 @@ bool CPU::execute() {
 
     // JR NC, 0x%02X
     case 0x30:
-
+      if (!bitTest(reg.f, FLAG_CARRY)) {
+        cycles += 4;
+        reg.pc += (s8)operand;
+      }
       break;
 
     // LD SP, nnnn
@@ -644,7 +647,7 @@ bool CPU::execute() {
 
     // INC SP
     case 0x33:
-
+      incrementReg(reg.sp);
       break;
 
     // INC (HL)
@@ -668,27 +671,32 @@ bool CPU::execute() {
 
     // SCF
     case 0x37:
-
+      bitClear(reg.f, FLAG_SUBTRACT);
+      bitClear(reg.f, FLAG_HALF_CARRY);
+      bitSet(reg.f, FLAG_CARRY);
       break;
 
     // JR C, 0x%02X
     case 0x38:
-
+      if (bitTest(reg.f, FLAG_CARRY)) {
+        cycles += 4;
+        reg.pc += (s8)operand;
+      }
       break;
 
     // ADD HL, SP
     case 0x39:
-
+      add(reg.hl, reg.sp);
       break;
 
     // LDD A, (HL)
     case 0x3A:
-
+      reg.a = mmu.read_u8(reg.hl--);
       break;
 
     // DEC SP
     case 0x3B:
-
+      decrementReg(reg.sp);
       break;
 
     // INC A
@@ -707,43 +715,48 @@ bool CPU::execute() {
       break;
 
     // CCF
+    // Complement carry flag
     case 0x3F:
-
+      bitClear(reg.f, FLAG_SUBTRACT);
+      bitClear(reg.f, FLAG_HALF_CARRY);
+      if (bitTest(reg.f, FLAG_CARRY)) {
+        bitClear(reg.f, FLAG_CARRY);
+      }
       break;
 
     // LD B, B
     case 0x40:
-
+      // reg.b = reg.b;
       break;
 
     // LD B, C
     case 0x41:
-
+      reg.b = reg.c;
       break;
 
     // LD B, D
     case 0x42:
-
+      reg.b = reg.d;
       break;
 
     // LD B, E
     case 0x43:
-
+      reg.b = reg.e;
       break;
 
     // LD B, H
     case 0x44:
-
+      reg.b = reg.h;
       break;
 
     // LD B, L
     case 0x45:
-
+      reg.b = reg.l;
       break;
 
     // LD B, (HL)
     case 0x46:
-
+      reg.b = mmu.read_u8(reg.hl);
       break;
 
     // LD B, A
@@ -1589,7 +1602,7 @@ bool CPU::execute() {
       break;
 
     // LDH (0xFF00 + nn), A
-    case 0xE0: 
+    case 0xE0:
       mmu.write_u8(0xFF00 + operand, reg.a);
       break;
 
