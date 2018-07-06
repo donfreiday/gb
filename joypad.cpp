@@ -24,8 +24,8 @@
 #define A 0       // 0000 0001
 
 Joypad::Joypad() {
-  buttons = 0xDF;     // 1110 1111
-  directions = 0xEF;  // 1101 1111
+  buttons = 0xEF;     // 1110 1111
+  directions = 0xDF;  // 1101 1111
 }
 
 void Joypad::keyPressed(SDL_Keycode key) {
@@ -101,13 +101,13 @@ void Joypad::keyReleased(SDL_Keycode key) {
 }
 
 u8 Joypad::read(u8 request) {
-// Directions
-  if (!bitTest(request, 4)) {
+  // Directions
+  if (!bitTest(request, 5)) {
     return directions;
-  } 
-  
+  }
+
   // Buttons
-  else if (!bitTest(request, 5)) {
+  else if (!bitTest(request, 4)) {
     return buttons;
   }
 

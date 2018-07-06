@@ -97,11 +97,11 @@ void gb::debug() {
 
     // Run to break
     case KEY_F(9):
-      step(); // get past breakpoint at current PC
+      step();  // get past breakpoint at current PC
       runToBreak = true;
-      return; // skip display()
+      return;  // skip display()
       break;
-    
+
     // hack to disassemble from current cursor
     case KEY_F(12):
       for (int i = disasm.size(); i > getDisasmIndex(cpu.reg.pc); i--) {
@@ -189,7 +189,8 @@ void gb::display() {
     attron(COLOR_PAIR(WHITE));
 
     // Breakpoints bullets
-    if (std::find(breakpoints.begin(), breakpoints.end(), disasm[i].pc) != breakpoints.end()) {
+    if (std::find(breakpoints.begin(), breakpoints.end(), disasm[i].pc) !=
+        breakpoints.end()) {
       attron(COLOR_PAIR(RED) | A_BOLD);
       printw("*");
       attroff(COLOR_PAIR(RED) | A_BOLD);
@@ -211,11 +212,11 @@ void gb::display() {
     if (disasm[i].operandSize == 1) {
       printw("%02X     ", cpu.mmu.memory[disasm[i].pc + 1]);
       printw(disasm[i].str.c_str(), disasm[i].operand);
-    } else if(disasm[i].operandSize == 2) {
-      printw("%02X %02X  ", cpu.mmu.memory[disasm[i].pc + 1], cpu.mmu.memory[disasm[i].pc + 2]);
+    } else if (disasm[i].operandSize == 2) {
+      printw("%02X %02X  ", cpu.mmu.memory[disasm[i].pc + 1],
+             cpu.mmu.memory[disasm[i].pc + 2]);
       printw(disasm[i].str.c_str(), disasm[i].operand);
-    }
-    else {
+    } else {
       printw("       ");
       printw(disasm[i].str.c_str());
     }
@@ -285,7 +286,7 @@ void gb::display() {
   mvprintw(y++, x, "%02X FF49 OBP1", cpu.mmu.memory[OBP1]);
   mvprintw(y++, x, "%02X FF4A WY", cpu.mmu.memory[WY]);
   mvprintw(y++, x, "%02X FF4B WX", cpu.mmu.memory[WX]);
-  
+
   // LCDC
   y += 2;
   x -= 2;
@@ -296,20 +297,23 @@ void gb::display() {
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_DISPLAY_ENABLE);
   mvprintw(y++, x, "%c LCD %s", set ? '*' : ' ', set ? "on" : "off");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_WINDOW_TILE_MAP_SELECT);
-  mvprintw(y++, x, "%c WIN %s", set ? '*' : ' ', set ? "9c00-9fff" : "9800-9bff");
+  mvprintw(y++, x, "%c WIN %s", set ? '*' : ' ',
+           set ? "9c00-9fff" : "9800-9bff");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_WINDOW_ENABLE);
   mvprintw(y++, x, "%c WIN %s", set ? '*' : ' ', set ? "on" : "off");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_TILE_DATA_SELECT);
-  mvprintw(y++, x, "%c CHR %s", set ? '*' : ' ', set ? "8000-8FFF" : "8800-97FF");
+  mvprintw(y++, x, "%c CHR %s", set ? '*' : ' ',
+           set ? "8000-8FFF" : "8800-97FF");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_BG_TILE_MAP_SELECT);
-  mvprintw(y++, x, "%c BG  %s", set ? '*' : ' ', set ? "9c00-9fff" : "9800-9bff");
+  mvprintw(y++, x, "%c BG  %s", set ? '*' : ' ',
+           set ? "9c00-9fff" : "9800-9bff");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_OBJ_SIZE);
   mvprintw(y++, x, "%c OBJ %s", set ? '*' : ' ', set ? "8x16" : "8x8");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_OBJ_ENABLE);
   mvprintw(y++, x, "%c OBJ %s", set ? '*' : ' ', set ? "on" : "off");
   set = bitTest(cpu.mmu.memory[LCDC], LCDC_BG_ENABLE);
   mvprintw(y++, x, "%c BG  %s", set ? '*' : ' ', set ? "on" : "off");
-  
+
   // More IO map
   y = 0;
   x += 22;
@@ -345,7 +349,7 @@ void gb::display() {
   mvprintw(y++, x, "%c b3 HBlank (mode0) int", set ? '*' : ' ');
   set = bitTest(cpu.mmu.memory[STAT], STAT_LYC_FLAG);
   mvprintw(y++, x, "%c b2 LY=LYC", set ? '*' : ' ');
-  mvprintw(y++, x, "  Mode %d", (cpu.mmu.memory[STAT] & 3)); // low two bits
+  mvprintw(y++, x, "  Mode %d", (cpu.mmu.memory[STAT] & 3));  // low two bits
 
   y += 2;
   x += 2;
@@ -398,12 +402,8 @@ void gb::run() {
   }
 
   while (!quit) {
-    if (debugEnabled) {
-      debug();
-    } else {
-      step();
-    }
-    while (SDL_PollEvent(&e) != 0) {
+    // Process events each vsync
+    if(cpu.mmu.memory[LY] == 144 && SDL_PollEvent(&e)) {
       switch (e.type) {
         case SDL_QUIT:
           quit = true;
@@ -420,6 +420,11 @@ void gb::run() {
         default:
           break;
       }
+    }
+    if (debugEnabled) {
+      debug();
+    } else {
+      step();
     }
   }
 }

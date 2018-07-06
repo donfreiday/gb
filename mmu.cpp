@@ -3,14 +3,11 @@
 
 #include "mmu.h"
 
-MMU::MMU() {
-  reset();
-}
+MMU::MMU() { reset(); }
 
 void MMU::reset() {
- unmapBootrom = false;
- memset(memory, 0, sizeof(memory));
- memory[JOYP] = 0xCF; // 11001111
+  unmapBootrom = false;
+  memset(memory, 0, sizeof(memory));
 }
 
 bool MMU::load() {
@@ -36,62 +33,62 @@ bool MMU::load() {
   return true;
 }
 
-u8 MMU::read_u8(u16 address) { 
-  switch(address) {
-    case 0xFF00: // Joypad
+u8 MMU::read_u8(u16 address) {
+  switch (address) {
+    case 0xFF00:  // Joypad
       return joypad->read(memory[0xFF00]);
       break;
 
     default:
-      return memory[address]; 
+      return memory[address];
       break;
-  }  
+  }
 }
 
 u16 MMU::read_u16(u16 address) { return *(u16*)(memory + address); }
 
 void MMU::write_u8(u16 address, u8 value) {
-  switch(address) {
-  // Joypad
-  case 0xFF00:
-    memory[address] = joypad->read(value);
-    break;
+  switch (address) {
+    // Joypad
+    case 0xFF00:
+      memory[address] = joypad->read(value);
+      break;
 
-  // CPU IF always polls high on bits 5-7
-  case 0xFF0F:
-    value |= 0xE0;
-    memory[address] = value;
-    break;
+    // CPU IF always polls high on bits 5-7
+    case 0xFF0F:
+      value |= 0xE0;
+      memory[address] = value;
+      break;
 
-  // Block writes to LCD_STAT
-  // todo: BGB does this, but is this correct behavior?
-  case 0xFF41:
-    break;
+    // Block writes to LCD_STAT
+    // todo: BGB does this, but is this correct behavior?
+    case 0xFF41:
+      break;
 
-  // Reset the current scanline if the game tries to write to it
-  case 0xFF44: 
-    memory[address] = 0;
-    break;
+    // Reset the current scanline if the game tries to write to it
+    case 0xFF44:
+      memory[address] = 0;
+      break;
 
-  // DMA
-  case 0xFF46:
-    DMA(value);
-    break;
+    // DMA
+    case 0xFF46:
+      DMA(value);
+      break;
 
-  // unmap bootrom, map rom. todo: hack hack hack
-  case 0xFF50: {
-    unmapBootrom = true;
-    std::ifstream file;
-    file.open("tetris.gb", std::ios::binary);
-    file.seekg(file.beg);
-    file.read((char*)(memory), 0x100);
-    file.close();
-    break;
-  }
-  
-  default:
-    memory[address] = value;
-    break;
+    // unmap bootrom, map rom. todo: hack hack hack
+    case 0xFF50: {
+      unmapBootrom = true;
+      std::ifstream file;
+      file.open("tetris.gb", std::ios::binary);
+      file.seekg(file.beg);
+      file.read((char*)(memory), 0x100);
+      file.close();
+      break;
+    }
+
+    default:
+      memory[address] = value;
+      break;
   }
 }
 
@@ -116,7 +113,5 @@ void MMU::DMA(u8 src) {
   }
 }
 
-// todo: 
-int MMU::getRomSize() {
-  return 32000;
-}
+// todo:
+int MMU::getRomSize() { return 32000; }
