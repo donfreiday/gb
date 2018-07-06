@@ -421,7 +421,7 @@ void gb::run() {
           switch (e.window.event) {
             case SDL_WINDOWEVENT_FOCUS_LOST:
               runToBreak = false;
-              cursorPos = cpu.reg.pc;
+              cursorPos = getDisasmIndex(cpu.reg.pc);
               display();
               break;
           }
