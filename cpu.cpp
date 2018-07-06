@@ -59,7 +59,7 @@ template <typename t>
 void CPU::bit(u8 bit, t reg1) {
   u8 prevCarry = bitTest(reg.f, FLAG_CARRY);
   reg.f = 0;
-  if (bitTest(reg1, bit)) {
+  if (!bitTest(reg1, bit)) {
     bitSet(reg.f, FLAG_ZERO);
   }
   bitClear(reg.f, FLAG_SUBTRACT);
@@ -1589,7 +1589,7 @@ bool CPU::execute() {
       break;
 
     // LDH (0xFF00 + nn), A
-    case 0xE0:
+    case 0xE0: 
       mmu.write_u8(0xFF00 + operand, reg.a);
       break;
 

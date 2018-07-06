@@ -73,6 +73,7 @@ void MMU::write_u8(u16 address, u8 value) {
 
     // DMA
     case 0xFF46:
+      memory[0xFF46] = value;
       DMA(value);
       break;
 
