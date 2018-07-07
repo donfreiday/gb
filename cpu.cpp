@@ -276,6 +276,23 @@ void CPU::add(t &reg1, t n) {
   }
 }
 
+// Add n to reg1.
+template <typename t>
+void CPU::add16(t &reg1, t n) {
+  reg.f = 0;
+  if ((reg1 + n) > 0xFFFF) {
+    bitSet(reg.f, FLAG_CARRY);
+  }
+  if ((reg1 & 0xFF) + (n & 0xFF) > 0xFF) {
+    bitSet(reg.f, FLAG_HALF_CARRY);
+  }
+  bitClear(reg.f, FLAG_SUBTRACT);
+  reg1 += n;
+  if (reg1 == 0) {
+    bitSet(reg.f, FLAG_ZERO);
+  }
+}
+
 // Add n + carry flag to A
 // todo: is this correct? verify
 template <typename t>
@@ -428,7 +445,7 @@ bool CPU::execute() {
 
     // ADD HL, BC
     case 0x09:
-      add(reg.hl, reg.bc);
+      add16(reg.hl, reg.bc);
       break;
 
     // LD A, (BC)
@@ -512,7 +529,7 @@ bool CPU::execute() {
 
     // ADD HL, DE
     case 0x19:
-      add(reg.hl, reg.de);
+      add16(reg.hl, reg.de);
       break;
 
     // LD A, (DE)
@@ -603,7 +620,7 @@ bool CPU::execute() {
 
     // ADD HL, HL
     case 0x29:
-      add(reg.hl, reg.hl);
+      add16(reg.hl, reg.hl);
       break;
 
     // LDI A, (HL)
@@ -700,7 +717,7 @@ bool CPU::execute() {
 
     // ADD HL, SP
     case 0x39:
-      add(reg.hl, reg.sp);
+      add16(reg.hl, reg.sp);
       break;
 
     // LDD A, (HL)

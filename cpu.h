@@ -129,6 +129,10 @@ class CPU {
   template <typename t>
   void add(t &reg1, t n);
 
+  // Add n to reg1.
+  template <typename t>
+  void add16(t &reg1, t n);
+
   // Add n + carry flag to A
   template <typename t>
   void addCarry(t n);
