@@ -1684,7 +1684,14 @@ bool CPU::execute() {
 
     // ADD SP,0x%02X
     case 0xE8:
-      add(reg.sp, operand);
+      bitClear(reg.f, FLAG_ZERO);
+      bitClear(reg.f, FLAG_SUBTRACT);
+      if ((reg.sp + operand) > 0xFF) {
+        bitSet(reg.f, FLAG_CARRY);
+      }
+      if ((reg.sp & 0xF) + (operand & 0xF) > 0xF) {
+        bitSet(reg.f, FLAG_HALF_CARRY);
+      }
       break;
 
     // JP HL
