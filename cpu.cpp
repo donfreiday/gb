@@ -1686,10 +1686,10 @@ bool CPU::execute() {
     case 0xE8:
       bitClear(reg.f, FLAG_ZERO);
       bitClear(reg.f, FLAG_SUBTRACT);
-      if ((reg.sp + operand) > 0xFF) {
+      if ((reg.sp + (s8)operand) > 0xFF) {
         bitSet(reg.f, FLAG_CARRY);
       }
-      if ((reg.sp & 0xF) + (operand & 0xF) > 0xF) {
+      if ((reg.sp & 0xF) + ((s8)operand & 0xF) > 0xF) {
         bitSet(reg.f, FLAG_HALF_CARRY);
       }
       break;
