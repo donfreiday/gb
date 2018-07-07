@@ -143,12 +143,11 @@ void gb::cursorMove(int distance) {
 }
 
 void gb::step() {
-  // Stop running on unimplemented opcodes
+  cpu.checkInterrupts();
   if (!cpu.execute()) {
     runToBreak = false;
   }
   gpu.step(cpu.cpu_clock_t);
-  cpu.checkInterrupts();
 }
 
 // Find current PC in disassembly

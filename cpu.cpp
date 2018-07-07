@@ -4,6 +4,9 @@
 #include "cpu.h"
 #include "mmu.h"
 
+u16 prevPC[999];
+u16 prevPcIndex = 0;
+
 #define FLAG_CARRY \
   4  // set if a carry occurred from the last arithmetic operation or if
      // register A is the smaller value when executing the CP instruction
@@ -356,6 +359,10 @@ void CPU::xorReg(t reg1) {
 }
 
 bool CPU::execute() {
+  prevPC[prevPcIndex++] = reg.pc;
+  if (prevPcIndex > 998) {
+    prevPcIndex = 0;
+  }
   // Fetch the opcode from MMU and increment PC
   u8 op = mmu.read_u8(reg.pc++);
   // Parse operand and print disassembly of instruction
@@ -721,6 +728,8 @@ bool CPU::execute() {
       bitClear(reg.f, FLAG_HALF_CARRY);
       if (bitTest(reg.f, FLAG_CARRY)) {
         bitClear(reg.f, FLAG_CARRY);
+      } else {
+        bitSet(reg.f, FLAG_CARRY);
       }
       break;
 
@@ -3171,9 +3180,9 @@ void CPU::doInterrupt(u8 interrupt) {
   ime = false;  // IME = disabled
 
   // Reset bit in Interrupt Request Register
-  u8 flags = mmu.read_u8(IF);
+  u8 flags = mmu.memory[IF];
   bitClear(flags, interrupt);
-  mmu.write_u8(IF, interrupt);
+  mmu.memory[IF] = flags;
 
   reg.sp -= 2;
   mmu.write_u16(reg.sp, reg.pc);  // Push PC to the stack
