@@ -396,8 +396,9 @@ bool CPU::execute() {
       break;
 
     // INC BC
+    // Flags are not affected by 16bit increment
     case 0x03:
-      incrementReg(reg.bc);
+      reg.bc++;
       break;
 
     // INC B
@@ -436,8 +437,9 @@ bool CPU::execute() {
       break;
 
     // DEC BC
+    // Flags are not affected by 16bit decrement
     case 0x0B:
-      decrementReg(reg.bc);
+      reg.bc--;
       break;
 
     // INC C
@@ -478,8 +480,9 @@ bool CPU::execute() {
       break;
 
     // INC DE
+    // Flags are not affected by 16bit increment
     case 0x13:
-      incrementReg(reg.de);
+      reg.de++;
       break;
 
     // INC D
@@ -518,8 +521,9 @@ bool CPU::execute() {
       break;
 
     // DEC DE
+    // Flags are not affected by 16bit decrement
     case 0x1B:
-      decrementReg(reg.de);
+      reg.de--;
       break;
 
     // INC E
@@ -561,8 +565,9 @@ bool CPU::execute() {
       break;
 
     // INC HL
+    // Flags are not affected by 16bit increment
     case 0x23:
-      incrementReg(reg.hl);
+      reg.hl++;
       break;
 
     // INC H
@@ -607,8 +612,9 @@ bool CPU::execute() {
       break;
 
     // DEC HL
+    // Flags are not affected by 16bit decrement
     case 0x2B:
-      decrementReg(reg.hl);
+      reg.hl--;
       break;
 
     // INC L
@@ -653,8 +659,9 @@ bool CPU::execute() {
       break;
 
     // INC SP
+    // Flags are not affected by 16bit increment
     case 0x33:
-      incrementReg(reg.sp);
+      reg.sp++;
       break;
 
     // INC (HL)
@@ -702,8 +709,9 @@ bool CPU::execute() {
       break;
 
     // DEC SP
+    // Flags are not affected by 16bit decrement
     case 0x3B:
-      decrementReg(reg.sp);
+      reg.sp--;
       break;
 
     // INC A
