@@ -279,16 +279,17 @@ void CPU::add(t &reg1, t n) {
 // Add n to reg1.
 template <typename t>
 void CPU::add16(t &reg1, t n) {
+  bool zero = bitTest(reg.f, FLAG_ZERO);
   reg.f = 0;
   if ((reg1 + n) > 0xFFFF) {
     bitSet(reg.f, FLAG_CARRY);
   }
-  if ((reg1 & 0xFF) + (n & 0xFF) > 0xFF) {
+  if ((reg1 & 0x0FFF) + (n & 0x0FFF) > 0x0FFF) {
     bitSet(reg.f, FLAG_HALF_CARRY);
   }
   bitClear(reg.f, FLAG_SUBTRACT);
   reg1 += n;
-  if (reg1 == 0) {
+  if (zero) {
     bitSet(reg.f, FLAG_ZERO);
   }
 }
