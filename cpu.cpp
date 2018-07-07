@@ -91,7 +91,6 @@ void CPU::decrementReg(t &reg1) {
 
 template <typename t>
 void CPU::incrementReg(t &reg1) {
-  reg1++;
   bool carry = bitTest(reg.f, FLAG_CARRY);
   reg.f = 0;
   if (carry) {
@@ -103,6 +102,7 @@ void CPU::incrementReg(t &reg1) {
   if ((reg1 & 0xF) == 0xF) {
     bitSet(reg.f, FLAG_HALF_CARRY);
   }
+  reg1++;
 }
 
 template <typename t>
