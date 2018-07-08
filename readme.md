@@ -11,6 +11,7 @@ Not implemented: window layer of graphics, timers, sound, other stuff
 
 Build:
 Dependencies: SDL2, ncurses
+
 git clone https://github.com/donfreiday/gb.git && cd gb && make all
 
 Resources:
