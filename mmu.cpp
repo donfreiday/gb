@@ -49,6 +49,10 @@ u8 MMU::read_u8(u16 address) {
 u16 MMU::read_u16(u16 address) { return *(u16*)(memory + address); }
 
 void MMU::write_u8(u16 address, u8 value) {
+  // No writing to cartridge ROM
+  if (address < 0x8000) {
+    return;
+  }
   switch (address) {
     // Joypad
     case 0xFF00:
@@ -95,6 +99,10 @@ void MMU::write_u8(u16 address, u8 value) {
 }
 
 void MMU::write_u16(u16 address, u16 value) {
+  // No writing to cartridge ROM
+  if (address < 0x8000) {
+    return;
+  }
   // Reset the current scanline if the game tries to write to it
   if (address == 0xFF44) {
     *(u16*)(memory + address) = 0;

@@ -103,7 +103,6 @@ void CPU::incrementReg(t &reg1) {
   if ((reg1 & 0xF) == 0) {
     bitSet(reg.f, FLAG_HALF_CARRY);
   }
-  
 }
 
 template <typename t>
@@ -378,10 +377,11 @@ void CPU::xorReg(t reg1) {
 }
 
 bool CPU::execute() {
-  prevPC[prevPcIndex++] = reg.pc;
   if (prevPcIndex > 998) {
     prevPcIndex = 0;
   }
+  prevPC[prevPcIndex++] = reg.pc;
+
   // Fetch the opcode from MMU and increment PC
   u8 op = mmu.read_u8(reg.pc++);
   // Parse operand and print disassembly of instruction
