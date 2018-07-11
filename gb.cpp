@@ -105,7 +105,7 @@ void gb::debug() {
       disassemble(cpu.reg.pc);
       cursorPos = getDisasmIndex(cpu.reg.pc);
       break;
-    
+
     case KEY_UP:
       cursorMove(-1);
       break;
@@ -411,15 +411,6 @@ void gb::run() {
           handleSDLKeyup(e.key.keysym.sym);
           break;
 
-        case SDL_WINDOWEVENT:
-          switch (e.window.event) {
-            case SDL_WINDOWEVENT_FOCUS_LOST:
-              runToBreak = false;
-              cursorPos = getDisasmIndex(cpu.reg.pc);
-              display();
-              break;
-          }
-
         default:
           break;
       }
@@ -465,6 +456,12 @@ void gb::handleSDLKeyup(SDL_Keycode key) {
     case SDLK_RETURN:
     case SDLK_SPACE:
       joypad.keyReleased(key);
+      break;
+
+    case SDLK_ESCAPE:
+      runToBreak = false;
+      cursorPos = getDisasmIndex(cpu.reg.pc);
+      display();
       break;
 
     default:
