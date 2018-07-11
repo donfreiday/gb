@@ -2341,7 +2341,7 @@ bool CPU::execute_CB(u8 op) {
 
     // BIT 3, A
     case 0x5F:
-      bit(3, reg.l);
+      bit(3, reg.a);
       break;
 
     // BIT 4, B
