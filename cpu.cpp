@@ -605,12 +605,45 @@ bool CPU::execute() {
       break;
 
     // DAA
-    // BCD: todo: restudy
-    case 0x27:
-      printw("Unimplemented instruction: 0x27: DAA\n");
-      refresh();
-      return false;
-      break;
+    // This instruction adjusts register A so that the correct representation of
+    // Binary Coded Decimal (BCD) is obtained.
+    // Adapted from http://forums.nesdev.com/viewtopic.php?t=9088
+    case 0x27: {
+      int a = reg.a;
+
+      if (!bitTest(reg.f, FLAG_SUBTRACT)) {
+        if (bitTest(reg.f, FLAG_HALF_CARRY) || (a & 0xF) > 9) {
+          a += 0x06;
+        }
+        if(bitTest(reg.f, FLAG_CARRY || a > 0x9F)) {
+          a += 0x60;
+        }
+      } else {
+        if (bitTest(reg.f, FLAG_HALF_CARRY)) {
+          a = (a - 6) & 0xFF;
+        }
+        if(bitTest(reg.f, FLAG_CARRY)) {
+          a -= 0x60;
+        }
+      }
+      bitClear(reg.f, FLAG_HALF_CARRY);
+      bitClear(reg.f, FLAG_ZERO);
+
+
+      if ((a & 0x100) == 0x100) {
+        bitSet(reg.f, FLAG_CARRY);
+      }
+
+      a &= 0xFF;
+
+      if (a == 0) {
+        bitSet(reg.f, FLAG_ZERO);
+      }
+
+      reg.a = (u8)a;
+    }
+
+    break;
 
     // JR Z, nn
     case 0x28:
