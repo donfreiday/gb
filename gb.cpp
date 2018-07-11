@@ -459,7 +459,7 @@ void gb::handleSDLKeyup(SDL_Keycode key) {
       break;
 
     case SDLK_ESCAPE:
-      runToBreak = false;
+      runToBreak = !runToBreak;
       cursorPos = getDisasmIndex(cpu.reg.pc);
       display();
       break;
