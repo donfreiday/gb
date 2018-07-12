@@ -5,9 +5,9 @@ Author: Don Freiday
 
 My very first emulator.
 
-Implemented so far: enough to [execute the boot rom](https://youtu.be/jGuP2uIBTVw)
+Implemented so far: enough to play Tetris!!!
 
-Not implemented: window layer of graphics, timers, sound, other stuff
+Not implemented: window layer of graphics, sound, other stuff
 
 Build:
 Dependencies: SDL2, ncurses
@@ -15,6 +15,8 @@ Dependencies: SDL2, ncurses
 git clone https://github.com/donfreiday/gb.git && cd gb && make all
 
 Resources:
+<http://gbdev.gg8.se/wiki/articles/Pan_Docs>
+
 <http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf>
 
 <https://realboyemulator.wordpress.com/>
