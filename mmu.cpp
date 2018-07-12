@@ -106,16 +106,10 @@ void MMU::write_u8(u16 address, u8 value) {
 }
 
 void MMU::write_u16(u16 address, u16 value) {
-  // No writing to cartridge ROM
-  if (address < 0x8000) {
-    return;
-  }
-  // Reset the current scanline if the game tries to write to it
-  if (address == 0xFF44) {
-    *(u16*)(memory + address) = 0;
-  } else {
-    *(u16*)(memory + address) = value;
-  }
+  u8 byte1 = (u8)(value & 0x00FF);
+  u8 byte2 = (u8)((value & 0xFF00)>>8);
+  write_u8(address, byte1);
+  write_u8(address + 1, byte2);
 }
 
 // Source address is: (data that was being written to FF46) / 100 or
