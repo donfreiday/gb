@@ -46,7 +46,12 @@ u8 MMU::read_u8(u16 address) {
   }
 }
 
-u16 MMU::read_u16(u16 address) { return *(u16*)(memory + address); }
+u16 MMU::read_u16(u16 address) { 
+  u16 result = read_u8(address + 1);
+  result <<= 8;
+  result |= read_u8(address);
+  return result;
+  }
 
 void MMU::write_u8(u16 address, u8 value) {
   // No writing to cartridge ROM
