@@ -51,7 +51,11 @@ void CPU::reset() {
   ime = false;
   mmu.reset();
   mmu.write_u8(IF, 0xE1);
-  // mmu.write_u8(LCD_CTL, 0x91);
+  dividerCounter = 0;
+  timerCounter = 0;
+  timerMode = 0;       // Clock rate determined by lowest 2 bits of TAC register
+  timerCycles = 1024;  // Initial TAC 00 so GB-Z80 clock speed / inc rate ==
+                       // 4194304÷4096 == 1024 cycles
   eiDelay = false;
   debug = false;
   debugVerbose = false;
@@ -615,20 +619,19 @@ bool CPU::execute() {
         if (bitTest(reg.f, FLAG_HALF_CARRY) || (a & 0xF) > 9) {
           a += 0x06;
         }
-        if(bitTest(reg.f, FLAG_CARRY || a > 0x9F)) {
+        if (bitTest(reg.f, FLAG_CARRY || a > 0x9F)) {
           a += 0x60;
         }
       } else {
         if (bitTest(reg.f, FLAG_HALF_CARRY)) {
           a = (a - 6) & 0xFF;
         }
-        if(bitTest(reg.f, FLAG_CARRY)) {
+        if (bitTest(reg.f, FLAG_CARRY)) {
           a -= 0x60;
         }
       }
       bitClear(reg.f, FLAG_HALF_CARRY);
       bitClear(reg.f, FLAG_ZERO);
-
 
       if ((a & 0x100) == 0x100) {
         bitSet(reg.f, FLAG_CARRY);
@@ -3214,6 +3217,8 @@ bool CPU::execute_CB(u8 op) {
       break;
   }
 
+  updateDivider(cpu_clock_t);
+  updateTimer(cpu_clock_t);
   return true;
 }
 
@@ -3274,5 +3279,76 @@ void CPU::doInterrupt(u8 interrupt) {
 
     default:
       break;
+  }
+}
+
+// GB-Z80 clock speed / increment rate == 4194304 Hz / 16384 Hz  == 256 cycles
+void CPU::updateDivider(u8 cycles) {
+  timerCounter += cycles;
+  if (timerCounter >= 256) {
+    timerCounter = 0;
+    mmu.memory[DIV] = 0;
+  } else {
+    mmu.memory[DIV]++;
+  }
+}
+
+/*
+FF05 - TIMA - Timer counter (R/W)
+This timer is incremented by a clock frequency specified by the TAC register
+($FF07). When the value overflows (gets bigger than FFh) then it will be reset
+to the value specified in TMA (FF06), and an interrupt will be requested, as
+described below.
+
+FF06 - TMA - Timer Modulo (R/W)
+When the TIMA overflows, this data will be loaded.
+
+FF07 - TAC - Timer Control (R/W)
+ Bit  2   - Timer Enable
+ Bits 1-0 - Input Clock Select
+            00: CPU Clock / 1024 (DMG, CGB:   4096 Hz, SGB:   ~4194 Hz)
+            01: CPU Clock / 16   (DMG, CGB: 262144 Hz, SGB: ~268400 Hz)
+            10: CPU Clock / 64   (DMG, CGB:  65536 Hz, SGB:  ~67110 Hz)
+            11: CPU Clock / 256  (DMG, CGB:  16384 Hz, SGB:  ~16780 Hz)*/
+void CPU::updateTimer(u8 cycles) {
+  // Return if timer disabled
+  if (!bitTest(mmu.memory[TAC], 2)) {
+    return;
+  }
+
+  // Handle timer input clock selection changes
+  if (timerMode != (mmu.memory[TAC] & 0x3)) {
+    timerMode = mmu.memory[TAC] & 0x3;
+    switch (timerMode) {
+      case 0:
+        timerCycles = 1024;  // clock / inc rate == 4194304÷4096 == 1024 cycles
+        break;
+      case 1:
+        timerCycles = 16;
+        break;
+      case 2:
+        timerCycles = 64;
+        break;
+      case 3:
+        timerCycles = 256;
+        break;
+      default:
+        break;
+    }
+  }
+
+  timerCounter += cycles;
+
+  if (timerCounter >= timerCycles) {
+    timerCounter = 0;
+    // Check for timer overflow
+    if (mmu.memory[TIMA] >= 0xFF) {
+      mmu.memory[TIMA] = 0;
+      // Request interrupt
+      // todo: I think there is a 4 cycle delay here
+      bitSet(mmu.memory[IF], 2);
+    } else {
+      mmu.memory[TIMA]++;
+    }
   }
 }

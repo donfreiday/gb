@@ -143,6 +143,12 @@ class CPU {
   void checkInterrupts();
   void doInterrupt(u8 interrupt);
 
+  int dividerCounter;
+  void updateDivider(u8 cycles);
+
+  int timerMode, timerCycles, timerCounter;
+  void updateTimer(u8 cycles);
+
   // Debug flags
   bool debug, debugVerbose;
 

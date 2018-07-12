@@ -52,6 +52,8 @@ void MMU::write_u8(u16 address, u8 value) {
   // No writing to cartridge ROM
   if (address < 0x8000) {
     return;
+  } else if (address == DIV) {
+    memory[DIV] = 0;
   }
   switch (address) {
     // Joypad
