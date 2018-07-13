@@ -16,7 +16,7 @@ class MMU {
   unsigned char memory[0xFFFF];  // 16bit address bus
 
   MMU();
-  bool load();
+  bool load(char* filename);
   void reset();
 
   u8 read_u8(u16 address);
@@ -29,6 +29,8 @@ class MMU {
   Joypad* joypad;
 
   bool unmapBootrom;
+
+  char* romFile;
 
  private:
   void DMA(u16 src);

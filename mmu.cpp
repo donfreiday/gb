@@ -11,7 +11,8 @@ void MMU::reset() {
   memory[JOYP] = 0xCF;
 }
 
-bool MMU::load() {
+bool MMU::load(char* filename) {
+  romFile = filename;
   // Load bios. Dont forget PC must be set to 0 in CPU
   std::ifstream file;
   file.open("bios.gb", std::ios::binary | std::ios::ate);
@@ -26,7 +27,10 @@ bool MMU::load() {
   // todo: hack alert!
   // The bootrom expects to find a compressed Nintendo logo in the header
   // of the ROM. So we'll just load tetris after the bootrom
-  file.open("tetris.gb", std::ios::binary);
+  file.open(filename, std::ios::binary);
+  if (!file.is_open()) {
+    return false;
+  }
   file.seekg(0x100);
   file.read((char*)(memory + 0x100), 0x8000 - 0x100);
   file.close();
@@ -46,12 +50,12 @@ u8 MMU::read_u8(u16 address) {
   }
 }
 
-u16 MMU::read_u16(u16 address) { 
+u16 MMU::read_u16(u16 address) {
   u16 result = read_u8(address + 1);
   result <<= 8;
   result |= read_u8(address);
   return result;
-  }
+}
 
 void MMU::write_u8(u16 address, u8 value) {
   // No writing to cartridge ROM
@@ -107,7 +111,7 @@ void MMU::write_u8(u16 address, u8 value) {
 
 void MMU::write_u16(u16 address, u16 value) {
   u8 byte1 = (u8)(value & 0x00FF);
-  u8 byte2 = (u8)((value & 0xFF00)>>8);
+  u8 byte2 = (u8)((value & 0xFF00) >> 8);
   write_u8(address, byte1);
   write_u8(address + 1, byte2);
 }

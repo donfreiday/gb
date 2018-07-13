@@ -36,7 +36,7 @@ gb::~gb() {
   endwin();  // End curses mode
 }
 
-bool gb::loadROM() { return cpu.mmu.load(); }
+bool gb::loadROM(char* filename) { return cpu.mmu.load(filename); }
 
 void gb::debug() {
   // todo: this is a hack
@@ -76,7 +76,7 @@ void gb::debug() {
     case KEY_F(5):
       cpu.reset();
       gpu.reset();
-      cpu.mmu.load();
+      cpu.mmu.load(cpu.mmu.romFile);
       disasm.clear();
       disassemble(0);
       cursorPos = getDisasmIndex(cpu.reg.pc);
@@ -470,8 +470,16 @@ void gb::handleSDLKeyup(SDL_Keycode key) {
 }
 
 int main(int argc, char* args[]) {
+  if (argc < 2) {
+    printf("Please specify a ROM file.\n");
+    return -1;
+  }
   gb core;
-  core.loadROM();
-  core.run();
+  if (core.loadROM(args[1])) {
+    core.run();
+  } else {
+    printf("Invalid ROM file: %s\n", args[1]);
+    return -1;
+   }
   return 0;
 }

@@ -17,7 +17,7 @@ class gb {
   gb();
   ~gb();
 
-  bool loadROM();
+  bool loadROM(char* filename);
   void run();
 
   bool debugEnabled;
