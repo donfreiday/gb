@@ -4,7 +4,11 @@
 #ifndef GB_CPU
 #define GB_CPU
 
-#include <ncurses.h>
+#ifdef __linux__
+  #include <ncurses.h>
+#elif _WIN32
+  #include <curses.h>
+#endif
 #include <stdio.h>
 #include "common.h"
 #include "mmu.h"
