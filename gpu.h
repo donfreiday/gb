@@ -34,6 +34,8 @@ class GPU {
   bool initSDL();  // Starts up SDL and creates window
   void initGL();
 
+  int frameStartTime, frameCurrentTime;
+
   void renderScanline();  // write scanline to surface
   void renderBackground();
   void renderSprites();

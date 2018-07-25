@@ -20,6 +20,8 @@ void GPU::reset() {
   mmu->memory[STAT] = 0x84;
   modeclock = 0;
   memset(screenData, 0, sizeof(screenData));
+  frameStartTime = 0;
+  frameCurrentTime = 0;
   initSDL();
 }
 
@@ -48,7 +50,9 @@ bool GPU::initSDL() {
 
   // Turn on double buffering with a 24bit Z buffer.
   // You may need to change this to 16 or 32 for your system
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0) {
+    SDL_GetError();
+  }
 
   // This makes our buffer swap syncronized with the monitor's vertical refresh
   SDL_GL_SetSwapInterval(1);
@@ -449,6 +453,9 @@ void GPU::renderScreen() {
   glRasterPos2i(-1, 1);
   glPixelZoom(1, -1);
   glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
+  frameCurrentTime = SDL_GetTicks();
+	if((frameCurrentTime - frameStartTime) < 16) { SDL_Delay(16 - (frameCurrentTime - frameStartTime));}
+	frameStartTime = SDL_GetTicks();
   SDL_GL_SwapWindow(window);
   memset(screenData, 0xFF, sizeof(screenData));  // Clear buffer for next frame
 }
