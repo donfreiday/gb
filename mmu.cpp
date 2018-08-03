@@ -96,7 +96,7 @@ void MMU::write_u8(u16 address, u8 value) {
     case 0xFF50: {
       unmapBootrom = true;
       std::ifstream file;
-      file.open("tetris.gb", std::ios::binary);
+      file.open(romFile, std::ios::binary);
       file.seekg(file.beg);
       file.read((char*)(memory), 0x100);
       file.close();

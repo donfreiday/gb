@@ -42,6 +42,7 @@ void Debugger::run() {
     disassemble(0);
     cursorPos = getDisasmIndex(cpu->reg.pc);
     cpu->mmu.unmapBootrom = false;
+    display();
   }
 
   if (runToBreak) {
