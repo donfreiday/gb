@@ -11,6 +11,7 @@
 #include "cpu.h"
 #include "gpu.h"
 #include "joypad.h"
+#include "debugger.h"
 
 class gb {
  public:
@@ -30,30 +31,7 @@ class gb {
   CPU cpu;
   GPU gpu;
   Joypad joypad;
-
-  // Debugger
-  int yMax, xMax;  // Terminal dimensions
-  std::set<u16> breakpoints;
-  std::set<u16> watches; // Memory 
-  bool runToBreak;  // Run till breakpoint
-  void debug();
-
-  // Disassembler
-  struct disassembly {
-    u16 pc;
-    std::string str;
-    u8 operandSize;
-    u16 operand;
-    bool operator==(const u16& rhs) const { return pc == rhs; }
-  };
-  std::vector<disassembly> disasm; // todo: use a better suited data structure
-  void disassemble(u16 initPC);          // Populate disasm
-  int getDisasmIndex(u16 pc);  // Finds element with given PC
-
-  // Prints disassembly, registers, etc
-  void display();
-  int cursorPos;  // By disasm index
-  void cursorMove(int distance);
+  Debugger debugger;
 };
 
 #endif
