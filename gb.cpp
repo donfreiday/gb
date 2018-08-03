@@ -1,5 +1,9 @@
-/* gb: a Gameboy Emulator
-   Author: Don Freiday */
+// gb: a Gameboy Emulator by Don Freiday
+// File: gb.cpp
+// Description: Emulator core
+//
+// Links the CPU, GPU, MMU, APU, Joypad, and Debugger
+// Handles SDL input events and operates emulator components
 
 #include "gb.h"
 
@@ -10,15 +14,7 @@ gb::gb() {
   gpu.reset();
 }
 
-gb::~gb() {}
-
 bool gb::loadROM(char* filename) { return cpu.mmu.load(filename); }
-
-void gb::step() {
-  cpu.checkInterrupts();
-  cpu.execute();
-  gpu.step(cpu.cpu_clock_t);
-}
 
 void gb::run() {
   bool quit = false;
@@ -30,7 +26,7 @@ void gb::run() {
   }
 
   while (!quit) {
-    // Process events each vsync
+    // Process events each vsync (scanline == 0x144)
     if (cpu.mmu.memory[LY] == 144 && SDL_PollEvent(&e)) {
       switch (e.type) {
         case SDL_QUIT:
@@ -49,12 +45,14 @@ void gb::run() {
           break;
       }
     }
-    if (debugEnabled) {
-      debugger.run();
-    } else {
-      step();
-    }
+    debugEnabled ? debugger.run() : step();
   }
+}
+
+void gb::step() {
+  cpu.checkInterrupts();
+  cpu.execute();
+  gpu.step(cpu.cpu_clock_t);
 }
 
 void gb::handleSDLKeydown(SDL_Keycode key) {
