@@ -6,34 +6,41 @@
 MMU::MMU() { reset(); }
 
 void MMU::reset() {
-  unmapBootrom = false;
-  memset(memory, 0, sizeof(memory));
+  memory.resize(0xFFFF, 0); // 16-bit address space
   memory[JOYP] = 0xCF;
+  memMapChanged = false;
 }
 
 bool MMU::load(char* filename) {
   romFile = filename;
+
   // Load bios. Dont forget PC must be set to 0 in CPU
   std::ifstream file;
   file.open("bios.gb", std::ios::binary | std::ios::ate);
   if (!file.is_open()) {
     return false;
   }
-
-  file.seekg(file.beg);
-  file.read((char*)(memory), 0x8000);
+  file.seekg(0, file.end);
+  u32 biosSize = file.tellg();
+  bios.resize(biosSize, 0);
+  file.seekg(0, file.beg);
+  file.read((char*)(&bios[0]), biosSize);
   file.close();
 
-  // todo: hack alert!
-  // The bootrom expects to find a compressed Nintendo logo in the header
-  // of the ROM. So we'll just load tetris after the bootrom
+  // Load ROM
   file.open(filename, std::ios::binary);
   if (!file.is_open()) {
     return false;
   }
-  file.seekg(0x100);
-  file.read((char*)(memory + 0x100), 0x8000 - 0x100);
+  file.seekg(0, file.end);
+  u32 romSize = file.tellg();
+  rom.resize(romSize, 0);
+  file.seekg(0, file.beg);
+  file.read((char*)(&rom[0]), romSize);
   file.close();
+
+  memory.assign(rom.begin(), rom.begin() + 0x8000); // First 32kb is bank 0
+  memory.assign(bios.begin(), bios.end());
 
   return true;
 }
@@ -92,14 +99,10 @@ void MMU::write_u8(u16 address, u8 value) {
       DMA(value);
       break;
 
-    // unmap bootrom, map rom. todo: hack hack hack
+    // unmap bootrom
     case 0xFF50: {
-      unmapBootrom = true;
-      std::ifstream file;
-      file.open(romFile, std::ios::binary);
-      file.seekg(file.beg);
-      file.read((char*)(memory), 0x100);
-      file.close();
+      memory.assign(rom.begin(), rom.begin() + 0x8000); // First 32kb is bank 0
+      memMapChanged = true; // flag for debugger
       break;
     }
 

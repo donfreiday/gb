@@ -36,12 +36,11 @@ void Debugger::initCurses() {
 }
 
 void Debugger::run() {
-  // todo: this is a hack
-  if (cpu->mmu.unmapBootrom) {
+  if (cpu->mmu.memMapChanged) {
     disasm.clear();
     disassemble(0);
     cursorPos = getDisasmIndex(cpu->reg.pc);
-    cpu->mmu.unmapBootrom = false;
+    cpu->mmu.memMapChanged = false;
     display();
   }
 

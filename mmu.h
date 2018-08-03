@@ -4,8 +4,8 @@
 #ifndef GB_MMU
 #define GB_MMU
 
-#include <stdio.h>
 #include <fstream>
+#include <vector>
 #include "common.h"
 #include "joypad.h"
 
@@ -13,7 +13,9 @@ class MMU {
  public:
   struct cart {};
 
-  unsigned char memory[0xFFFF];  // 16bit address bus
+  std::vector<u8> memory;  // 16bit address bus
+  std::vector<u8> bios; 
+  std::vector<u8> rom; 
 
   MMU();
   bool load(char* filename);
@@ -26,9 +28,9 @@ class MMU {
 
   int getRomSize();
 
-  Joypad* joypad;
+  bool memMapChanged; // Flag for debugger
 
-  bool unmapBootrom;
+  Joypad* joypad;
 
   char* romFile;
 
