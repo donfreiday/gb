@@ -1,3 +1,7 @@
+// gb: a Gameboy Emulator by Don Freiday
+// File: debugger.cpp
+// Description: Interactive debugger implemented using ncurses
+
 #include "debugger.h"
 
 // Curses color pairs

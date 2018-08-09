@@ -1,3 +1,7 @@
+// gb: a Gameboy Emulator by Don Freiday
+// File: joypad.h
+// Description: Maintains joypad state
+
 #include "joypad.h"
 
 /*

@@ -1,5 +1,8 @@
-/* gb: a Gameboy Emulator
-   Author: Don Freiday */
+// gb: a Gameboy Emulator by Don Freiday
+// File: mmu.cpp
+// Description: Memory management unit
+//
+// Memory map, BIOS and ROM file loading, DMA
 
 #include "mmu.h"
 

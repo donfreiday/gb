@@ -1,5 +1,8 @@
-/* gb: a Gameboy Emulator
-   Author: Don Freiday */
+// gb: a Gameboy Emulator by Don Freiday
+// File: gpu.cpp
+// Description: Emulates the PPU and LCD
+//
+// Graphics are rendered using the Simple DirectMedia Layer library (SDL 2.0)
 
 #include "gpu.h"
 

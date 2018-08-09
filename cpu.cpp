@@ -1,5 +1,8 @@
-/* gb: a Gameboy Emulator
-   Author: Don Freiday */
+// gb: a Gameboy Emulator by Don Freiday
+// File: cpu.cpp
+// Description: CPU implementation
+//
+// GB-Z80 interpreter, timers, interrupt handling
 
 #include "cpu.h"
 #include "mmu.h"

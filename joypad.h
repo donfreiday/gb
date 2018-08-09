@@ -1,3 +1,7 @@
+// gb: a Gameboy Emulator by Don Freiday
+// File: joypad.cpp
+// Description: Maintains joypad state
+
 #ifndef GB_JOYPAD
 #define GB_JOYPAD
 

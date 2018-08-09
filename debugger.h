@@ -1,3 +1,7 @@
+// gb: a Gameboy Emulator by Don Freiday
+// File: debugger.h
+// Description: Interactive debugger implemented using ncurses
+
 #ifndef GB_DEBUG
 #define GB_DEBUG
 
