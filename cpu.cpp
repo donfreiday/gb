@@ -48,9 +48,7 @@ void CPU::reset() {
   reg.f = 0;
   reg.pc = 0x000;
   reg.sp = 0;
-  cpu_clock_m = 0;
   cpu_clock_t = 0;
-  cycles = 0;
   ime = false;
   mmu.reset();
   mmu.write_u8(IF, 0xE1);
@@ -701,7 +699,7 @@ bool CPU::execute() {
     // JR NC, 0x%02X
     case 0x30:
       if (!bitTest(reg.f, FLAG_CARRY)) {
-        cycles += 4;
+        cpu_clock_t += 4;
         reg.pc += (s8)operand;
       }
       break;
@@ -751,7 +749,7 @@ bool CPU::execute() {
     // JR C, 0x%02X
     case 0x38:
       if (bitTest(reg.f, FLAG_CARRY)) {
-        cycles += 4;
+        cpu_clock_t += 4;
         reg.pc += (s8)operand;
       }
       break;
@@ -1877,9 +1875,6 @@ bool CPU::execute() {
       return false;
       break;
   }
-
-  cpu_clock_m = cpu_clock_t / 4;
-  cycles += cpu_clock_t;
 
   return true;
 }

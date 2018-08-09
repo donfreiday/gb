@@ -54,13 +54,10 @@ class CPU {
     u16 pc, sp;
   } reg;
 
-  // cpu_clock_m: machine cycles, fetch->decode->execute->store; one m time is 4
-  // t time cpu_clock_t: cpu cycles; the gb cpu runs at 4194304 Hz
-  u32 cpu_clock_m, cpu_clock_t;
-  u32 cycles;
+  u32 cpu_clock_t; // CPU cycles; the GB-Z80 runs at 4194304 Hz
 
-  bool ime, eiDelay;  // interrupt master enable, flag for delaying interrupt
-                      // after EI instruction
+  bool ime;      // Interrupt master enable,
+  bool eiDelay;  // Flag for delaying interrupt after EI instruction
 
   MMU mmu;
 
