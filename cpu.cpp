@@ -612,39 +612,30 @@ bool CPU::execute() {
     // DAA
     // This instruction adjusts register A so that the correct representation of
     // Binary Coded Decimal (BCD) is obtained.
-    // Adapted from http://forums.nesdev.com/viewtopic.php?t=9088
+    // Adapted from http://forums.nesdev.com/viewtopic.php?f=20&t=15944
     case 0x27: {
-      int a = reg.a;
-
+      bitClear(reg.f, FLAG_ZERO);
       if (!bitTest(reg.f, FLAG_SUBTRACT)) {
-        if (bitTest(reg.f, FLAG_HALF_CARRY) || (a & 0xF) > 9) {
-          a += 0x06;
+        if (bitTest(reg.f, FLAG_CARRY) || reg.a > 0x99) {
+          reg.a += 0x60;
+          bitSet(reg.f, FLAG_CARRY);
         }
-        if (bitTest(reg.f, FLAG_CARRY || a > 0x9F)) {
-          a += 0x60;
+        if (bitTest(reg.f, FLAG_HALF_CARRY) || (reg.a & 0x0F) > 0x09) {
+          reg.a += 0x6;
         }
       } else {
-        if (bitTest(reg.f, FLAG_HALF_CARRY)) {
-          a = (a - 6) & 0xFF;
-        }
         if (bitTest(reg.f, FLAG_CARRY)) {
-          a -= 0x60;
+          reg.a -= 0x60;
+        }
+        if (bitTest(reg.f, FLAG_HALF_CARRY)) {
+          reg.a -= 0x06;
         }
       }
-      bitClear(reg.f, FLAG_HALF_CARRY);
-      bitClear(reg.f, FLAG_ZERO);
-
-      if ((a & 0x100) == 0x100) {
-        bitSet(reg.f, FLAG_CARRY);
-      }
-
-      a &= 0xFF;
-
-      if (a == 0) {
+      if (reg.a == 0) {
         bitSet(reg.f, FLAG_ZERO);
       }
+      bitClear(reg.f, FLAG_HALF_CARRY);
 
-      reg.a = (u8)a;
     }
 
     break;
