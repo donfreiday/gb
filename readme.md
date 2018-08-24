@@ -9,12 +9,29 @@ Implemented so far: enough to play Tetris!!!
 
 Not implemented: window layer of graphics, sound, other stuff
 
-Build:
-Dependencies: SDL2, ncurses
+#Usage
+gb rom.gb
 
-git clone https://github.com/donfreiday/gb.git && cd gb && make all
+#Dependencies 
+SDL2, ncurses, make
 
-Resources:
+# Build Instructions
+
+Ubuntu:
+I spun up a 18.04 minimal VM and this worked:
+~~~~
+sudo apt update && sudo apt upgrade
+sudo apt install git make g++ libsdl2-dev libncurses5-dev libncursesw5-dev
+git clone https://github.com/donfreiday/gb.git && cd gb && make
+~~~~
+
+Arch: Todo, I already installed dependencies etc on my machine. Plus if you're running Arch you can probably figure it out ;-)
+
+Windows: TBD, haven't put much effort in here
+
+
+#Resources:
+
 <http://gbdev.gg8.se/wiki/articles/Pan_Docs>
 
 <http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf>
