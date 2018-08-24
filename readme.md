@@ -9,10 +9,10 @@ Implemented so far: enough to play Tetris!!!
 
 Not implemented: window layer of graphics, sound, other stuff
 
-#Usage
+# Usage
 gb rom.gb
 
-#Dependencies 
+# Dependencies 
 SDL2, ncurses, make
 
 # Build Instructions
@@ -30,7 +30,7 @@ Arch: Todo, I already installed dependencies etc on my machine. Plus if you're r
 Windows: TBD, haven't put much effort in here
 
 
-#Resources:
+# Resources:
 
 <http://gbdev.gg8.se/wiki/articles/Pan_Docs>
 
