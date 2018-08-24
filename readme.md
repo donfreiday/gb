@@ -15,6 +15,8 @@ gb rom.gb
 # Dependencies 
 SDL2, ncurses, make
 
+Requires DMG bios file named bios.gb in the same directory as the executable.
+
 # Build Instructions
 
 Ubuntu:
