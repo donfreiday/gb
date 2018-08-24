@@ -52,8 +52,16 @@ void Debugger::run() {
     if (std::find(breakpoints.begin(), breakpoints.end(), cpu->reg.pc) !=
         breakpoints.end()) {
       runToBreak = false;
-      cursorPos = getDisasmIndex(
-          cpu->reg.pc);  // Snap cursor to last executed instruction
+
+      // Hack: disassemble from breakpoint
+      while (disasm.back().pc > cpu->reg.pc) {
+        disasm.pop_back();
+      }
+      disassemble(cpu->reg.pc);
+
+      // Snap cursor to last executed instruction
+      cursorPos = getDisasmIndex(cpu->reg.pc);
+
       display();
       return;
     }
@@ -62,7 +70,7 @@ void Debugger::run() {
   }
 
   switch (getch()) {
-    // Breakpoint
+    // Set breakpoint at cursor
     case KEY_F(2): {
       if (std::find(breakpoints.begin(), breakpoints.end(),
                     disasm[cursorPos].pc) != breakpoints.end()) {
@@ -70,8 +78,8 @@ void Debugger::run() {
       } else {
         breakpoints.insert(disasm[cursorPos].pc);
       }
-      break;
-    }
+      
+    } break;
 
     // Reset
     case KEY_F(5):
@@ -96,15 +104,6 @@ void Debugger::run() {
       step();  // get past breakpoint at current PC
       runToBreak = true;
       return;  // skip display()
-      break;
-
-    // hack to disassemble from current cursor
-    case KEY_F(12):
-      for (int i = disasm.size(); i > getDisasmIndex(cpu->reg.pc); i--) {
-        disasm.erase(disasm.begin() + i);
-      }
-      disassemble(cpu->reg.pc);
-      cursorPos = getDisasmIndex(cpu->reg.pc);
       break;
 
     case KEY_UP:
@@ -148,6 +147,17 @@ void Debugger::cursorMove(int distance) {
 int Debugger::getDisasmIndex(u16 pc) {
   std::vector<disassembly>::iterator it;
   it = find(disasm.begin(), disasm.end(), pc);
+
+  // Hack hack hack: if we don't have disassembly of the instruction at current
+  // PC, try disassembling again from current PC
+  if (it == disasm.end()) {
+    while (disasm.back().pc > pc) {
+      disasm.pop_back();
+    }
+    disassemble(pc);
+    it = find(disasm.begin(), disasm.end(), pc);
+  }
+
   return std::distance(disasm.begin(), it);
 }
 
@@ -353,17 +363,17 @@ void Debugger::display() {
 void Debugger::disassemble(u16 initPC) {
   u16 operand, pc = initPC;
   u8 op;
-  while (pc < cpu->mmu.getRomSize()) {
+  while (pc < 0xFFFF) {  // hack: disassemble entire memory map
     disassembly d;
     d.pc = pc;
-    op = cpu->mmu.read_u8(pc);
+    op = cpu->mmu.memory[pc];
     if (op == 0xCB) {
       d.operandSize = 0;
-      operand = cpu->mmu.read_u8(++pc);
+      operand = cpu->mmu.memory[++pc];
       d.str = cpu->instructions_CB[operand].disassembly;
     } else if (cpu->instructions[op].operandLength == 1) {
       d.operandSize = 1;
-      d.operand = cpu->mmu.read_u8(++pc);
+      d.operand = cpu->mmu.memory[++pc];
       d.str = cpu->instructions[op].disassembly;
     } else if (cpu->instructions[op].operandLength == 2) {
       d.operandSize = 2;

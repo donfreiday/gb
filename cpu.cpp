@@ -1782,8 +1782,9 @@ bool CPU::execute() {
 
     // POP AF
     case 0xF1:
-      reg.af = mmu.read_u16(reg.sp);
-      reg.sp += 2;
+      // Only the top four bits of the f register are writable
+      reg.f = mmu.read_u8(reg.sp++) & 0xF0;
+      reg.a = mmu.read_u8(reg.sp++);
       break;
 
     // LD A, (0xFF00 + C)
