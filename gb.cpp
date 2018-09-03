@@ -19,11 +19,12 @@ bool gb::loadROM(char* filename) { return cpu.mmu.load(filename); }
 void gb::run() {
   bool quit = false;
   SDL_Event e;
-
+#ifndef __EMSCRIPTEN__
   if (debugEnabled) {
     debugger.init(&cpu, &gpu);
     debugger.run();
   }
+#endif
 
   while (!quit) {
     // Process events each vsync (scanline == 0x144)
@@ -45,7 +46,11 @@ void gb::run() {
           break;
       }
     }
+#ifndef __EMSCRIPTEN__
     debugEnabled ? debugger.run() : step();
+#else
+    step();
+#endif
   }
 }
 
@@ -91,7 +96,9 @@ void gb::handleSDLKeyup(SDL_Keycode key) {
       break;
 
     case SDLK_ESCAPE:
+#ifndef __EMSCRIPTEN__
       debugger.runToBreak = !debugger.runToBreak;
+#endif
       break;
 
     default:
