@@ -15,7 +15,190 @@ var Module = typeof Module !== 'undefined' ? Module : {};
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// {{PRE_JSES}}
+
+if (!Module.expectedDataFileDownloads) {
+  Module.expectedDataFileDownloads = 0;
+  Module.finishedDataFileDownloads = 0;
+}
+Module.expectedDataFileDownloads++;
+(function() {
+ var loadPackage = function(metadata) {
+
+    var PACKAGE_PATH;
+    if (typeof window === 'object') {
+      PACKAGE_PATH = window['encodeURIComponent'](window.location.pathname.toString().substring(0, window.location.pathname.toString().lastIndexOf('/')) + '/');
+    } else if (typeof location !== 'undefined') {
+      // worker
+      PACKAGE_PATH = encodeURIComponent(location.pathname.toString().substring(0, location.pathname.toString().lastIndexOf('/')) + '/');
+    } else {
+      throw 'using preloaded data can only be done on a web page or in a web worker';
+    }
+    var PACKAGE_NAME = './emscripten/gb.data';
+    var REMOTE_PACKAGE_BASE = 'gb.data';
+    if (typeof Module['locateFilePackage'] === 'function' && !Module['locateFile']) {
+      Module['locateFile'] = Module['locateFilePackage'];
+      err('warning: you defined Module.locateFilePackage, that has been renamed to Module.locateFile (using your locateFilePackage for now)');
+    }
+    var REMOTE_PACKAGE_NAME = Module['locateFile'] ? Module['locateFile'](REMOTE_PACKAGE_BASE, '') : REMOTE_PACKAGE_BASE;
+  
+    var REMOTE_PACKAGE_SIZE = metadata.remote_package_size;
+    var PACKAGE_UUID = metadata.package_uuid;
+  
+    function fetchRemotePackage(packageName, packageSize, callback, errback) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', packageName, true);
+      xhr.responseType = 'arraybuffer';
+      xhr.onprogress = function(event) {
+        var url = packageName;
+        var size = packageSize;
+        if (event.total) size = event.total;
+        if (event.loaded) {
+          if (!xhr.addedTotal) {
+            xhr.addedTotal = true;
+            if (!Module.dataFileDownloads) Module.dataFileDownloads = {};
+            Module.dataFileDownloads[url] = {
+              loaded: event.loaded,
+              total: size
+            };
+          } else {
+            Module.dataFileDownloads[url].loaded = event.loaded;
+          }
+          var total = 0;
+          var loaded = 0;
+          var num = 0;
+          for (var download in Module.dataFileDownloads) {
+          var data = Module.dataFileDownloads[download];
+            total += data.total;
+            loaded += data.loaded;
+            num++;
+          }
+          total = Math.ceil(total * Module.expectedDataFileDownloads/num);
+          if (Module['setStatus']) Module['setStatus']('Downloading data... (' + loaded + '/' + total + ')');
+        } else if (!Module.dataFileDownloads) {
+          if (Module['setStatus']) Module['setStatus']('Downloading data...');
+        }
+      };
+      xhr.onerror = function(event) {
+        throw new Error("NetworkError for: " + packageName);
+      }
+      xhr.onload = function(event) {
+        if (xhr.status == 200 || xhr.status == 304 || xhr.status == 206 || (xhr.status == 0 && xhr.response)) { // file URLs can return 0
+          var packageData = xhr.response;
+          callback(packageData);
+        } else {
+          throw new Error(xhr.statusText + " : " + xhr.responseURL);
+        }
+      };
+      xhr.send(null);
+    };
+
+    function handleError(error) {
+      console.error('package error:', error);
+    };
+  
+      var fetchedCallback = null;
+      var fetched = Module['getPreloadedPackage'] ? Module['getPreloadedPackage'](REMOTE_PACKAGE_NAME, REMOTE_PACKAGE_SIZE) : null;
+
+      if (!fetched) fetchRemotePackage(REMOTE_PACKAGE_NAME, REMOTE_PACKAGE_SIZE, function(data) {
+        if (fetchedCallback) {
+          fetchedCallback(data);
+          fetchedCallback = null;
+        } else {
+          fetched = data;
+        }
+      }, handleError);
+    
+  function runWithFS() {
+
+    function assert(check, msg) {
+      if (!check) throw msg + new Error().stack;
+    }
+Module['FS_createPath']('/', 'roms', true, true);
+Module['FS_createPath']('/roms', 'cpu_instrs', true, true);
+Module['FS_createPath']('/roms/cpu_instrs', 'individual', true, true);
+Module['FS_createPath']('/roms/cpu_instrs', 'source', true, true);
+Module['FS_createPath']('/roms/cpu_instrs/source', 'common', true, true);
+
+    function DataRequest(start, end, audio) {
+      this.start = start;
+      this.end = end;
+      this.audio = audio;
+    }
+    DataRequest.prototype = {
+      requests: {},
+      open: function(mode, name) {
+        this.name = name;
+        this.requests[name] = this;
+        Module['addRunDependency']('fp ' + this.name);
+      },
+      send: function() {},
+      onload: function() {
+        var byteArray = this.byteArray.subarray(this.start, this.end);
+        this.finish(byteArray);
+      },
+      finish: function(byteArray) {
+        var that = this;
+
+        Module['FS_createDataFile'](this.name, null, byteArray, true, true, true); // canOwn this data in the filesystem, it is a slide into the heap that will never change
+        Module['removeRunDependency']('fp ' + that.name);
+
+        this.requests[this.name] = null;
+      }
+    };
+
+        var files = metadata.files;
+        for (var i = 0; i < files.length; ++i) {
+          new DataRequest(files[i].start, files[i].end, files[i].audio).open('GET', files[i].filename);
+        }
+
+  
+    function processPackageData(arrayBuffer) {
+      Module.finishedDataFileDownloads++;
+      assert(arrayBuffer, 'Loading data file failed.');
+      assert(arrayBuffer instanceof ArrayBuffer, 'bad input to processPackageData');
+      var byteArray = new Uint8Array(arrayBuffer);
+      var curr;
+      
+        // copy the entire loaded file into a spot in the heap. Files will refer to slices in that. They cannot be freed though
+        // (we may be allocating before malloc is ready, during startup).
+        if (Module['SPLIT_MEMORY']) err('warning: you should run the file packager with --no-heap-copy when SPLIT_MEMORY is used, otherwise copying into the heap may fail due to the splitting');
+        var ptr = Module['getMemory'](byteArray.length);
+        Module['HEAPU8'].set(byteArray, ptr);
+        DataRequest.prototype.byteArray = Module['HEAPU8'].subarray(ptr, ptr+byteArray.length);
+  
+          var files = metadata.files;
+          for (var i = 0; i < files.length; ++i) {
+            DataRequest.prototype.requests[files[i].filename].onload();
+          }
+              Module['removeRunDependency']('datafile_./emscripten/gb.data');
+
+    };
+    Module['addRunDependency']('datafile_./emscripten/gb.data');
+  
+    if (!Module.preloadResults) Module.preloadResults = {};
+  
+      Module.preloadResults[PACKAGE_NAME] = {fromCache: false};
+      if (fetched) {
+        processPackageData(fetched);
+        fetched = null;
+      } else {
+        fetchedCallback = processPackageData;
+      }
+    
+  }
+  if (Module['calledRun']) {
+    runWithFS();
+  } else {
+    if (!Module['preRun']) Module['preRun'] = [];
+    Module["preRun"].push(runWithFS); // FS is not initialized yet, wait for it
+  }
+
+ }
+ loadPackage({"files": [{"filename": "/roms/bios.gb", "start": 0, "end": 256, "audio": 0}, {"filename": "/roms/Super Mario Land (V1.1) (JUA) [!].gb", "start": 256, "end": 65792, "audio": 0}, {"filename": "/roms/tetris.gb", "start": 65792, "end": 98560, "audio": 0}, {"filename": "/roms/cpu_instrs/cpu_instrs.gb", "start": 98560, "end": 164096, "audio": 0}, {"filename": "/roms/cpu_instrs/readme.txt", "start": 164096, "end": 169140, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/09-op r,r.gb", "start": 169140, "end": 201908, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/05-op rp.gb", "start": 201908, "end": 234676, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb", "start": 234676, "end": 267444, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/11-op a,(hl).gb", "start": 267444, "end": 300212, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/10-bit ops.gb", "start": 300212, "end": 332980, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/06-ld r,r.gb", "start": 332980, "end": 365748, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/01-special.gb", "start": 365748, "end": 398516, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/03-op sp,hl.gb", "start": 398516, "end": 431284, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/08-misc instrs.gb", "start": 431284, "end": 464052, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/04-op r,imm.gb", "start": 464052, "end": 496820, "audio": 0}, {"filename": "/roms/cpu_instrs/individual/02-interrupts.gb", "start": 496820, "end": 529588, "audio": 0}, {"filename": "/roms/cpu_instrs/source/04-op r,imm.s", "start": 529588, "end": 531468, "audio": 0}, {"filename": "/roms/cpu_instrs/source/07-jr,jp,call,ret,rst.s", "start": 531468, "end": 534599, "audio": 0}, {"filename": "/roms/cpu_instrs/source/08-misc instrs.s", "start": 534599, "end": 537129, "audio": 0}, {"filename": "/roms/cpu_instrs/source/02-interrupts.s", "start": 537129, "end": 538346, "audio": 0}, {"filename": "/roms/cpu_instrs/source/shell.inc", "start": 538346, "end": 538672, "audio": 0}, {"filename": "/roms/cpu_instrs/source/03-op sp,hl.s", "start": 538672, "end": 540653, "audio": 0}, {"filename": "/roms/cpu_instrs/source/10-bit ops.s", "start": 540653, "end": 550545, "audio": 0}, {"filename": "/roms/cpu_instrs/source/11-op a,(hl).s", "start": 550545, "end": 554954, "audio": 0}, {"filename": "/roms/cpu_instrs/source/01-special.s", "start": 554954, "end": 556082, "audio": 0}, {"filename": "/roms/cpu_instrs/source/05-op rp.s", "start": 556082, "end": 557928, "audio": 0}, {"filename": "/roms/cpu_instrs/source/06-ld r,r.s", "start": 557928, "end": 561640, "audio": 0}, {"filename": "/roms/cpu_instrs/source/linkfile", "start": 561640, "end": 561657, "audio": 0}, {"filename": "/roms/cpu_instrs/source/09-op r,r.s", "start": 561657, "end": 569351, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/apu.s", "start": 569351, "end": 573694, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/cpu_speed.s", "start": 573694, "end": 574729, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/testing.s", "start": 574729, "end": 577740, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/console.s", "start": 577740, "end": 583117, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/build_rom.s", "start": 583117, "end": 584394, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/crc.s", "start": 584394, "end": 585618, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/macros.inc", "start": 585618, "end": 587016, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/crc_fast.s", "start": 587016, "end": 588595, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/instr_test.s", "start": 588595, "end": 590378, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/delay.s", "start": 590378, "end": 596234, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/numbers.s", "start": 596234, "end": 598809, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/checksums.s", "start": 598809, "end": 600560, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/build_gbs.s", "start": 600560, "end": 602501, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/gb.inc", "start": 602501, "end": 603804, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/multi_custom.s", "start": 603804, "end": 604236, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/runtime.s", "start": 604236, "end": 607029, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/printing.s", "start": 607029, "end": 608806, "audio": 0}, {"filename": "/roms/cpu_instrs/source/common/console.bin", "start": 608806, "end": 609574, "audio": 0}], "remote_package_size": 609574, "package_uuid": "deb946fe-379f-45c2-8bf2-e70d09ded059"});
+
+})();
+
+
 
 // Sometimes an existing Module object exists with properties
 // meant to overwrite the default module functionality. Here
@@ -1761,7 +1944,7 @@ function _emscripten_asm_const_iiii(code, a0, a1, a2) {
 
 STATIC_BASE = GLOBAL_BASE;
 
-STATICTOP = STATIC_BASE + 74304;
+STATICTOP = STATIC_BASE + 74272;
 /* global initializers */  __ATINIT__.push({ func: function() { ___emscripten_environ_constructor() } });
 
 
@@ -1770,7 +1953,7 @@ STATICTOP = STATIC_BASE + 74304;
 
 
 
-var STATIC_BUMP = 74304;
+var STATIC_BUMP = 74272;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
@@ -10516,7 +10699,8 @@ function copyTempDouble(ptr) {
     }function _strftime_l(s, maxsize, format, tm) {
       return _strftime(s, maxsize, format, tm); // no locale support yet
     }
-FS.staticInit();__ATINIT__.unshift(function() { if (!Module["noFSInit"] && !FS.init.initialized) FS.init() });__ATMAIN__.push(function() { FS.ignorePermissions = false });__ATEXIT__.push(function() { FS.quit() });;
+
+FS.staticInit();__ATINIT__.unshift(function() { if (!Module["noFSInit"] && !FS.init.initialized) FS.init() });__ATMAIN__.push(function() { FS.ignorePermissions = false });__ATEXIT__.push(function() { FS.quit() });Module["FS_createFolder"] = FS.createFolder;Module["FS_createPath"] = FS.createPath;Module["FS_createDataFile"] = FS.createDataFile;Module["FS_createPreloadedFile"] = FS.createPreloadedFile;Module["FS_createLazyFile"] = FS.createLazyFile;Module["FS_createLink"] = FS.createLink;Module["FS_createDevice"] = FS.createDevice;Module["FS_unlink"] = FS.unlink;;
 __ATINIT__.unshift(function() { TTY.init() });__ATEXIT__.push(function() { TTY.shutdown() });;
 if (ENVIRONMENT_IS_NODE) { var fs = require("fs"); var NODEJS_PATH = require("path"); NODEFS.staticInit(); };
 if (ENVIRONMENT_IS_NODE) {
@@ -11587,7 +11771,7 @@ if (!Module["cwrap"]) Module["cwrap"] = function() { abort("'cwrap' was not expo
 if (!Module["setValue"]) Module["setValue"] = function() { abort("'setValue' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["getValue"]) Module["getValue"] = function() { abort("'getValue' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["allocate"]) Module["allocate"] = function() { abort("'allocate' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
-if (!Module["getMemory"]) Module["getMemory"] = function() { abort("'getMemory' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
+Module["getMemory"] = getMemory;
 Module["Pointer_stringify"] = Pointer_stringify;
 if (!Module["AsciiToString"]) Module["AsciiToString"] = function() { abort("'AsciiToString' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["stringToAscii"]) Module["stringToAscii"] = function() { abort("'stringToAscii' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
@@ -11612,18 +11796,18 @@ if (!Module["addOnPostRun"]) Module["addOnPostRun"] = function() { abort("'addOn
 if (!Module["writeStringToMemory"]) Module["writeStringToMemory"] = function() { abort("'writeStringToMemory' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["writeArrayToMemory"]) Module["writeArrayToMemory"] = function() { abort("'writeArrayToMemory' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["writeAsciiToMemory"]) Module["writeAsciiToMemory"] = function() { abort("'writeAsciiToMemory' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
-if (!Module["addRunDependency"]) Module["addRunDependency"] = function() { abort("'addRunDependency' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
-if (!Module["removeRunDependency"]) Module["removeRunDependency"] = function() { abort("'removeRunDependency' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
+Module["addRunDependency"] = addRunDependency;
+Module["removeRunDependency"] = removeRunDependency;
 if (!Module["ENV"]) Module["ENV"] = function() { abort("'ENV' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["FS"]) Module["FS"] = function() { abort("'FS' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
-if (!Module["FS_createFolder"]) Module["FS_createFolder"] = function() { abort("'FS_createFolder' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
-if (!Module["FS_createPath"]) Module["FS_createPath"] = function() { abort("'FS_createPath' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
-if (!Module["FS_createDataFile"]) Module["FS_createDataFile"] = function() { abort("'FS_createDataFile' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
-if (!Module["FS_createPreloadedFile"]) Module["FS_createPreloadedFile"] = function() { abort("'FS_createPreloadedFile' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
-if (!Module["FS_createLazyFile"]) Module["FS_createLazyFile"] = function() { abort("'FS_createLazyFile' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
-if (!Module["FS_createLink"]) Module["FS_createLink"] = function() { abort("'FS_createLink' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
-if (!Module["FS_createDevice"]) Module["FS_createDevice"] = function() { abort("'FS_createDevice' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
-if (!Module["FS_unlink"]) Module["FS_unlink"] = function() { abort("'FS_unlink' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you") };
+Module["FS_createFolder"] = FS.createFolder;
+Module["FS_createPath"] = FS.createPath;
+Module["FS_createDataFile"] = FS.createDataFile;
+Module["FS_createPreloadedFile"] = FS.createPreloadedFile;
+Module["FS_createLazyFile"] = FS.createLazyFile;
+Module["FS_createLink"] = FS.createLink;
+Module["FS_createDevice"] = FS.createDevice;
+Module["FS_unlink"] = FS.unlink;
 if (!Module["GL"]) Module["GL"] = function() { abort("'GL' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["staticAlloc"]) Module["staticAlloc"] = function() { abort("'staticAlloc' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["dynamicAlloc"]) Module["dynamicAlloc"] = function() { abort("'dynamicAlloc' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };

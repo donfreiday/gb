@@ -107,6 +107,7 @@ void gb::handleSDLKeyup(SDL_Keycode key) {
 }
 
 int main(int argc, char* args[]) {
+#ifndef __EMSCRIPTEN__
   if (argc < 2) {
     printf("Please specify a ROM file.\n");
     return -1;
@@ -118,5 +119,12 @@ int main(int argc, char* args[]) {
     printf("Invalid ROM file: %s\n", args[1]);
     return -1;
   }
+#else
+  gb core;
+  if (!core.loadROM("roms/tetris.gb")) {
+    return -1;
+  }
+  core.run();
+#endif
   return 0;
 }
