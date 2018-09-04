@@ -25,17 +25,17 @@ class gb {
 
   bool loadROM(char* filename);
   void run();
+  void step();
 
   bool debugEnabled;
-
- private:
   CPU cpu;
   GPU gpu;
   Joypad joypad;
 #ifndef __EMSCRIPTEN__
   Debugger debugger;
 #endif
-  void step();
+
+private:
   void handleSDLKeydown(SDL_Keycode key);
   void handleSDLKeyup(SDL_Keycode key);
 };

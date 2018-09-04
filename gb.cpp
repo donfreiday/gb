@@ -7,6 +7,12 @@
 
 #include "gb.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+gb core;
+void mainloop();
+#endif
+
 gb::gb() {
   debugEnabled = true;
   gpu.mmu = &cpu.mmu;
@@ -120,11 +126,19 @@ int main(int argc, char* args[]) {
     return -1;
   }
 #else
-  gb core;
   if (!core.loadROM("roms/tetris.gb")) {
     return -1;
   }
-  core.run();
+  emscripten_set_main_loop(mainloop, 60,1);
 #endif
   return 0;
 }
+
+#ifdef __EMSCRIPTEN__
+void mainloop() {
+  printf("I WORK\n");
+  core.cpu.checkInterrupts();
+  core.cpu.execute();
+  core.gpu.step(core.cpu.cpu_clock_t);
+}
+#endif
