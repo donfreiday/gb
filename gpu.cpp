@@ -30,7 +30,7 @@ void GPU::reset() {
 
 // Starts up SDL and creates window
 bool GPU::initSDL() {
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK) < 0) {
     printf("SDL failed to initialize! SDL_Error: %s\n", SDL_GetError());
     return false;
   }
