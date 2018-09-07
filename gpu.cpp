@@ -10,11 +10,13 @@ GPU::GPU() {}
 
 GPU::~GPU() {
   window = NULL;
+  renderer = NULL;
   SDL_Quit();
 }
 
 void GPU::reset() {
   window = NULL;
+  renderer = NULL;
   SDL_Quit();
   width = 160;
   height = 144;
@@ -34,33 +36,15 @@ bool GPU::initSDL() {
     printf("SDL failed to initialize! SDL_Error: %s\n", SDL_GetError());
     return false;
   }
-  window =
-      SDL_CreateWindow("gb", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                       width, height, SDL_WINDOW_OPENGL);
 
-  // Rendering context
-  mainContext = SDL_GL_CreateContext(window);
+  // Create a window and default renderer
+  SDL_CreateWindowAndRenderer(width, height, 0, &window, &renderer);
 
-  // Set our OpenGL version.
-  // SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions
-  // are disabled
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  // Set the color used for drawing operations (Rect, Line and Clear)
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-  // 3.2 is part of the modern versions of OpenGL, but most video cards whould
-  // be able to run it
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-
-  // Turn on double buffering with a 24bit Z buffer.
-  // You may need to change this to 16 or 32 for your system
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-  // This makes our buffer swap syncronized with the monitor's vertical refresh
-  SDL_GL_SetSwapInterval(1);
-
-  glClearColor(1.0, 1.0, 1.0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT);
-  SDL_GL_SwapWindow(window);
+  // Clear the current rendering target with the drawing color
+  SDL_RenderClear(renderer);
 
   return true;
 }
@@ -324,12 +308,11 @@ void GPU::renderSprites() {
     bool yFlip = bitTest(attributes, 6);
     bool xFlip = bitTest(attributes, 5);
 
-    if(OAM_ATTRIB + index == 0xFe00) {
-      if(xPos!=prevXpos) {
+    if (OAM_ATTRIB + index == 0xFe00) {
+      if (xPos != prevXpos) {
         prevXpos = xPos;
       }
     }
-
 
     // Is sprite located on the current scanline?
     if (scanline >= yPos && scanline < (yPos + ySize)) {
@@ -449,16 +432,39 @@ GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
 }
 
 void GPU::renderScreen() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
-  glRasterPos2i(-1, 1);
-  glPixelZoom(1, -1);
-  glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
+  int rmask = 0x000000ff;
+  int gmask = 0x0000ff00;
+  int bmask = 0x00ff0000;
+  int amask = 0;
+
+  SDL_Surface* surface =
+      SDL_CreateRGBSurfaceFrom((void*)screenData, width, height, 24, 3 * width,
+                               rmask, gmask, bmask, amask);
+
+  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+  if (texture == NULL) {
+    printf("%s\n", SDL_GetError());
+  }
+
+  SDL_Rect dest = {.x = 0, .y = 0, .w = width, .h = height};
+
+  SDL_RenderCopy(renderer, texture, NULL, &dest);
+
+  // Limit frame rate.
+  // Emscripte
+#ifndef __EMSCRIPTEN__
   frameCurrentTime = SDL_GetTicks();
-	if((frameCurrentTime - frameStartTime) < 16) { SDL_Delay(16 - (frameCurrentTime - frameStartTime));}
-	frameStartTime = SDL_GetTicks();
-  SDL_GL_SwapWindow(window);
+  if ((frameCurrentTime - frameStartTime) < 16) {
+    SDL_Delay(16 - (frameCurrentTime - frameStartTime));
+  }
+  frameStartTime = SDL_GetTicks();
+#endif
+
+  SDL_RenderPresent(renderer);
+
   memset(screenData, 0xFF, sizeof(screenData));  // Clear buffer for next frame
+
+  SDL_FreeSurface(surface);
 }
 
 void GPU::requestInterrupt(u8 interrupt) {
