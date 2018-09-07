@@ -2,10 +2,10 @@
 # Author: Don Freiday
 
 # OBJS: files to compile as part of the project
-OBJS = common.h joypad.h joypad.cpp mmu.h mmu.cpp gpu.h gpu.cpp cpu.h cpu.cpp gb.h gb.cpp debugger.h debugger.cpp
+OBJS = joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp debugger.cpp
 
 # CC: compiler we're using
-CC = g++
+CC = clang++
 
 # COMPILER_FLAGS =
 COMPILER_FLAGS = -g -Wall
