@@ -8,46 +8,13 @@
 #include "gb.h"
 
 gb::gb() {
-  debugEnabled = true;
+  debugEnabled = false;
   gpu.mmu = &cpu.mmu;
   cpu.mmu.joypad = &joypad;
   gpu.reset();
 }
 
 bool gb::loadROM(char* filename) { return cpu.mmu.load(filename); }
-
-void gb::run() {
-  bool quit = false;
-  SDL_Event e;
-
-  if (debugEnabled) {
-    debugger.init(&cpu, &gpu);
-    debugger.run();
-  }
-
-  while (!quit) {
-    // Process events each vsync (scanline == 0x144)
-    if (cpu.mmu.memory[LY] == 144 && SDL_PollEvent(&e)) {
-      switch (e.type) {
-        case SDL_QUIT:
-          quit = true;
-          break;
-
-        case SDL_KEYDOWN:
-          handleSDLKeydown(e.key.keysym.sym);
-          break;
-
-        case SDL_KEYUP:
-          handleSDLKeyup(e.key.keysym.sym);
-          break;
-
-        default:
-          break;
-      }
-    }
-    debugEnabled ? debugger.run() : step();
-  }
-}
 
 void gb::step() {
   cpu.checkInterrupts();
@@ -91,7 +58,9 @@ void gb::handleSDLKeyup(SDL_Keycode key) {
       break;
 
     case SDLK_ESCAPE:
+#ifndef __EMSCRIPTEN__
       debugger.runToBreak = !debugger.runToBreak;
+#endif
       break;
 
     default:
@@ -99,17 +68,3 @@ void gb::handleSDLKeyup(SDL_Keycode key) {
   }
 }
 
-int main(int argc, char* args[]) {
-  if (argc < 2) {
-    printf("Please specify a ROM file.\n");
-    return -1;
-  }
-  gb core;
-  if (core.loadROM(args[1])) {
-    core.run();
-  } else {
-    printf("Invalid ROM file: %s\n", args[1]);
-    return -1;
-  }
-  return 0;
-}

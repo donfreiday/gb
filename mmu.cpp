@@ -9,7 +9,7 @@
 MMU::MMU() { reset(); }
 
 void MMU::reset() {
-  memory.resize(0xFFFF, 0); // 16-bit address space
+  memory.resize(0xFFFF, 0);  // 16-bit address space
   memory[JOYP] = 0xCF;
   memMapChanged = false;
 }
@@ -19,7 +19,11 @@ bool MMU::load(char* filename) {
 
   // Load bios. Dont forget PC must be set to 0 in CPU
   std::ifstream file;
+#ifndef __EMSCRIPTEN__
   file.open("bios.gb", std::ios::binary | std::ios::ate);
+#else
+  file.open("roms/bios.gb", std::ios::binary | std::ios::ate);
+#endif
   if (!file.is_open()) {
     return false;
   }
@@ -42,7 +46,7 @@ bool MMU::load(char* filename) {
   file.read((char*)(&rom[0]), romSize);
   file.close();
 
-  memory.assign(rom.begin(), rom.begin() + 0x8000); // First 32kb is bank 0
+  memory.assign(rom.begin(), rom.begin() + 0x8000);  // First 32kb is bank 0
   memory.assign(bios.begin(), bios.end());
 
   return true;
@@ -104,8 +108,8 @@ void MMU::write_u8(u16 address, u8 value) {
 
     // unmap bootrom
     case 0xFF50: {
-      memory.assign(rom.begin(), rom.begin() + 0x8000); // First 32kb is bank 0
-      memMapChanged = true; // flag for debugger
+      memory.assign(rom.begin(), rom.begin() + 0x8000);  // First 32kb is bank 0
+      memMapChanged = true;                              // flag for debugger
       break;
     }
 

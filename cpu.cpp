@@ -1060,8 +1060,10 @@ bool CPU::execute() {
 
     // HALT
     case 0x76:
+#ifndef __EMSCRIPTEN__
       printw("Todo: 0x76 Halt\n");
       refresh();
+#endif
       return false;
       break;
 
@@ -1514,11 +1516,13 @@ bool CPU::execute() {
     // CB is a prefix
     case 0xCB:
       if (!execute_CB(operand)) {
+#ifndef __EMSCRIPTEN__
         clear();
         printw("^^^ Unimplemented instruction: %04X: %02X ^^^\n", --reg.pc, op);
         printw("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n",
                instructions_CB[operand].disassembly, operand);
         refresh();
+#endif
         return false;
       }
       cpu_clock_t = instructions_CB[operand].cycles;
@@ -1576,8 +1580,10 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xD3:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xD3 UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
@@ -1633,8 +1639,10 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xDB:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xDB UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
@@ -1650,8 +1658,10 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xDD:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xDD UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
@@ -1683,15 +1693,19 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xE3:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xE3 UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
     // UNKNOWN
     case 0xE4:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xE4 UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
@@ -1735,22 +1749,28 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xEB:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xEB UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
     // UNKNOWN
     case 0xEC:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xEC UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
     // UNKNOWN
     case 0xED:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xED UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
@@ -1790,8 +1810,10 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xF4:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xF4 UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
@@ -1834,15 +1856,19 @@ bool CPU::execute() {
 
     // UNKNOWN
     case 0xFC:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xFC UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
     // UNKNOWN
     case 0xFD:
+#ifndef __EMSCRIPTEN__
       printw("CPU: 0xFD UNKNOWN\n");
       refresh();
+#endif
       return false;
       break;
 
@@ -1858,12 +1884,14 @@ bool CPU::execute() {
       break;
 
     default:
+#ifndef __EMSCRIPTEN__
       clear();
       printw("^^^ Unimplemented instruction: %04X: 0x%02X ^^^\n\n", --reg.pc,
              op);
       printw("Code stub:\n\n// %s\ncase 0x%02X:\n\nbreak;\n\n",
              instructions[op].disassembly, op);
       refresh();
+#endif
       return false;
       break;
   }

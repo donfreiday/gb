@@ -1,4 +1,4 @@
-// gb: a Gameboy Emulator by Don Freiday 
+// gb: a Gameboy Emulator by Don Freiday
 // File: gb.h
 // Description: Emulator core
 //
@@ -8,32 +8,37 @@
 #ifndef GB_CORE
 #define GB_CORE
 
-#include <stdio.h>
 #include <SDL2/SDL.h>
+#include <stdio.h>
 
 #include "common.h"
-#include "debugger.h"
 #include "cpu.h"
 #include "gpu.h"
 #include "joypad.h"
+
+#ifndef __EMSCRIPTEN__
+#include "debugger.h"
+#endif
 
 class gb {
  public:
   gb();
 
   bool loadROM(char* filename);
-  void run();
 
-  bool debugEnabled;
+  void step();
 
- private:
   CPU cpu;
   GPU gpu;
   Joypad joypad;
-  Debugger debugger;
-  void step();
+
   void handleSDLKeydown(SDL_Keycode key);
   void handleSDLKeyup(SDL_Keycode key);
+
+  bool debugEnabled;
+#ifndef __EMSCRIPTEN__
+  Debugger debugger;
+#endif
 };
 
 #endif
