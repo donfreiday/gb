@@ -2,7 +2,7 @@
 # Author: Don Freiday
 
 # OBJS: files to compile as part of the project
-OBJS = joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp debugger.cpp
+OBJS = joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp debugger.cpp main.cpp
 
 # CC: compiler we're using
 CC = clang++

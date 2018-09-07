@@ -12,32 +12,33 @@
 #include <stdio.h>
 
 #include "common.h"
-#ifndef __EMSCRIPTEN__
-#include "debugger.h"
-#endif
 #include "cpu.h"
 #include "gpu.h"
 #include "joypad.h"
+
+#ifndef __EMSCRIPTEN__
+#include "debugger.h"
+#endif
 
 class gb {
  public:
   gb();
 
   bool loadROM(char* filename);
-  void run();
+
   void step();
 
-  bool debugEnabled;
   CPU cpu;
   GPU gpu;
   Joypad joypad;
+
+  void handleSDLKeydown(SDL_Keycode key);
+  void handleSDLKeyup(SDL_Keycode key);
+
+  bool debugEnabled;
 #ifndef __EMSCRIPTEN__
   Debugger debugger;
 #endif
-
-private:
-  void handleSDLKeydown(SDL_Keycode key);
-  void handleSDLKeyup(SDL_Keycode key);
 };
 
 #endif
