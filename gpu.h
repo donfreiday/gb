@@ -29,7 +29,7 @@ class GPU {
  private:
   u8 screenData[144][160][3];
   SDL_Window* window;
-  SDL_GLContext mainContext;
+  SDL_Renderer* renderer;
 
   int width;
   int height;
