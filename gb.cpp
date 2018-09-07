@@ -129,14 +129,16 @@ int main(int argc, char* args[]) {
   if (!core.loadROM("roms/tetris.gb")) {
     return -1;
   }
-  emscripten_set_main_loop(mainloop, 60,1);
+  core.gpu.mmu = &core.cpu.mmu;
+  core.cpu.mmu.joypad = &core.joypad;
+  core.gpu.reset();
+  emscripten_set_main_loop(mainloop, 0, 1);
 #endif
   return 0;
 }
 
 #ifdef __EMSCRIPTEN__
 void mainloop() {
-  printf("I WORK\n");
   core.cpu.checkInterrupts();
   core.cpu.execute();
   core.gpu.step(core.cpu.cpu_clock_t);
