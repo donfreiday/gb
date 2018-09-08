@@ -25,6 +25,7 @@ class GPU {
   int modeclock;
   int mode;
   u8 scanline;
+  bool emscriptenVsync; // set on renderScreen call to framelimit emscripten main loop
 
  private:
   u8 screenData[144][160][3];

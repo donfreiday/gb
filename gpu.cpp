@@ -27,6 +27,7 @@ void GPU::reset() {
   memset(screenData, 0, sizeof(screenData));
   frameStartTime = 0;
   frameCurrentTime = 0;
+  emscriptenVsync = false; // set on renderScreen call to framelimit emscripten main loop
   initSDL();
 }
 
@@ -57,6 +58,7 @@ It takes 456 cpu cycles to draw one scanline and move on to the next.
 
 */
 void GPU::step(u8 cycles) {
+  //printf("Modeclock : %d\n", modeclock);
   u8 status = mmu->read_u8(STAT);
 
   // If the LCD is disabled:
@@ -432,6 +434,8 @@ GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
 }
 
 void GPU::renderScreen() {
+  emscriptenVsync = true; // set on renderScreen call to framelimit emscripten main loop
+    
   int rmask = 0x000000ff;
   int gmask = 0x0000ff00;
   int bmask = 0x00ff0000;
