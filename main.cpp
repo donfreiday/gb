@@ -10,7 +10,7 @@ gb core;
 int main(int argc, char* args[]) {
   // Load specified ROM and enter mainLoop
 #ifndef __EMSCRIPTEN__
-  core.debugEnabled = true;
+  core.debugEnabled = false;
   if (argc < 2) {
     printf("Please specify a ROM file.\n");
     return -1;
@@ -21,7 +21,8 @@ int main(int argc, char* args[]) {
   }
   mainLoop();
 
-#else  // Emscripten ROM load and mainLoop callback setup
+#else
+  // Emscripten ROM load and mainLoop callback setup
   // Debugger is implemented in curses, not yet working with emscripten
   core.debugEnabled = false;
   if (!core.loadROM("roms/tetris.gb")) {
@@ -38,13 +39,21 @@ void mainLoop() {
   bool quit = false;
   SDL_Event e;
 
+// Emscripten code path doesn't support debugger
+#ifndef __EMSCRIPTEN__
   if (core.debugEnabled) {
     core.debugger.init(&core.cpu, &core.gpu);
     core.debugger.run();
   }
 
+// Run in an infinite loop for native compiled code.
+// Emscripten code will run till renderScreen, then wait for callback
   while (!quit) {
-    // Process events each vsync (scanline == 0x144)
+#else
+  while (!core.gpu.emscriptenVsync) {
+#endif
+
+    // Process SDL events each vsync (scanline == 0x144)
     if (core.cpu.mmu.memory[LY] == 144 && SDL_PollEvent(&e)) {
       switch (e.type) {
         case SDL_QUIT:
@@ -63,6 +72,15 @@ void mainLoop() {
           break;
       }
     }
+
+// Emscripten code path doesn't support debugger
+#ifndef __EMSCRIPTEN__
     core.debugEnabled ? core.debugger.run() : core.step();
+#else
+    core.step();
+#endif
   }
+
+  // Clear emscripten framelimiting flag
+  core.gpu.emscriptenVsync = false;
 }
