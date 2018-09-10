@@ -1,35 +1,70 @@
-# A Gameboy Emulator
-Author: Don Freiday
+# A Gameboy Emulator #
 
 ![screenshot](https://github.com/donfreiday/gb/blob/master/screenshot.png)
 
-My very first emulator.
+An unfinished cross-platform Gameboy emulator written in C++ using SDL2. Can be compiled to Javascript and run in a browser by way of LLVM and Emscripten.
 
-Implemented so far: enough to play Tetris!!!
+**What works**: 
+Enough to play Tetris!!!
 
-Not implemented: window layer of graphics, sound, other stuff
+**What doesn't (yet):**: 
+MBC support, window layer of graphics, sound, other stuff
 
-# Usage
+## Usage ##
+
+**Native:**
 gb rom.gb
 
-# Dependencies 
-SDL2, ncurses, make
+**Javascript:**
+emrun gb.html
 
-Requires DMG bios file named bios.gb in the same directory as the executable.
+## Boot ROM ##
 
-# Build Instructions
+The boot ROM is responsible for scrolling the Nintendo logo when the DMG is powered on.
+The emulator will look for ./roms/bios.gb and, if found, execute it prior to the game ROM.
 
-Ubuntu:
-I spun up a 18.04 minimal VM and this worked:
-~~~~
-sudo apt update && sudo apt upgrade
-sudo apt install git make g++ libsdl2-dev libncurses5-dev libncursesw5-dev
+## Dependencies ##
+
+SDL2, ncurses, make, clang, emscripten and LLVM for javascript build
+
+## Building ##
+
+### Arch ###
+Native:
+
+```shell
 git clone https://github.com/donfreiday/gb.git && cd gb && make
-~~~~
+```
 
-Arch: Todo, I already installed dependencies etc on my machine. Plus if you're running Arch you can probably figure it out ;-)
+Javascript:
 
-Windows: TBD, haven't put much effort in here
+```shell
+git clone https://github.com/donfreiday/gb.git && cd gb && make js
+```
+
+Dependencies TBA
+
+- - - -
+
+### Ubuntu ###
+
+Native:
+
+```shell
+sudo apt update && sudo apt upgrade
+sudo apt install git make clang++ libsdl2-dev libncurses5-dev libncursesw5-dev
+git clone https://github.com/donfreiday/gb.git && cd gb && make
+```
+
+Javascript:
+The version of emscripten in Ubuntu's repository is from 2014 (stability ftw).
+You'll have to compile emscripten, as well as LLVM most likely.
+
+- - - -
+
+### Windows: ###
+
+TBD
 
 
 # Resources:
