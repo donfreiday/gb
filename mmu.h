@@ -16,6 +16,8 @@ class MMU {
  public:
   struct cart {};
 
+  bool hleBios;
+
   std::vector<u8> memory;  // 16bit address bus
   std::vector<u8> bios; 
   std::vector<u8> rom; 

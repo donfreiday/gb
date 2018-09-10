@@ -25,29 +25,32 @@ u16 prevPcIndex = 0;
 CPU::CPU() { reset(); }
 
 void CPU::reset() {
-  /* Set all registers to zero before executing boot ROM.
-        Real GB hardware behavior is undefined; the boot ROM explicitly
-        sets each register as needed.*/
-  /*reg.a = 0x01;
-  reg.b = 0x00;
-  reg.c = 0x13;
-  reg.d = 0x00;
-  reg.e = 0xD8;
-  reg.h = 0x01;
-  reg.l = 0x4D;
-  reg.f = 0x0D; // todo: check this
-  reg.pc = 0x00; // 0x100 is end of 256byte ROM header
-  reg.sp = 0xFFFE;*/
-  reg.a = 0;
-  reg.b = 0;
-  reg.c = 0;
-  reg.d = 0;
-  reg.e = 0;
-  reg.h = 0;
-  reg.l = 0;
-  reg.f = 0;
-  reg.pc = 0x000;
-  reg.sp = 0;
+  if (mmu.hleBios) {
+    reg.a = 0x01;
+    reg.b = 0x00;
+    reg.c = 0x13;
+    reg.d = 0x00;
+    reg.e = 0xD8;
+    reg.h = 0x01;
+    reg.l = 0x4D;
+    reg.f = 0x0D;   // todo: check this
+    reg.pc = 0x100;  // 0x100 is end of 256byte ROM header
+    reg.sp = 0xFFFE;
+  } else {
+    // Set all registers to zero before executing boot ROM.
+    // Real GB hardware behavior is undefined; the boot ROM explicitly
+    // sets each register as needed
+    reg.a = 0;
+    reg.b = 0;
+    reg.c = 0;
+    reg.d = 0;
+    reg.e = 0;
+    reg.h = 0;
+    reg.l = 0;
+    reg.f = 0;
+    reg.pc = 0x000;
+    reg.sp = 0;
+  }
   cpu_clock_t = 0;
   ime = false;
   mmu.reset();
