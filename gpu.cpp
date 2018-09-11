@@ -59,10 +59,10 @@ It takes 456 cpu cycles to draw one scanline and move on to the next.
 */
 void GPU::step(u8 cycles) {
   //printf("Modeclock : %d\n", modeclock);
-  u8 status = mmu->read_u8(STAT);
+  u8 status = mmu->memory[STAT];
 
   // If the LCD is disabled:
-  if (!(bitTest(mmu->read_u8(LCDC), LCDC_DISPLAY_ENABLE))) {
+  if (!(bitTest(mmu->memory[LCDC], LCDC_DISPLAY_ENABLE))) {
     modeclock = 0;
     scanline = 0;
     mode = 2;               // todo: hack to match BGB LCD timings
@@ -90,7 +90,7 @@ void GPU::step(u8 cycles) {
       if (modeclock >= 172) {
         modeclock = 0;
         mode = 0;  // hblank
-        interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE0_INT_ENABLE);
+        interrupt = bitTest(mmu->memory[STAT], STAT_MODE0_INT_ENABLE);
         renderScanline();
       }
       break;
@@ -101,12 +101,12 @@ void GPU::step(u8 cycles) {
         modeclock = 0;
         scanline++;
         if (scanline == 143) {
-          interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE1_INT_ENABLE);
+          interrupt = bitTest(mmu->memory[STAT], STAT_MODE1_INT_ENABLE);
           mode = 1;  // vblank
           renderScreen();
         } else {
           mode = 2;
-          interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE2_INT_ENABLE);
+          interrupt = bitTest(mmu->memory[STAT], STAT_MODE2_INT_ENABLE);
         }
       }
       break;
@@ -121,7 +121,7 @@ void GPU::step(u8 cycles) {
         scanline++;
         if (scanline > 153) {
           mode = 2;  // restart scanning mode
-          interrupt = bitTest(mmu->read_u8(STAT), STAT_MODE2_INT_ENABLE);
+          interrupt = bitTest(mmu->memory[STAT], STAT_MODE2_INT_ENABLE);
           scanline = 0;
         }
       }
@@ -133,7 +133,7 @@ void GPU::step(u8 cycles) {
   }
 
   // Handle coincidence flag and check for interrupt enabled
-  if (scanline == mmu->read_u8(LYC)) {
+  if (scanline == mmu->memory[LYC]) {
     bitSet(status, STAT_LYC_FLAG);
     if (bitTest(status, STAT_LYC_INT_ENABLE)) {
       requestInterrupt(1);
@@ -150,7 +150,7 @@ void GPU::step(u8 cycles) {
 
 // Write scanline to framebuffer
 void GPU::renderScanline() {
-  u8 control = mmu->read_u8(LCDC);
+  u8 control = mmu->memory[LCDC];
   if (bitTest(control, LCDC_BG_ENABLE)) {
     renderBackground();
   }
@@ -178,18 +178,18 @@ void GPU::renderScanline() {
   Each tile is 8x8 pixels or 16 bytes.
 */
 void GPU::renderBackground() {
-  u16 tileData = mmu->read_u8(LCDC) & (1 << 4) ? 0x8000 : 0x8800;
-  u16 bgTileMap = mmu->read_u8(LCDC) & (1 << 3) ? 0x9C00 : 0x9800;
+  u16 tileData = mmu->memory[LCDC] & (1 << 4) ? 0x8000 : 0x8800;
+  u16 bgTileMap = mmu->memory[LCDC] & (1 << 3) ? 0x9C00 : 0x9800;
 
   // yPos calculates which of 32 vertical tiles the current scanline is drawing
-  u8 yPos = mmu->read_u8(SCY) + mmu->read_u8(LY);
+  u8 yPos = mmu->memory[SCY] + mmu->memory[LY];
 
   // Determine which of the 8 vertical pixels of the current tile the scanline
   // is on
   u16 tileRow = (((u8)(yPos / 8)) * 32);
 
   for (int pixel = 0; pixel < 160; pixel++) {
-    u8 xPos = pixel + mmu->read_u8(SCX);
+    u8 xPos = pixel + mmu->memory[SCX];
 
     // Determine which of the 32 horizontal tiles this xPos falls within
     u16 tileCol = (xPos / 8);
@@ -197,8 +197,8 @@ void GPU::renderBackground() {
     u16 tileAddress = bgTileMap + tileRow + tileCol;
 
     // Tile ID can be signed or unsigned depending on tile data memory region
-    s16 tileID = (tileData == 0x8800) ? (s8)(mmu->read_u8(tileAddress))
-                                      : mmu->read_u8(tileAddress);
+    s16 tileID = (tileData == 0x8800) ? (s8)(mmu->memory[tileAddress])
+                                      : mmu->memory[tileAddress];
 
     // Find this tile ID in memory
     /* If the tile data memory area we are using is 0x8000-0x8FFF then the tile
@@ -217,8 +217,8 @@ void GPU::renderBackground() {
 
     u8 line = yPos % 8;  // Current vertical line of tile
     line *= 2;           // Each vertical line is two bytes
-    u8 data1 = mmu->read_u8(tileLocation + line);
-    u8 data2 = mmu->read_u8(tileLocation + line + 1);
+    u8 data1 = mmu->memory[tileLocation + line];
+    u8 data2 = mmu->memory[tileLocation + line + 1];
 
     /* A tile is 8x8 pixels; each horizontal line in a tile is two bytes.
       pixel# = 0 1 2 3 4 5 6 7
@@ -387,7 +387,7 @@ void GPU::renderSprites() {
 // todo:+ comment on how this works
 GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
   COLOR result = WHITE;
-  u8 palette = mmu->read_u8(address);
+  u8 palette = mmu->memory[address];
   u8 high = 0;
   u8 low = 0;
   switch (colorID) {
@@ -472,7 +472,7 @@ void GPU::renderScreen() {
 }
 
 void GPU::requestInterrupt(u8 interrupt) {
-  u8 cpuInterrupts = mmu->read_u8(IF);
+  u8 cpuInterrupts = mmu->memory[IF];
   bitSet(cpuInterrupts, interrupt);
   mmu->write_u8(IF, cpuInterrupts);
 }
