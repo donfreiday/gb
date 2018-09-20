@@ -9,10 +9,20 @@
 #define GREEN 2
 #define WHITE 3
 
+#define DUMP_TO_FILE false
+
+using std::endl;
+using std::hex;
+using std::setfill;
+using std::setw;
+
 Debugger::Debugger() {}
 
 Debugger::~Debugger() {
   endwin();  // End curses mode
+  if (DUMP_TO_FILE) {
+    fout.close();
+  }
 }
 
 void Debugger::init(CPU* cpuPtr, GPU* gpuPtr) {
@@ -23,6 +33,10 @@ void Debugger::init(CPU* cpuPtr, GPU* gpuPtr) {
   initCurses();
   disassemble(cpu->reg.pc);
   display();
+
+  if (DUMP_TO_FILE) {
+    fout.open("debug.txt");
+  }
 }
 
 void Debugger::initCurses() {
@@ -78,7 +92,7 @@ void Debugger::run() {
       } else {
         breakpoints.insert(disasm[cursorPos].pc);
       }
-      
+
     } break;
 
     // Reset
@@ -393,4 +407,12 @@ void Debugger::step() {
   cpu->checkInterrupts();
   cpu->execute();
   gpu->step(cpu->cpu_clock_t);
+  if (DUMP_TO_FILE) {
+    fout << setfill('0') << setw(4) << hex << cpu->reg.pc+1 << ": "
+         << setfill('0') << setw(4) << " af=" << cpu->reg.af << setfill('0')
+         << setw(4) << " bc=" << cpu->reg.bc << setfill('0') << setw(4)
+         << " de=" << cpu->reg.de << setfill('0') << setw(4)
+         << " hl=" << cpu->reg.hl << setfill('0') << setw(4)
+         << " sp=" << cpu->reg.sp << endl;
+  }
 }

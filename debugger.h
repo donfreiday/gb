@@ -14,6 +14,8 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include <fstream>
+#include <iomanip>
 
 class Debugger {
  public:
@@ -24,6 +26,8 @@ class Debugger {
   bool runToBreak;
 
  private:
+  std::ofstream fout;
+
   CPU* cpu;
   GPU* gpu;
 
