@@ -1,3 +1,7 @@
+// gb: a Gameboy Emulator by Don Freiday
+// File: main.cpp
+// Description: Main emulator loop
+
 #include "gb.h"
 
 #ifdef __EMSCRIPTEN__
