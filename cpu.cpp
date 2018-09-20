@@ -33,7 +33,7 @@ void CPU::reset() {
     reg.e = 0xD8;
     reg.h = 0x01;
     reg.l = 0x4D;
-    reg.f = 0x0D;   // todo: check this
+    reg.f = 0xB0;
     reg.pc = 0x100;  // 0x100 is end of 256byte ROM header
     reg.sp = 0xFFFE;
   } else {
