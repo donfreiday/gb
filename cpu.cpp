@@ -7,9 +7,6 @@
 #include "cpu.h"
 #include "mmu.h"
 
-u16 prevPC[999];
-u16 prevPcIndex = 0;
-
 #define FLAG_CARRY \
   4  // set if a carry occurred from the last arithmetic operation or if
      // register A is the smaller value when executing the CP instruction
@@ -385,11 +382,6 @@ void CPU::xorReg(t reg1) {
 }
 
 bool CPU::execute() {
-  if (prevPcIndex > 998) {
-    prevPcIndex = 0;
-  }
-  prevPC[prevPcIndex++] = reg.pc;
-
   // Fetch the opcode from MMU and increment PC
   u8 op = mmu.read_u8(reg.pc++);
   // Parse operand and print disassembly of instruction
