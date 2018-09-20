@@ -21,7 +21,7 @@ void Debugger::init(CPU* cpuPtr, GPU* gpuPtr) {
   runToBreak = false;
   cursorPos = 0;
   initCurses();
-  disassemble(0);
+  disassemble(cpu->reg.pc);
   display();
 }
 
