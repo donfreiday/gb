@@ -10,7 +10,7 @@ gb core;
 int main(int argc, char* args[]) {
   // Load specified ROM and enter mainLoop
 #ifndef __EMSCRIPTEN__
-  core.debugEnabled = false;
+  core.debugEnabled = true;
   if (argc < 2) {
     printf("Please specify a ROM file.\n");
     return -1;
