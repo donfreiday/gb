@@ -7,12 +7,7 @@
 #ifndef GB_CPU
 #define GB_CPU
 
-#ifdef __linux__
-#include <ncurses.h>
-#elif _WIN32
-#include <curses.h>
-#endif
-#include <stdio.h>
+#include <iostream>
 #include "common.h"
 #include "mmu.h"
 
@@ -152,9 +147,6 @@ class CPU {
 
   int timerMode, timerCycles, timerCounter;
   void updateTimer(u8 cycles);
-
-  // Debug flags
-  bool debug, debugVerbose;
 
   struct instruction {  // thx to cinoop
     char const *disassembly;
