@@ -4,6 +4,13 @@
 
 An unfinished cross-platform Gameboy emulator written in C++ using SDL2. Can be compiled to Javascript and run in a browser by way of LLVM and Emscripten.
 
+**Currently refactoring and implementing a GUI using dear imgui and this PR for emscripten support:**
+
+https://github.com/ocornut/imgui
+https://github.com/ocornut/imgui/pull/336/commits/a592303b70789ffb53a768201f83e1d97fc8cd41
+
+**This readme is badly out of date**
+
 **What works**: 
 Enough to play Tetris!!!
 

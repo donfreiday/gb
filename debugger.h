@@ -10,7 +10,10 @@
 #include "gpu.h"
 #include "mmu.h"
 
-#include <ncurses.h>
+#include "imgui/imgui.h"
+#include <SDL2/SDL.h>
+
+
 #include <set>
 #include <vector>
 #include <algorithm>
@@ -33,13 +36,7 @@ class Debugger {
 
   std::set<u16> breakpoints;
 
-  int cursorPos;
-  int yMax, xMax;  // Terminal dimensions
-
-  void initCurses();
-
   void display();
-  void cursorMove(int distance);
 
   // Disassembler
   struct disassembly {

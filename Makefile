@@ -2,18 +2,18 @@
 # Author: Don Freiday
 
 # OBJS: files to compile as part of the project
-native: OBJS = joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp debugger.cpp main.cpp
-js: OBJS = joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp main.cpp
+native: OBJS = ./imgui/*cpp joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp main.cpp debugger.cpp
+js: OBJS = ./imgui/*cpp joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp main.cpp 
 
 # CC: compiler we're using
 native: CC = clang++
-js: CC = emcc
+js: CC = em++
 
 # COMPILER_FLAGS =
-native: COMPILER_FLAGS = -g -Wall
-js: COMPILER_FLAGS = --preload-file roms -s USE_SDL=2 --emrun
+native: COMPILER_FLAGS = -g -Wall `sdl2-config --cflags` -I ./
+js: COMPILER_FLAGS = --preload-file roms -s USE_SDL=2 --emrun -I ./
 
-LINKER_FLAGS = -lSDL2 -lGL -lncursesw
+native: LINKER_FLAGS = `sdl2-config --libs` -lGL
 
 # OBJ_NAME: name of our executable
 native: OBJ_NAME = gb

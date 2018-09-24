@@ -4,22 +4,11 @@
 
 #include "debugger.h"
 
-// Curses color pairs
-#define RED 1
-#define GREEN 2
-#define WHITE 3
-
 #define DUMP_TO_FILE false
-
-using std::endl;
-using std::hex;
-using std::setfill;
-using std::setw;
 
 Debugger::Debugger() {}
 
 Debugger::~Debugger() {
-  endwin();  // End curses mode
   if (DUMP_TO_FILE) {
     fout.close();
   }
@@ -29,16 +18,19 @@ void Debugger::init(CPU* cpuPtr, GPU* gpuPtr) {
   cpu = cpuPtr;
   gpu = gpuPtr;
   runToBreak = false;
-  cursorPos = 0;
-  initCurses();
-  disassemble(cpu->reg.pc);
-  display();
+
+    // disassemble(cpu->reg.pc);
 
   if (DUMP_TO_FILE) {
     fout.open("debug.txt");
   }
 }
 
+void Debugger::run() {
+
+}
+
+/*
 void Debugger::initCurses() {
   // Init curses
   initscr();
@@ -415,4 +407,4 @@ void Debugger::step() {
          << " hl=" << cpu->reg.hl << setfill('0') << setw(4)
          << " sp=" << cpu->reg.sp << endl;
   }
-}
+}*/

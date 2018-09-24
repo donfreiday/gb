@@ -12,6 +12,8 @@
 #include "common.h"
 #include "mmu.h"
 
+#include "imgui/imgui.h"
+
 class GPU {
  public:
   GPU();
