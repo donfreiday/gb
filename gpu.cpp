@@ -8,16 +8,9 @@
 
 GPU::GPU() {}
 
-GPU::~GPU() {
-  window = NULL;
-  renderer = NULL;
-  SDL_Quit();
-}
+GPU::~GPU() {}
 
 void GPU::reset() {
-  window = NULL;
-  renderer = NULL;
-  SDL_Quit();
   width = 160;
   height = 144;
   scanline = 0;
@@ -25,29 +18,6 @@ void GPU::reset() {
   mmu->memory[STAT] = 0x84;
   modeclock = 0;
   memset(screenData, 0, sizeof(screenData));
-  frameStartTime = 0;
-  frameCurrentTime = 0;
-  emscriptenVsync = false; // set on renderScreen call to framelimit emscripten main loop
-  initSDL();
-}
-
-// Starts up SDL and creates window
-bool GPU::initSDL() {
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK) < 0) {
-    printf("SDL failed to initialize! SDL_Error: %s\n", SDL_GetError());
-    return false;
-  }
-
-  // Create a window and default renderer
-  SDL_CreateWindowAndRenderer(width, height, 0, &window, &renderer);
-
-  // Set the color used for drawing operations (Rect, Line and Clear)
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-  // Clear the current rendering target with the drawing color
-  SDL_RenderClear(renderer);
-
-  return true;
 }
 
 /*
@@ -433,46 +403,25 @@ GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
   return result;
 }
 
-void GPU::renderScreen() {
-  emscriptenVsync = true; // set on renderScreen call to framelimit emscripten main loop
-    
-  int rmask = 0x000000ff;
-  int gmask = 0x0000ff00;
-  int bmask = 0x00ff0000;
-  int amask = 0;
-
-  SDL_Surface* surface =
-      SDL_CreateRGBSurfaceFrom((void*)screenData, width, height, 24, 3 * width,
-                               rmask, gmask, bmask, amask);
-
-  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-  if (texture == NULL) {
-    printf("%s\n", SDL_GetError());
-  }
-
-  SDL_Rect dest = {.x = 0, .y = 0, .w = width, .h = height};
-
-  SDL_RenderCopy(renderer, texture, NULL, &dest);
-
-  // Limit frame rate.
-  // Emscripte
-#ifndef __EMSCRIPTEN__
-  frameCurrentTime = SDL_GetTicks();
-  if ((frameCurrentTime - frameStartTime) < 16) {
-    SDL_Delay(16 - (frameCurrentTime - frameStartTime));
-  }
-  frameStartTime = SDL_GetTicks();
-#endif
-
-  SDL_RenderPresent(renderer);
-
-  memset(screenData, 0xFF, sizeof(screenData));  // Clear buffer for next frame
-
-  SDL_FreeSurface(surface);
-}
-
 void GPU::requestInterrupt(u8 interrupt) {
   u8 cpuInterrupts = mmu->memory[IF];
   bitSet(cpuInterrupts, interrupt);
   mmu->write_u8(IF, cpuInterrupts);
+}
+
+void GPU::renderScreen() {
+   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+   glGenTextures(1, &texture);
+   glBindTexture(GL_TEXTURE_2D, texture);
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
+                   GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                   GL_NEAREST);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, 
+                height, 0, GL_RGB, GL_UNSIGNED_BYTE, 
+                screenData);
 }

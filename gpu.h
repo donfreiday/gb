@@ -21,30 +21,22 @@ class GPU {
 
   void reset();
   void step(u8 cycles);  // clock step
-  void renderScreen();
 
   MMU* mmu;
   int modeclock;
   int mode;
   u8 scanline;
-  bool emscriptenVsync; // set on renderScreen call to framelimit emscripten main loop
 
- private:
+  GLuint texture;
   u8 screenData[144][160][3];
-  SDL_Window* window;
-  SDL_Renderer* renderer;
-
   int width;
   int height;
 
-  bool initSDL();  // Starts up SDL and creates window
-  void initGL();
-
-  int frameStartTime, frameCurrentTime;
-
+ private:
   void renderScanline();  // write scanline to surface
   void renderBackground();
   void renderSprites();
+  void renderScreen();
 
   enum COLOR { WHITE, LIGHT_GRAY, DARK_GRAY, BLACK };
 
