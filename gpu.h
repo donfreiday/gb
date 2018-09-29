@@ -32,6 +32,8 @@ class GPU {
   int width;
   int height;
 
+  bool vsync;
+
  private:
   void renderScanline();  // write scanline to surface
   void renderBackground();

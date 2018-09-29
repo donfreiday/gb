@@ -27,9 +27,16 @@ void main_loop() {
   }
   ImGui_ImplSdl_NewFrame(g_window);
 
-  core.step();
+  while(!core.gpu.vsync) {
+    core.step();
+  }
+  core.gpu.vsync = false;
   
-  // 1. Show a simple window
+  ImGui::Image((void*)core.gpu.texture,
+               ImVec2(core.gpu.width, core.gpu.height));
+  
+  ImGui::Text("Modeclock: %d", core.gpu.modeclock);
+  /*// 1. Show a simple window
   // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a
   // window automatically called "Debug"
   {
@@ -41,13 +48,12 @@ void main_loop() {
     if (ImGui::Button("Another Window")) g_show_another_window ^= 1;
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-  }
+  }*/
 
-  ImGui::Image((void*)core.gpu.texture,
-               ImVec2(core.gpu.width, core.gpu.height));
+  
 
   // 2. Show another simple window, this time using an explicit Begin/End pair
-  if (g_show_another_window) {
+  /*if (g_show_another_window) {
     ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Another Window", &g_show_another_window);
     ImGui::Text("Hello");
@@ -59,7 +65,7 @@ void main_loop() {
   if (g_show_test_window) {
     ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
     ImGui::ShowTestWindow(&g_show_test_window);
-  }
+  }*/
 
   // Rendering
   glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x,
