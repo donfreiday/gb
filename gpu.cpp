@@ -17,7 +17,7 @@ void GPU::reset() {
   mmu->memory[LY] = scanline;
   mmu->memory[STAT] = 0x84;
   modeclock = 0;
-  memset(screenData, 0, sizeof(screenData));
+  memset(screenData, 0xFF, sizeof(screenData));
   vsync = false;
 }
 
@@ -29,7 +29,6 @@ It takes 456 cpu cycles to draw one scanline and move on to the next.
 
 */
 void GPU::step(u8 cycles) {
-  //printf("Modeclock : %d\n", modeclock);
   u8 status = mmu->memory[STAT];
 
   // If the LCD is disabled:
@@ -411,19 +410,12 @@ void GPU::requestInterrupt(u8 interrupt) {
 }
 
 void GPU::renderScreen() {
-   //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-   glGenTextures(1, &texture);
-   glBindTexture(GL_TEXTURE_2D, texture);
-
-   /*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
-                   GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                   GL_NEAREST);*/
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, 
-                height, 0, GL_RGB, GL_UNSIGNED_BYTE, 
-                screenData);
-    vsync = true;
+    // Create OpenGL texture
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D,texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, screenData);
+    
+    vsync = true; // Flag for main loop
 }

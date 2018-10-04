@@ -28,7 +28,6 @@ class GPU {
   u8 scanline;
 
   GLuint texture;
-  u8 screenData[144][160][3];
   int width;
   int height;
 
@@ -39,6 +38,8 @@ class GPU {
   void renderBackground();
   void renderSprites();
   void renderScreen();
+
+  u8 screenData[144][160][3];
 
   enum COLOR { WHITE, LIGHT_GRAY, DARK_GRAY, BLACK };
 

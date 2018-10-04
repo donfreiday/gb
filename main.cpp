@@ -13,8 +13,7 @@
 
 bool g_done = false;
 SDL_Window* g_window;
-bool g_show_test_window = true;
-bool g_show_another_window = false;
+bool g_show_lcd_window = true;
 ImVec4 g_clear_color = ImColor(114, 144, 154);
 
 gb core;
@@ -27,47 +26,20 @@ void main_loop() {
   }
   ImGui_ImplSdl_NewFrame(g_window);
 
-  while(!core.gpu.vsync) {
+  while (!core.gpu.vsync) {
     core.step();
   }
   core.gpu.vsync = false;
-  
+
+   ImGui::SetNextWindowSize(ImVec2(core.gpu.width, core.gpu.height));
+  ImGui::Begin("gb", &g_show_lcd_window);
   ImGui::Image((void*)core.gpu.texture,
                ImVec2(core.gpu.width, core.gpu.height));
-  
-  ImGui::Text("Modeclock: %d", core.gpu.modeclock);
-  /*// 1. Show a simple window
-  // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a
-  // window automatically called "Debug"
-  {
-    static float f = 0.0f;
-    ImGui::Text("Hello, world!");
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-    ImGui::ColorEdit3("clear color", (float*)&g_clear_color);
-    if (ImGui::Button("Test Window")) g_show_test_window ^= 1;
-    if (ImGui::Button("Another Window")) g_show_another_window ^= 1;
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-  }*/
+  ImGui::End();
 
-  
+  ImGui::ShowTestWindow();
 
-  // 2. Show another simple window, this time using an explicit Begin/End pair
-  /*if (g_show_another_window) {
-    ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
-    ImGui::Begin("Another Window", &g_show_another_window);
-    ImGui::Text("Hello");
-    ImGui::End();
-  }
-
-  // 3. Show the ImGui test window. Most of the sample code is in
-  // ImGui::ShowTestWindow()
-  if (g_show_test_window) {
-    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-    ImGui::ShowTestWindow(&g_show_test_window);
-  }*/
-
-  // Rendering
+    // Rendering
   glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x,
              (int)ImGui::GetIO().DisplaySize.y);
   glClearColor(g_clear_color.x, g_clear_color.y, g_clear_color.z,
