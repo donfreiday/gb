@@ -23,6 +23,18 @@ void main_loop() {
   while (SDL_PollEvent(&event)) {
     ImGui_ImplSdl_ProcessEvent(&event);
     if (event.type == SDL_QUIT) g_done = true;
+        switch (event.type) {
+      case SDL_KEYDOWN:
+        core.handleSDLKeydown(event.key.keysym.sym);
+        break;
+
+      case SDL_KEYUP:
+        core.handleSDLKeyup(event.key.keysym.sym);
+        break;
+
+      default:
+        break;
+    }
   }
   ImGui_ImplSdl_NewFrame(g_window);
 
@@ -31,15 +43,66 @@ void main_loop() {
   }
   core.gpu.vsync = false;
 
-   ImGui::SetNextWindowSize(ImVec2(core.gpu.width, core.gpu.height));
+  // Display LCD in a window
+  ImGui::SetNextWindowContentSize(ImVec2(core.gpu.width, core.gpu.height));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::Begin("gb", &g_show_lcd_window);
   ImGui::Image((void*)core.gpu.texture,
                ImVec2(core.gpu.width, core.gpu.height));
   ImGui::End();
+  ImGui::PopStyleVar();
+
+  // Main debug window
+  ImGui::Begin("debugger");
+  ImGui::BeginGroup();
+  ImGui::BeginChild("disassembly",
+                    ImVec2(100.0f, 200.0f), true);
+  ImGui::EndChild();
+  ImGui::EndGroup();
+  ImGui::End();
+
+  /*ImGui::TextWrapped(
+      "(Use SetScrollHere() or SetScrollFromPosY() to scroll to a given "
+      "position.)");
+  static bool track = true;
+  static int track_line = 50, scroll_to_px = 200;
+  ImGui::Checkbox("Track", &track);
+  ImGui::SameLine(130);
+  track |= ImGui::DragInt("##line", &track_line, 0.25f, 0, 99, "Line %.0f");
+  bool scroll_to = ImGui::Button("Scroll To");
+  ImGui::SameLine(130);
+  scroll_to |=
+      ImGui::DragInt("##pos_y", &scroll_to_px, 1.00f, 0, 9999, "y = %.0f px");
+  if (scroll_to) track = false;
+
+  for (int i = 0; i < 5; i++) {
+    if (i > 0) ImGui::SameLine();
+    ImGui::BeginGroup();
+    ImGui::Text(
+        "%s", i == 0 ? "Top"
+                     : i == 1 ? "25%"
+                              : i == 2 ? "Center" : i == 3 ? "75%" : "Bottom");
+    ImGui::BeginChild(ImGui::GetID((void*)i),
+                      ImVec2(ImGui::GetWindowWidth() * 0.17f, 200.0f), true);
+    if (scroll_to)
+      ImGui::SetScrollFromPosY(ImGui::GetCursorStartPos().y + scroll_to_px,
+                               i * 0.25f);
+    for (int line = 0; line < 100; line++) {
+      if (track && line == track_line) {
+        ImGui::TextColored(ImColor(255, 255, 0), "Line %d", line);
+        ImGui::SetScrollHere(i * 0.25f);  // 0.0f:top, 0.5f:center, 1.0f:bottom
+      } else {
+        ImGui::Text("Line %d", line);
+      }
+    }
+    ImGui::EndChild();
+    ImGui::EndGroup();
+  }*/
+
 
   ImGui::ShowTestWindow();
 
-    // Rendering
+  // Rendering
   glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x,
              (int)ImGui::GetIO().DisplaySize.y);
   glClearColor(g_clear_color.x, g_clear_color.y, g_clear_color.z,
