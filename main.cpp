@@ -11,6 +11,12 @@
 #include <emscripten.h>
 #endif
 
+#ifdef __clang__
+#pragma clang diagnostic ignored \
+    "-Wint-to-void-pointer-cast"  // warning : cast to 'void *' from smaller
+                                  // integer type 'int'
+#endif
+
 bool g_done = false;
 SDL_Window* g_window;
 bool g_show_lcd_window = true;
@@ -22,14 +28,17 @@ void main_loop() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     ImGui_ImplSdl_ProcessEvent(&event);
-    if (event.type == SDL_QUIT) g_done = true;
-        switch (event.type) {
+    switch (event.type) {
       case SDL_KEYDOWN:
         core.handleSDLKeydown(event.key.keysym.sym);
         break;
 
       case SDL_KEYUP:
         core.handleSDLKeyup(event.key.keysym.sym);
+        break;
+
+      case SDL_QUIT:
+        g_done = true;
         break;
 
       default:
@@ -55,8 +64,7 @@ void main_loop() {
   // Main debug window
   ImGui::Begin("debugger");
   ImGui::BeginGroup();
-  ImGui::BeginChild("disassembly",
-                    ImVec2(100.0f, 200.0f), true);
+  ImGui::BeginChild("disassembly", ImVec2(100.0f, 200.0f), true);
   ImGui::EndChild();
   ImGui::EndGroup();
   ImGui::End();
@@ -98,7 +106,6 @@ void main_loop() {
     ImGui::EndChild();
     ImGui::EndGroup();
   }*/
-
 
   ImGui::ShowTestWindow();
 
