@@ -28,7 +28,7 @@ void displayRegisters();
 SDL_Window* g_window;
 bool g_quit = false;
 bool g_showLcdWindow = true;
-ImVec4 g_clearColor = ImColor(114, 144, 154);
+ImVec4 g_clearColor = ImColor(0, 0, 0);
 gb g_core;
 
 void main_loop() {
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 
   // Load ROM
 #ifdef __EMSCRIPTEN__
-  if (!core.loadROM("roms/tetris.gb")) {
+  if (!g_core.loadROM("roms/tetris.gb")) {
     printf("Invalid ROM file: roms/tetris.gb\n");
     return -1;
   }
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
   SDL_DisplayMode current;
   SDL_GetCurrentDisplayMode(0, &current);
   g_window = SDL_CreateWindow("gb: A Gameboy Emulator", SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, 1280, 720,
+                              SDL_WINDOWPOS_CENTERED, current.w, current.h,
                               SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
   SDL_GLContext glcontext = SDL_GL_CreateContext(g_window);
 
@@ -151,18 +151,16 @@ void displayLCD() {
   windowFlags |= ImGuiWindowFlags_NoScrollbar;
   windowFlags |= ImGuiWindowFlags_NoCollapse;
 
-  // On first use, set the window size to Gameboy LCD dimensions
-  ImGui::SetNextWindowSize(ImVec2(core.gpu.width, core.gpu.height),
-                           ImGuiSetCond_FirstUseEver);
+  // Set the window size to Gameboy LCD dimensions
+  ImGui::SetNextWindowSize(ImVec2(g_core.gpu.width, g_core.gpu.height), ImGuiSetCond_Once);
 
   // Window defaults to upper left corner (for now)
-  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Once);
 
   // No padding
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-  // Scale LCD to window size while maintaining aspect ratio
-
+  // Render window
   ImGui::Begin("gb", &g_showLcdWindow, windowFlags);
   ImGui::Image((void*)g_core.gpu.texture, ImGui::GetWindowSize());
 
