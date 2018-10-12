@@ -1,8 +1,9 @@
-// ImGui - standalone example application for SDL2 + OpenGL ES 2 + Emscripten
+// gb: a Gameboy Emulator by Don Freiday
+// File: main.cpp
+// Description: Main emulator loop
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include <stdio.h>
 #include "gb.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
