@@ -16,9 +16,7 @@
 #include "gpu.h"
 #include "joypad.h"
 
-#ifndef __EMSCRIPTEN__
 #include "debugger.h"
-#endif
 
 class gb {
  public:

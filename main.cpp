@@ -22,14 +22,17 @@ bool loadROM();
 
 void handleSDLEvents();
 
-void displayLCD();
-void displayRegisters();
+// Window rendering functions
+void imguiLCD();
+void imguiRegisters();
+void imguiDisassembly();
 
 SDL_Window* g_window;
 bool g_quit = false;
 bool g_showLcdWindow = true;
 ImVec2 g_LcdWindowSize;
 bool g_showRegWindow = true;
+bool g_showDisassemblyWindow = true;
 ImVec4 g_clearColor = ImColor(0, 0, 0);
 gb g_core;
 
@@ -46,11 +49,10 @@ void main_loop() {
   }
   g_core.gpu.vsync = false;
 
-  // Draw LCD Window
-  displayLCD();
-
-  // Draw registers window
-  displayRegisters();
+  // Render GUI windows
+  imguiLCD();
+  imguiRegisters();
+  imguiDisassembly();
 
   //ImGui::ShowTestWindow();
 
@@ -149,7 +151,7 @@ void handleSDLEvents() {
 }
 
 // Display LCD in a window
-void displayLCD() {
+void imguiLCD() {
   // Set up window flags
   ImGuiWindowFlags windowFlags = 0;
   windowFlags |= ImGuiWindowFlags_NoTitleBar;
@@ -176,7 +178,7 @@ void displayLCD() {
 }
 
 // Display registers in a window
-void displayRegisters() {
+void imguiRegisters() {
   
    // Set the window size to Gameboy LCD dimensions
   ImGui::SetNextWindowSize(ImVec2(g_core.gpu.width, g_core.gpu.height), ImGuiSetCond_Once);
@@ -187,5 +189,12 @@ void displayRegisters() {
   ImGui::Begin("reg", &g_showRegWindow);
 
   ImGui::Text("af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X", g_core.cpu.reg.af, g_core.cpu.reg.bc, g_core.cpu.reg.de, g_core.cpu.reg.hl, g_core.cpu.reg.sp, g_core.cpu.reg.pc);
+  ImGui::End();
+}
+
+// Display disassembly in a window
+void imguiDisassembly() {
+  ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiSetCond_Once);
+  ImGui::Begin("disassembly", &g_showDisassemblyWindow);
   ImGui::End();
 }
