@@ -28,6 +28,8 @@ void displayRegisters();
 SDL_Window* g_window;
 bool g_quit = false;
 bool g_showLcdWindow = true;
+ImVec2 g_LcdWindowSize;
+bool g_showRegWindow = true;
 ImVec4 g_clearColor = ImColor(0, 0, 0);
 gb g_core;
 
@@ -47,7 +49,10 @@ void main_loop() {
   // Draw LCD Window
   displayLCD();
 
-  // ImGui::ShowTestWindow();
+  // Draw registers window
+  displayRegisters();
+
+  //ImGui::ShowTestWindow();
 
   // Rendering
   glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x,
@@ -161,12 +166,26 @@ void displayLCD() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
   // Render window
-  ImGui::Begin("gb", &g_showLcdWindow, windowFlags);
-  ImGui::Image((void*)g_core.gpu.texture, ImGui::GetWindowSize());
+  ImGui::Begin("lcd", &g_showLcdWindow, windowFlags);
+  g_LcdWindowSize = ImGui::GetWindowSize();
+  ImGui::Image((void*)g_core.gpu.texture, g_LcdWindowSize);
 
   // Done, clean up
   ImGui::End();
   ImGui::PopStyleVar();
 }
 
-void displayRegisters() {}
+// Display registers in a window
+void displayRegisters() {
+  
+   // Set the window size to Gameboy LCD dimensions
+  ImGui::SetNextWindowSize(ImVec2(g_core.gpu.width, g_core.gpu.height), ImGuiSetCond_Once);
+
+  // Position window below LCD
+  ImGui::SetNextWindowPos(ImVec2(0, g_LcdWindowSize.y), ImGuiSetCond_Once);
+  
+  ImGui::Begin("reg", &g_showRegWindow);
+
+  ImGui::Text("af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X", g_core.cpu.reg.af, g_core.cpu.reg.bc, g_core.cpu.reg.de, g_core.cpu.reg.hl, g_core.cpu.reg.sp, g_core.cpu.reg.pc);
+  ImGui::End();
+}
