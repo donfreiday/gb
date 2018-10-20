@@ -8,16 +8,29 @@
 Disassembler::Disassembler(CPU* Cpu) {
   cpu = Cpu;
 
-  // Code entry points, including interrupts
-  entryPoints = {0x100, 0x40, 0x48, 0x50, 0x58, 0x60};
+  // Code entry points, including interrupt (todo: and maybe restart?) vectors
+  entryPoints = {0x40, 0x48, 0x50, 0x58, 0x60, 0x100};
   initDisasm();
 }
 
-// This is a hack, it blindly disassembles all of memory
+// This is a hack
 void Disassembler::initDisasm() {
   disassembly.clear();
-  u16 pc = 0;
-  while (pc < cpu->mmu.memory.size()) {  // hack: disassemble entire memory map
+  disassembleFrom(0, false);
+}
+
+// Clean start means discard already disassembled addresses that are larger than
+// our target PC
+void Disassembler::disassembleFrom(u16 pc, bool cleanStart) {
+  if (cleanStart) {
+    for (auto line : disassembly) {
+      if (line.pc > pc) {
+        disassembly.erase(line);
+      }
+    }
+  }
+
+  while (pc < cpu->mmu.memory.size()) {
     Line line;
     line.pc = pc;
     u8 operandSize = 0;

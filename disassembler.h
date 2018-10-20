@@ -16,7 +16,8 @@ class Disassembler {
  public:
   Disassembler(CPU* Cpu);
 
-  void disassembleFrom(u16 pc);
+  void disassembleFrom(u16 pc, bool cleanStart);
+
   struct Line {
     u16 pc;
     u8 opcode;
