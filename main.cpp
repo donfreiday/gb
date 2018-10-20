@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include "gb.h"
+#include "disassembler.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 
@@ -29,6 +30,9 @@ void imguiDisassembly();
 
 // Emulator core
 gb g_core;
+
+// Disassembler
+Disassembler* g_disassembler;
 
 SDL_Window* g_window;
 
@@ -93,6 +97,9 @@ int main(int argc, char** argv) {
   }
 #endif
 
+  // Initialize disassembler
+  g_disassembler = new Disassembler(&g_core.cpu);
+
   // Setup SDL
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     printf("Error: %s\n", SDL_GetError());
@@ -125,6 +132,8 @@ int main(int argc, char** argv) {
 #endif
 
   // Cleanup
+  delete g_disassembler;
+  g_disassembler = nullptr;
   ImGui_ImplSdl_Shutdown();
   SDL_GL_DeleteContext(glcontext);
   SDL_DestroyWindow(g_window);
@@ -218,6 +227,13 @@ void imguiDisassembly() {
   }
 
   // Scrollable disassembly
+  ImGui::BeginChild("disasm", ImVec2(0,0));
+  for(auto line : g_disassembler->disassembly) {
+    ImGui::Text("%04X: ", line.pc);
+    ImGui::SameLine();
+    ImGui::Text(line.str.c_str(), line.operand);
+  }
+  ImGui::EndChild();
 
   ImGui::End();
 }

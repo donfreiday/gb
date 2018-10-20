@@ -17,8 +17,17 @@ class Disassembler {
   Disassembler(CPU* Cpu);
 
   void disassembleFrom(u16 pc);
+  struct Line {
+    u16 pc;
+    u8 opcode;
+    u16 operand;
+    std::string str;
 
-  char* getDisasm(u16 pc);
+    // Operator overload for set ordering
+    bool operator<(const Line& rhs) const { return pc < rhs.pc; }
+  };
+
+  std::set<Line> disassembly;
 
  private:
   CPU* cpu;
@@ -27,16 +36,6 @@ class Disassembler {
 
   // Disassemble from known code entry points, following jumps where possible
   void initDisasm();
-
-  struct Line {
-    u16 pc;
-    std::string str;
-
-    // Operator overload for set ordering
-    bool operator<(const Line& rhs) const { return pc < rhs.pc; }
-  };
-
-  std::set<Line> disassembly;
 };
 
 #endif

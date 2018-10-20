@@ -21,24 +21,23 @@ void Disassembler::initDisasm() {
     Line line;
     line.pc = pc;
     u8 operandSize = 0;
-    u16 operand;
-    u8 op = cpu->mmu.memory[pc];
-    if (op == 0xCB) {
+    line.opcode = cpu->mmu.memory[pc];
+    if (line.opcode == 0xCB) {
       operandSize = 0;
-      operand = cpu->mmu.memory[++pc];
-      line.str = cpu->instructions_CB[operand].disassembly;
-    } else if (cpu->instructions[op].operandLength == 1) {
+      line.operand = cpu->mmu.memory[++pc];
+      line.str = cpu->instructions_CB[line.operand].disassembly;
+    } else if (cpu->instructions[line.opcode].operandLength == 1) {
       operandSize = 1;
-      operand = cpu->mmu.memory[++pc];
-      line.str = cpu->instructions[op].disassembly;
-    } else if (cpu->instructions[op].operandLength == 2) {
+      line.operand = cpu->mmu.memory[++pc];
+      line.str = cpu->instructions[line.opcode].disassembly;
+    } else if (cpu->instructions[line.opcode].operandLength == 2) {
       operandSize = 2;
-      operand = cpu->mmu.read_u16(++pc);
-      line.str = cpu->instructions[op].disassembly;
+      line.operand = cpu->mmu.read_u16(++pc);
+      line.str = cpu->instructions[line.opcode].disassembly;
       pc++;
     } else {
       operandSize = 0;
-      line.str = cpu->instructions[op].disassembly;
+      line.str = cpu->instructions[line.opcode].disassembly;
     }
     pc++;
     disassembly.insert(line);
