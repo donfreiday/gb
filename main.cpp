@@ -76,8 +76,6 @@ void main_loop() {
 
 // Load ROM, set up SDL/ImGui, main loop till quit, cleanup ImGui/SDL
 int main(int argc, char** argv) {
-  g_core.debugEnabled = true;
-
   // Load ROM
 #ifdef __EMSCRIPTEN__
   if (!g_core.loadROM("roms/tetris.gb")) {
@@ -210,6 +208,16 @@ void imguiDisassembly() {
   if (ImGui::Button(g_running ? "Pause" : " Run ")) {
     g_running = !g_running;
   }
+
+  // If paused, allow step
+  if (!g_running) {
+    ImGui::SameLine();
+    if(ImGui::Button("Step")) {
+      g_core.step();
+    }
+  }
+
+  // Scrollable disassembly
 
   ImGui::End();
 }
