@@ -27,14 +27,23 @@ void imguiLCD();
 void imguiRegisters();
 void imguiDisassembly();
 
+// Emulator core
+gb g_core;
+
 SDL_Window* g_window;
-bool g_quit = false;
+
+// Imgui window flags and stats
 bool g_showLcdWindow = true;
 ImVec2 g_LcdWindowSize;
 bool g_showRegWindow = true;
 bool g_showDisassemblyWindow = true;
+
 ImVec4 g_clearColor = ImColor(0, 0, 0);
-gb g_core;
+
+// State variables for GUI
+bool g_quit = false;
+bool g_running = true;
+
 
 void main_loop() {
   // Handle keydown, window close, etc
@@ -44,9 +53,9 @@ void main_loop() {
   ImGui_ImplSdl_NewFrame(g_window);
 
   // Run the emulator until vsync
-  while (!g_core.gpu.vsync) {
+  while (g_running && !g_core.gpu.vsync) {
     g_core.step();
-  }
+  } 
   g_core.gpu.vsync = false;
 
   // Render GUI windows
@@ -196,5 +205,11 @@ void imguiRegisters() {
 void imguiDisassembly() {
   ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiSetCond_Once);
   ImGui::Begin("disassembly", &g_showDisassemblyWindow);
+
+  // Button to run or pause emulator
+  if (ImGui::Button(g_running ? "Pause" : " Run ")) {
+    g_running = !g_running;
+  }
+
   ImGui::End();
 }
