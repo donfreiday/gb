@@ -8,7 +8,6 @@
 #include "gb.h"
 
 gb::gb() {
-  debugEnabled = false;
   gpu.mmu = &cpu.mmu;
   cpu.mmu.joypad = &joypad;
   gpu.reset();
@@ -24,10 +23,6 @@ void gb::step() {
 
 void gb::handleSDLKeydown(SDL_Keycode key) {
   switch (key) {
-    case SDLK_d:
-      debugEnabled = !debugEnabled;
-      break;
-
     case SDLK_UP:
     case SDLK_DOWN:
     case SDLK_RIGHT:
@@ -56,13 +51,6 @@ void gb::handleSDLKeyup(SDL_Keycode key) {
     case SDLK_SPACE:
       joypad.keyReleased(key);
       break;
-
-    case SDLK_ESCAPE:
-#ifndef __EMSCRIPTEN__
-      debugger.runToBreak = !debugger.runToBreak;
-#endif
-      break;
-
     default:
       break;
   }

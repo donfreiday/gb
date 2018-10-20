@@ -16,8 +16,6 @@
 #include "gpu.h"
 #include "joypad.h"
 
-#include "debugger.h"
-
 class gb {
  public:
   gb();
@@ -32,11 +30,6 @@ class gb {
 
   void handleSDLKeydown(SDL_Keycode key);
   void handleSDLKeyup(SDL_Keycode key);
-
-  bool debugEnabled;
-#ifndef __EMSCRIPTEN__
-  Debugger debugger;
-#endif
 };
 
 #endif
