@@ -16,20 +16,11 @@ Disassembler::Disassembler(CPU* Cpu) {
 // This is a hack
 void Disassembler::initDisasm() {
   disassembly.clear();
-  disassembleFrom(0, false);
+  disassembleFrom(0);
 }
 
-// Clean start means discard already disassembled addresses that are larger than
-// our target PC
-void Disassembler::disassembleFrom(u16 pc, bool cleanStart) {
-  if (cleanStart) {
-    for (auto line : disassembly) {
-      if (line.pc > pc) {
-        disassembly.erase(line);
-      }
-    }
-  }
-
+// This is a hack
+void Disassembler::disassembleFrom(u16 pc) {
   while (pc < cpu->mmu.memory.size()) {
     Line line;
     line.pc = pc;
