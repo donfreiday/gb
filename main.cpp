@@ -4,8 +4,8 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include "gb.h"
 #include "disassembler.h"
+#include "gb.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 
@@ -48,7 +48,6 @@ ImVec4 g_clearColor = ImColor(0, 0, 0);
 bool g_quit = false;
 bool g_running = true;
 
-
 void main_loop() {
   // Handle keydown, window close, etc
   handleSDLEvents();
@@ -59,7 +58,14 @@ void main_loop() {
   // Run the emulator until vsync
   while (g_running && !g_core.gpu.vsync) {
     g_core.step();
-  } 
+
+    // Make sure current address has been disassembled
+    Disassembler::Line line{g_core.cpu.reg.pc};
+    if (!g_disassembler->disassembly.count(line)) {
+      g_disassembler->disassembleFrom(g_core.cpu.reg.pc);
+    }
+  }
+
   g_core.gpu.vsync = false;
 
   // Render GUI windows
@@ -67,7 +73,7 @@ void main_loop() {
   imguiRegisters();
   imguiDisassembly();
 
-  //ImGui::ShowTestWindow();
+  // ImGui::ShowTestWindow();
 
   // Rendering
   glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x,
@@ -175,7 +181,8 @@ void imguiLCD() {
   windowFlags |= ImGuiWindowFlags_NoCollapse;
 
   // Set the window size to Gameboy LCD dimensions
-  ImGui::SetNextWindowSize(ImVec2(g_core.gpu.width, g_core.gpu.height), ImGuiSetCond_Once);
+  ImGui::SetNextWindowSize(ImVec2(g_core.gpu.width, g_core.gpu.height),
+                           ImGuiSetCond_Once);
 
   // Window defaults to upper left corner (for now)
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Once);
@@ -195,22 +202,25 @@ void imguiLCD() {
 
 // Display registers in a window
 void imguiRegisters() {
-  
-   // Set the window size to Gameboy LCD dimensions
-  ImGui::SetNextWindowSize(ImVec2(g_core.gpu.width, g_core.gpu.height), ImGuiSetCond_Once);
+  // Set the window size to Gameboy LCD dimensions
+  ImGui::SetNextWindowSize(ImVec2(g_core.gpu.width, g_core.gpu.height),
+                           ImGuiSetCond_Once);
 
   // Position window below LCD
   ImGui::SetNextWindowPos(ImVec2(0, g_LcdWindowSize.y), ImGuiSetCond_Once);
-  
+
   ImGui::Begin("reg", &g_showRegWindow);
 
-  ImGui::Text("af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X", g_core.cpu.reg.af, g_core.cpu.reg.bc, g_core.cpu.reg.de, g_core.cpu.reg.hl, g_core.cpu.reg.sp, g_core.cpu.reg.pc);
+  ImGui::Text(
+      "af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X",
+      g_core.cpu.reg.af, g_core.cpu.reg.bc, g_core.cpu.reg.de,
+      g_core.cpu.reg.hl, g_core.cpu.reg.sp, g_core.cpu.reg.pc);
   ImGui::End();
 }
 
 // Display disassembly in a window
 void imguiDisassembly() {
-  ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiSetCond_Once);
+  ImGui::SetNextWindowSize(ImVec2(400.0f, 500.0f), ImGuiSetCond_Once);
   ImGui::Begin("disassembly", &g_showDisassemblyWindow);
 
   // Button to run or pause emulator
@@ -218,20 +228,36 @@ void imguiDisassembly() {
     g_running = !g_running;
   }
 
-  // If paused, allow step
-  if (!g_running) {
-    ImGui::SameLine();
-    if(ImGui::Button("Step")) {
+  // Button for step. Only works when emulation is paused
+  ImGui::SameLine();
+  if (ImGui::Button("Step")) {
+    if (!g_running) {
       g_core.step();
     }
   }
 
   // Scrollable disassembly
-  ImGui::BeginChild("disasm", ImVec2(0,0));
-  for(auto line : g_disassembler->disassembly) {
+  ImGui::BeginChild("disasm", ImVec2(0.0f, 0.0f));
+  for (auto line : g_disassembler->disassembly) {
+    ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    if (line.pc == g_core.cpu.reg.pc) {
+      color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
+
+      // Scroll to current PC
+      if (g_running) {
+        ImGui::SetScrollHere();
+      }
+    }
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    ImGui::PushID(g_core.cpu.reg.pc);
+
     ImGui::Text("%04X: ", line.pc);
     ImGui::SameLine();
     ImGui::Text(line.str.c_str(), line.operand);
+
+    ImGui::PopID();
+    ImGui::PopStyleColor();
   }
   ImGui::EndChild();
 
