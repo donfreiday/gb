@@ -1,63 +1,37 @@
 // gb: a Gameboy Emulator by Don Freiday
 // File: disassembler.cpp
 // Description: Disassembler
-// NOTE: Assumes HLE bootrom
 
 #include "disassembler.h"
 
-Disassembler::Disassembler(CPU* Cpu) {
-  cpu = Cpu;
-
-  // Code entry points, including interrupt (todo: and maybe restart?) vectors
-  entryPoints = {0x40, 0x48, 0x50, 0x58, 0x60, 0x100};
-  initDisasm();
-}
+Disassembler::Disassembler(CPU* Cpu) { cpu = Cpu; }
 
 // This is a hack
-void Disassembler::initDisasm() {
-  disassembly.clear();
-  disassembleFrom(0);
-}
+std::string Disassembler::disassemble(u16& pc) {
+  std::string result;
+  u8 opcode = cpu->mmu.memory[pc];
+  u8 operandSize = 0;
+  u16 operand;
 
-// This is a hack
-void Disassembler::disassembleFrom(u16 pc) {
-  while (pc < cpu->mmu.memory.size()) {
-    Line line;
-    line.pc = pc;
-    u8 operandSize = 0;
-    line.opcode = cpu->mmu.memory[pc];
-    if (line.opcode == 0xCB) {
-      operandSize = 0;
-      line.operand = cpu->mmu.memory[++pc];
-      line.str = cpu->instructions_CB[line.operand].disassembly;
-    } else if (cpu->instructions[line.opcode].operandLength == 1) {
-      operandSize = 1;
-      line.operand = cpu->mmu.memory[++pc];
-      line.str = cpu->instructions[line.opcode].disassembly;
-    } else if (cpu->instructions[line.opcode].operandLength == 2) {
-      operandSize = 2;
-      line.operand = cpu->mmu.read_u16(++pc);
-      line.str = cpu->instructions[line.opcode].disassembly;
-      pc++;
-    } else {
-      operandSize = 0;
-      line.str = cpu->instructions[line.opcode].disassembly;
-    }
+  if (opcode == 0xCB) {
+    operandSize = 1;
+    operand = cpu->mmu.memory[++pc];
+    result = cpu->instructions_CB[operand].disassembly;
+  } else if (cpu->instructions[opcode].operandLength == 1) {
+    operandSize = 1;
+    operand = cpu->mmu.memory[++pc];
+    result = cpu->instructions[opcode].disassembly;
+  } else if (cpu->instructions[opcode].operandLength == 2) {
+    operandSize = 2;
+    operand = cpu->mmu.read_u16(++pc);
+    result = cpu->instructions[opcode].disassembly;
     pc++;
-    disassembly.insert(line);
+  } else {
+    ++pc;
+    operandSize = 0;
+    result = cpu->instructions[opcode].disassembly;
   }
-}
 
-/*void Debugger::step() {
-  cpu->checkInterrupts();
-  cpu->execute();
-  gpu->step(cpu->cpu_clock_t);
-  if (DUMP_TO_FILE) {
-    fout << setfill('0') << setw(4) << hex << cpu->reg.pc+1 << ": "
-         << setfill('0') << setw(4) << " af=" << cpu->reg.af << setfill('0')
-         << setw(4) << " bc=" << cpu->reg.bc << setfill('0') << setw(4)
-         << " de=" << cpu->reg.de << setfill('0') << setw(4)
-         << " hl=" << cpu->reg.hl << setfill('0') << setw(4)
-         << " sp=" << cpu->reg.sp << endl;
-  }
-}*/
+  pc += operandSize;
+  return result;
+}

@@ -4,6 +4,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <set>
 #include "disassembler.h"
 #include "gb.h"
 #include "imgui/imgui.h"
@@ -34,6 +35,9 @@ gb g_core;
 // Disassembler
 Disassembler* g_disassembler;
 
+// Breakpoints
+std::set<u16> g_breakpoints;
+
 SDL_Window* g_window;
 
 // Imgui window flags and stats
@@ -47,6 +51,7 @@ ImVec4 g_clearColor = ImColor(0, 0, 0);
 // State variables for GUI
 bool g_quit = false;
 bool g_running = true;
+bool g_scrollDisasmToPC = false;
 
 void main_loop() {
   // Handle keydown, window close, etc
@@ -59,13 +64,18 @@ void main_loop() {
   while (g_running && !g_core.gpu.vsync) {
     g_core.step();
 
+    // Did we hit a breakpoint?
+    if (g_breakpoints.find(g_core.cpu.reg.pc) != g_breakpoints.end()) {
+      g_running = false;
+      g_scrollDisasmToPC = true;
+    }
+
     // Make sure current address has been disassembled
-    Disassembler::Line line{g_core.cpu.reg.pc};
+    /*Disassembler::Line line{g_core.cpu.reg.pc};
     if (!g_disassembler->disassembly.count(line)) {
       g_disassembler->disassembleFrom(g_core.cpu.reg.pc);
-    }
+    }*/
   }
-
   g_core.gpu.vsync = false;
 
   // Render GUI windows
@@ -225,6 +235,7 @@ void imguiDisassembly() {
 
   // Button to run or pause emulator
   if (ImGui::Button(g_running ? "Pause" : " Run ")) {
+    g_scrollDisasmToPC = g_running;
     g_running = !g_running;
   }
 
@@ -236,30 +247,50 @@ void imguiDisassembly() {
     }
   }
 
-  // Scrollable disassembly
   ImGui::BeginChild("disasm", ImVec2(0.0f, 0.0f));
-  for (auto line : g_disassembler->disassembly) {
-    ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+  ImGuiListClipper clipper(0x7FFF, ImGui::GetTextLineHeight());
+  u16 index = clipper.DisplayStart * 2;
 
-    if (line.pc == g_core.cpu.reg.pc) {
-      color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
+  while (index < clipper.DisplayEnd * 2) {
+    bool breakpoint = g_breakpoints.find(index) != g_breakpoints.end();
+    ImGui::PushID(index);
 
-      // Scroll to current PC
-      if (g_running) {
-        ImGui::SetScrollHere();
+    // Clicking a line sets or removes a breakpoint
+    if (ImGui::Selectable("##select", ImGuiSelectableFlags_SpanAllColumns)) {
+      if (breakpoint) {
+        g_breakpoints.erase(index);
+      } else {
+        g_breakpoints.insert(index);
       }
     }
-    ImGui::PushStyleColor(ImGuiCol_Text, color);
-    ImGui::PushID(g_core.cpu.reg.pc);
 
-    ImGui::Text("%04X: ", line.pc);
+    if (breakpoint) {
+      ImGui::SameLine();
+      ImGui::Bullet();
+    }
+
+    ImVec4 color;
+    if (index == g_core.cpu.reg.pc) {
+      color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
+    } else {
+      color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
     ImGui::SameLine();
-    ImGui::Text(line.str.c_str(), line.operand);
+    ImGui::TextColored(color, "%04X:%02X", index, g_core.cpu.mmu.memory[index]);
+    ImGui::SameLine();
+
+    ImGui::TextColored(color, "%s", g_disassembler->disassemble(index).c_str());
 
     ImGui::PopID();
-    ImGui::PopStyleColor();
   }
-  ImGui::EndChild();
+  if (!g_running && g_scrollDisasmToPC) {
+    ImGui::SetScrollY(g_core.cpu.reg.pc * ImGui::GetTextLineHeight() * 0.5f -
+                      41);
+    g_scrollDisasmToPC = false;
+  }
 
+  clipper.End();
+  ImGui::EndChild();
   ImGui::End();
 }
