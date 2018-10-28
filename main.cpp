@@ -252,23 +252,21 @@ void imguiDisassembly() {
   u16 index = clipper.DisplayStart * 2;
 
   while (index < clipper.DisplayEnd * 2) {
+    // Is the current index a breakpoint?
     bool breakpoint = g_breakpoints.find(index) != g_breakpoints.end();
-    ImGui::PushID(index);
-
+    
     // Clicking a line sets or removes a breakpoint
-    if (ImGui::Selectable("##select", ImGuiSelectableFlags_SpanAllColumns)) {
+    ImGui::PushID(index);
+    if (ImGui::Selectable("##breakpoint", ImGuiSelectableFlags_SpanAllColumns)) {
       if (breakpoint) {
         g_breakpoints.erase(index);
       } else {
         g_breakpoints.insert(index);
       }
     }
+    ImGui::PopID();
 
-    if (breakpoint) {
-      ImGui::SameLine();
-      ImGui::Bullet();
-    }
-
+    // Color currently executing line
     ImVec4 color;
     if (index == g_core.cpu.reg.pc) {
       color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
@@ -276,17 +274,28 @@ void imguiDisassembly() {
       color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
+    // Mark breakpoints
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    ImGui::SameLine();
+    if(breakpoint) {
+      ImGui::Text("*");
+    } else {
+      ImGui::Text(" ");
+    }
+    ImGui::PopStyleVar();
+    
+    // Display current address and opcode
     ImGui::SameLine();
     ImGui::TextColored(color, "%04X:%02X", index, g_core.cpu.mmu.memory[index]);
+
+    // Display disassembly 
     ImGui::SameLine();
-
     ImGui::TextColored(color, "%s", g_disassembler->disassemble(index).c_str());
-
-    ImGui::PopID();
   }
+
+  // Scroll to current PC if warranted
   if (!g_running && g_scrollDisasmToPC) {
-    ImGui::SetScrollY(g_core.cpu.reg.pc * ImGui::GetTextLineHeight() * 0.5f -
-                      41);
+    ImGui::SetScrollY(g_core.cpu.reg.pc * ImGui::GetTextLineHeight() * 0.5f);
     g_scrollDisasmToPC = false;
   }
 
