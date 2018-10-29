@@ -381,9 +381,9 @@ class CPU {
       {"UNKNOWN", 0, 0},                 // 0xdd
       {"SBC %02X", 1, 8},                // 0xde
       {"RST 0x18", 0, 16},               // 0xdf
-      {"LD (0xFF00 + %02X), A", 1, 12},  // 0xe0
+      {"LD (0xFF%02X), A", 1, 12},  // 0xe0
       {"POP HL", 0, 12},                 // 0xe1
-      {"LD (0xFF00 + C), A", 0, 8},      // 0xe2
+      {"LD (0xFF0C), A", 0, 8},      // 0xe2
       {"UNKNOWN", 0, 0},                 // 0xe3
       {"UNKNOWN", 0, 0},                 // 0xe4
       {"PUSH HL", 0, 16},                // 0xe5
@@ -397,9 +397,9 @@ class CPU {
       {"UNKNOWN", 0, 0},                 // 0xed
       {"XOR %02X", 1, 8},                // 0xee
       {"RST 0x28", 0, 16},               // 0xef
-      {"LD A, (0xFF00 + %02X)", 1, 12},  // 0xf0
+      {"LD A, (0xFF%02X)", 1, 12},  // 0xf0
       {"POP AF", 0, 12},                 // 0xf1
-      {"LD A, (0xFF00 + C)", 0, 8},  // 0xf2 todo: possible undocumented opcode?
+      {"LD A, (0xFF0C)", 0, 8},  // 0xf2 todo: possible undocumented opcode?
       {"DI", 0, 4},                  // 0xf3
       {"UNKNOWN", 0, 0},             // 0xf4
       {"PUSH AF", 0, 16},            // 0xf5
