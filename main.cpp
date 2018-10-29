@@ -290,7 +290,8 @@ void imguiDisassembly() {
 
     // Display disassembly 
     ImGui::SameLine();
-    ImGui::TextColored(color, "%s", g_disassembler->disassemble(index).c_str());
+    disassembly d = g_disassembler->disassemble(index);
+    ImGui::TextColored(color, d.str.c_str(), d.operand);
   }
 
   // Scroll to current PC if warranted

@@ -11,11 +11,16 @@
 
 #include <string>
 
+struct disassembly {
+  std::string str;
+  u16 operand;
+};
+
 class Disassembler {
  public:
   Disassembler(CPU* Cpu);
 
-  std::string disassemble(u16& pc);
+  disassembly disassemble(u16& pc);
 
  private:
   CPU* cpu;
