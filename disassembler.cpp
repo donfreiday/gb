@@ -33,5 +33,5 @@ disassembly Disassembler::disassemble(u16& pc) {
   }
 
   pc += operandSize;
-  return disassembly { str, operand };
+  return { str, operand };
 }
