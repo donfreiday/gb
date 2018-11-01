@@ -9,7 +9,7 @@
 MMU::MMU() { reset(); }
 
 void MMU::reset() {
-  memory.resize(0xFFFF, 0);  // 16-bit address space
+  memory.resize(0x10000, 0);  // 16-bit address space
   memory[JOYP] = 0xCF;
   memMapChanged = false;
   hleBios = true;
