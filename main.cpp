@@ -5,7 +5,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <set>
-#include "disassembler.h"
 #include "gb.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
@@ -29,11 +28,15 @@ void imguiLCD();
 void imguiRegisters();
 void imguiDisassembly();
 
+// Disassembler
+struct disassembly {
+  std::string str;
+  u16 operand;
+} g_disassembly;
+void disassemble(u16& pc);
+
 // Emulator core
 gb g_core;
-
-// Disassembler
-Disassembler* g_disassembler;
 
 // Breakpoints
 std::set<u16> g_breakpoints;
@@ -113,9 +116,6 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  // Initialize disassembler
-  g_disassembler = new Disassembler(&g_core.cpu);
-
   // Setup SDL
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     printf("Error: %s\n", SDL_GetError());
@@ -148,8 +148,6 @@ int main(int argc, char** argv) {
 #endif
 
   // Cleanup
-  delete g_disassembler;
-  g_disassembler = nullptr;
   ImGui_ImplSdl_Shutdown();
   SDL_GL_DeleteContext(glcontext);
   SDL_DestroyWindow(g_window);
@@ -254,10 +252,11 @@ void imguiDisassembly() {
   while (index < clipper.DisplayEnd * 2) {
     // Is the current index a breakpoint?
     bool breakpoint = g_breakpoints.find(index) != g_breakpoints.end();
-    
+
     // Clicking a line sets or removes a breakpoint
     ImGui::PushID(index);
-    if (ImGui::Selectable("##breakpoint", ImGuiSelectableFlags_SpanAllColumns)) {
+    if (ImGui::Selectable("##breakpoint",
+                          ImGuiSelectableFlags_SpanAllColumns)) {
       if (breakpoint) {
         g_breakpoints.erase(index);
       } else {
@@ -277,21 +276,21 @@ void imguiDisassembly() {
     // Mark breakpoints
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     ImGui::SameLine();
-    if(breakpoint) {
+    if (breakpoint) {
       ImGui::Text("*");
     } else {
       ImGui::Text(" ");
     }
     ImGui::PopStyleVar();
-    
+
     // Display current address and opcode
     ImGui::SameLine();
     ImGui::TextColored(color, "%04X:%02X", index, g_core.cpu.mmu.memory[index]);
 
-    // Display disassembly 
+    // Display disassembly
     ImGui::SameLine();
-    disassembly d = g_disassembler->disassemble(index);
-    ImGui::TextColored(color, d.str.c_str(), d.operand);
+    disassemble(index);
+    ImGui::TextColored(color, g_disassembly.str.c_str(), g_disassembly.operand);
   }
 
   // Scroll to current PC if warranted
@@ -303,4 +302,31 @@ void imguiDisassembly() {
   clipper.End();
   ImGui::EndChild();
   ImGui::End();
+}
+
+// This is a ugly, ugly hack
+void disassemble(u16& pc) {
+  u8 opcode = g_core.cpu.mmu.memory[pc];
+  u8 operandSize = 0;
+  g_disassembly.operand = 0;
+
+  if (opcode == 0xCB) {
+    operandSize = 1;
+    g_disassembly.operand = g_core.cpu.mmu.memory[++pc];
+    g_disassembly.str = g_core.cpu.instructions_CB[g_disassembly.operand].disassembly;
+  } else if (g_core.cpu.instructions[opcode].operandLength == 1) {
+    operandSize = 1;
+    g_disassembly.operand = g_core.cpu.mmu.memory[++pc];
+    g_disassembly.str = g_core.cpu.instructions[opcode].disassembly;
+  } else if (g_core.cpu.instructions[opcode].operandLength == 2) {
+    operandSize = 2;
+    g_disassembly.operand = g_core.cpu.mmu.read_u16(++pc);
+    g_disassembly.str = g_core.cpu.instructions[opcode].disassembly;
+    pc++;
+  } else {
+    ++pc;
+    operandSize = 0;
+    g_disassembly.str = g_core.cpu.instructions[opcode].disassembly;
+  }
+  pc += operandSize;
 }

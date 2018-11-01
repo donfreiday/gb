@@ -2,8 +2,8 @@
 # Author: Don Freiday
 
 # OBJS: files to compile as part of the project
-native: OBJS = ./imgui/*cpp joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp main.cpp disassembler.cpp
-js: OBJS = ./imgui/*cpp joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp main.cpp disassembler.cpp
+native: OBJS = ./imgui/*cpp joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp main.cpp
+js: OBJS = ./imgui/*cpp joypad.cpp mmu.cpp gpu.cpp cpu.cpp gb.cpp main.cpp
 
 # CC: compiler we're using
 native: CC = clang++
