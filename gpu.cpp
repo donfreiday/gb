@@ -6,9 +6,33 @@
 
 #include "gpu.h"
 
-GPU::GPU() {}
+GPU::GPU() {
+  
+  // Generate a new texture and store the handle
+  glGenTextures(1, &texture);
 
-GPU::~GPU() {}
+  // These settings stick with the texture that's bound. Only need to set them
+  // once.
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  // allocate memory on the graphics card for the texture. It's fine if
+  // texture_data doesn't have any data in it, the texture will just appear
+  // black until you update it.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+               GL_UNSIGNED_BYTE, screenData);
+}
+
+GPU::~GPU() {
+  // When you're done using the texture, delete it. This will set texname to 0
+  // and
+  // delete all of the graphics card memory associated with the texture. If you
+  // don't call this method, the texture will stay in graphics card memory until
+  // you close the application.
+  glDeleteTextures(1, &texture);
+}
 
 void GPU::reset() {
   width = 160;
@@ -410,14 +434,10 @@ void GPU::requestInterrupt(u8 interrupt) {
 }
 
 void GPU::renderScreen() {
-  // Create OpenGL texture
-  glGenTextures(1, &texture);
+  //bind the texture again when you want to update it.
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
                GL_UNSIGNED_BYTE, screenData);
-
   vsync = true;  // Flag for main loop
 }
