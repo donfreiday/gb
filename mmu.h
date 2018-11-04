@@ -14,13 +14,20 @@
 
 class MMU {
  public:
-  struct cart {};
+  struct MBC {
+    u8 type;
+    u8 romBank;
+    u16 romOffset;
+    u16 ramOffset;
+    u8 mode;
+  } mbc;
 
   bool hleBios;
 
   std::vector<u8> memory;  // 16bit address bus
-  std::vector<u8> bios; 
-  std::vector<u8> rom; 
+  std::vector<u8> bios;
+  std::vector<u8> rom;
+  std::vector<u8> ram;
 
   MMU();
   bool load(char* filename);
@@ -33,7 +40,7 @@ class MMU {
 
   int getRomSize();
 
-  bool memMapChanged; // Flag for debugger
+  bool memMapChanged;  // Flag for debugger
 
   Joypad* joypad;
 

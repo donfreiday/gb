@@ -9,10 +9,22 @@
 MMU::MMU() { reset(); }
 
 void MMU::reset() {
-  memory.resize(0x10000, 0);  // 16-bit address space
+  memory.resize(0x10000, 0);
+  ram.resize(0x2000, 0);
+
+  // Hack
   memory[JOYP] = 0xCF;
-  memMapChanged = false;
+
+  // Flag for running boot rom
   hleBios = true;
+  memMapChanged = false;
+
+  // Setup MBC info
+  mbc.romOffset = 0x4000;
+  mbc.romBank = 0;
+  mbc.mode = 0;
+  mbc.ramOffset = 0;
+  mbc.type = 0;  // this will be determined in load()
 }
 
 bool MMU::load(char* filename) {
@@ -52,19 +64,34 @@ bool MMU::load(char* filename) {
     memory.assign(bios.begin(), bios.end());
   }
 
+  mbc.type = rom[0x147];
+
   return true;
 }
 
 u8 MMU::read_u8(u16 address) {
-  switch (address) {
-    case 0xFF00:  // Joypad
-      return joypad->read(memory[0xFF00]);
-      break;
-
-    default:
-      return memory[address];
-      break;
+  // ROM, switched bank
+  if (address >= 0x4000 && address <= 0x7FFF) {
+    return rom[mbc.romOffset + (address & 0x3FFF)];
   }
+
+  // RAM, switched bank
+  else if (address >= 0xA000 && address <= 0x8FFF) {
+    return ram[mbc.ramOffset + (address & 0x1FFF)];
+  }
+
+  // Shadow of working RAM, less final 512 bytes
+  else if (address >= 0xE000 && address <= 0xFDFF) {
+    return memory[address - 0x1000];
+  }
+
+  // Joypad
+  else if (address == 0xFF00) {
+    return joypad->read(memory[0xFF00]);
+  }
+
+  // Default
+  return memory[address];
 }
 
 u16 MMU::read_u16(u16 address) {
@@ -75,12 +102,75 @@ u16 MMU::read_u16(u16 address) {
 }
 
 void MMU::write_u8(u16 address, u8 value) {
-  // No writing to cartridge ROM
-  if (address < 0x8000) {
-    return;
-  } else if (address == DIV) {
+  // External RAM switch
+  if (address <= 0x1FFF) {
+  }
+
+  // ROM
+  else if (address >= 0x2000 && address <= 0x3FFF) {
+    switch (mbc.type) {
+      case 1:
+      case 2:
+      case 3:
+        value &= 0x0F;
+        if (!value) {
+          value = 1;
+        }
+        mbc.romBank = (mbc.romBank & 0x60) + value;
+        mbc.romOffset = mbc.romBank * 0x4000;
+        break;
+      default:
+        break;
+    }
+  }
+
+  // RAM
+  else if (address >= 0x4000 && address <= 0x5FFF) {
+    switch (mbc.type) {
+      case 1:
+      case 2:
+      case 3:
+        // RAM bank
+        if (mbc.mode) {
+          
+          mbc.ramOffset = (value & 3) * 0x2000;
+        } else {
+          // ROM bank
+          mbc.romBank = (mbc.romBank & 0x1F) + ((value & 3) << 5);
+          mbc.romOffset = mbc.romBank * 0x4000;
+        }
+        break;
+      default:
+        break;
+    }
+  } 
+  
+  else if (address >= 0x6000 && address <= 0x7FFF) {
+    switch (mbc.type) {
+      case 2:
+      case 3:
+        mbc.mode = value & 1;
+        break;
+      default:
+        break;
+    }
+  } 
+  
+  // RAM, external
+  else if (address >= 0xA000 && address <= 0xBFFF) {
+    ram[mbc.ramOffset + (address & 0x1FFF)] = value;
+  } 
+  
+  // WRAM shadow
+  else if (address >= 0xE000 && address <= 0xFDFF) {
+    memory[address - 0x1000] = value;
+  }
+
+   else if (address == DIV) {
     memory[DIV] = 0;
   }
+
+  // Other cases
   switch (address) {
     // Joypad
     case 0xFF00:
@@ -111,8 +201,8 @@ void MMU::write_u8(u16 address, u8 value) {
 
     // unmap bootrom
     case 0xFF50: {
-      memory.assign(rom.begin(), rom.begin() + 0x8000);  // First 32kb is bank 0
-      memMapChanged = true;                              // flag for debugger
+      memory.assign(rom.begin(), rom.begin() + 0x8000);  
+      memMapChanged = true;                              
       break;
     }
 
