@@ -27,19 +27,18 @@ class GPU {
   int mode;
   u8 scanline;
 
-  GLuint texture;
   int width;
   int height;
 
   bool vsync;
+
+  u8 screenData[144][160][3];
 
  private:
   void renderScanline();  // write scanline to surface
   void renderBackground();
   void renderSprites();
   void renderScreen();
-
-  u8 screenData[144][160][3];
 
   enum COLOR { WHITE, LIGHT_GRAY, DARK_GRAY, BLACK };
 

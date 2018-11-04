@@ -43,6 +43,8 @@ std::set<u16> g_breakpoints;
 
 SDL_Window* g_window;
 
+GLuint g_lcdTexture;  // LCD will be rendered to this texture
+
 // Imgui window flags and stats
 bool g_showLcdWindow = true;
 ImVec2 g_LcdWindowSize;
@@ -138,6 +140,22 @@ int main(int argc, char** argv) {
   // Setup ImGui binding
   ImGui_ImplSdl_Init(g_window);
 
+  // Generate a new texture and store the handle
+  glGenTextures(1, &g_lcdTexture);
+
+  // These settings stick with the texture that's bound. Only need to set them
+  // once.
+  glBindTexture(GL_TEXTURE_2D, g_lcdTexture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  // allocate memory on the graphics card for the texture. It's fine if
+  // texture_data doesn't have any data in it, the texture will just appear
+  // black until you update it.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, g_core.gpu.width, g_core.gpu.height, 0,
+               GL_RGB, GL_UNSIGNED_BYTE, g_core.gpu.screenData);
+
   // Main loop
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(main_loop, 0, 1);
@@ -148,6 +166,13 @@ int main(int argc, char** argv) {
 #endif
 
   // Cleanup
+  // When you're done using the texture, delete it. This will set texname to 0
+  // and
+  // delete all of the graphics card memory associated with the texture. If you
+  // don't call this method, the texture will stay in graphics card memory until
+  // you close the application.
+  glDeleteTextures(1, &g_lcdTexture);
+
   ImGui_ImplSdl_Shutdown();
   SDL_GL_DeleteContext(glcontext);
   SDL_DestroyWindow(g_window);
@@ -182,6 +207,13 @@ void handleSDLEvents() {
 
 // Display LCD in a window
 void imguiLCD() {
+  // Update texture
+  // bind the texture again when you want to update it.
+  glBindTexture(GL_TEXTURE_2D, g_lcdTexture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, g_core.gpu.width, g_core.gpu.height, 0, GL_RGB,
+               GL_UNSIGNED_BYTE, g_core.gpu.screenData);
+
   // Set up window flags
   ImGuiWindowFlags windowFlags = 0;
   windowFlags |= ImGuiWindowFlags_NoTitleBar;
@@ -201,7 +233,7 @@ void imguiLCD() {
   // Render window
   ImGui::Begin("lcd", &g_showLcdWindow, windowFlags);
   g_LcdWindowSize = ImGui::GetWindowSize();
-  ImGui::Image((void*)g_core.gpu.texture, g_LcdWindowSize);
+  ImGui::Image((void*)g_lcdTexture, g_LcdWindowSize);
 
   // Done, clean up
   ImGui::End();
@@ -313,7 +345,8 @@ void disassemble(u16& pc) {
   if (opcode == 0xCB) {
     operandSize = 1;
     g_disassembly.operand = g_core.cpu.mmu.memory[++pc];
-    g_disassembly.str = g_core.cpu.instructions_CB[g_disassembly.operand].disassembly;
+    g_disassembly.str =
+        g_core.cpu.instructions_CB[g_disassembly.operand].disassembly;
   } else if (g_core.cpu.instructions[opcode].operandLength == 1) {
     operandSize = 1;
     g_disassembly.operand = g_core.cpu.mmu.memory[++pc];
