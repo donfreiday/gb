@@ -8,12 +8,10 @@
 
 MMU::MMU() { reset(); }
 
-void MMU::reset() {
+void MMU::reset()
+{
   memory.resize(0x10000, 0);
-  ram.resize(0x2000, 0);
-
-  // Hack
-  memory[JOYP] = 0xCF;
+  ram.resize(0x2000, 0); // external RAM
 
   // Flag for running boot rom
   hleBios = true;
@@ -24,43 +22,49 @@ void MMU::reset() {
   mbc.romBank = 0;
   mbc.mode = 0;
   mbc.ramOffset = 0;
-  mbc.type = 0;  // this will be determined in load()
+  mbc.type = 0; // this will be determined in load()
 }
 
-bool MMU::load(char* filename) {
+bool MMU::load(char *filename)
+{
   romFile = filename;
 
   // Load bios. Dont forget PC must be set to 0 in CPU
   std::ifstream file;
   file.open("roms/bios.gb", std::ios::binary | std::ios::ate);
 
-  if (!file.is_open()) {
+  if (!file.is_open())
+  {
     hleBios = true;
-  } else {
+  }
+  else
+  {
     hleBios = false;
     file.seekg(0, file.end);
     u32 biosSize = file.tellg();
     bios.resize(biosSize, 0);
     file.seekg(0, file.beg);
-    file.read((char*)(&bios[0]), biosSize);
+    file.read((char *)(&bios[0]), biosSize);
     file.close();
   }
 
   // Load ROM
   file.open(filename, std::ios::binary);
-  if (!file.is_open()) {
+  if (!file.is_open())
+  {
     return false;
   }
   file.seekg(0, file.end);
   u32 romSize = file.tellg();
   rom.resize(romSize, 0);
   file.seekg(0, file.beg);
-  file.read((char*)(&rom[0]), romSize);
+  file.read((char *)(&rom[0]), romSize);
   file.close();
 
-  memory.assign(rom.begin(), rom.begin() + 0x8000);  // First 32kb is bank 0
+  memory.assign(rom.begin(), rom.begin() + (0x7FFF > rom.size() ? rom.size() : 0x7FFF));
 
-  if (!hleBios) {
+  if (!hleBios)
+  {
     memory.assign(bios.begin(), bios.end());
   }
 
@@ -69,109 +73,136 @@ bool MMU::load(char* filename) {
   return true;
 }
 
-u8 MMU::read_u8(u16 address) {
+u8 MMU::read_u8(u16 address)
+{
   // ROM, switched bank
-  if (address >= 0x4000 && address <= 0x7FFF) {
+  if (address >= 0x4000 && address <= 0x7FFF)
+  {
     return rom[mbc.romOffset + (address & 0x3FFF)];
   }
 
   // RAM, switched bank
-  else if (address >= 0xA000 && address <= 0x8FFF) {
+  else if (address >= 0xA000 && address <= 0x8FFF)
+  {
     return ram[mbc.ramOffset + (address & 0x1FFF)];
   }
 
   // Shadow of working RAM, less final 512 bytes
-  else if (address >= 0xE000 && address <= 0xFDFF) {
+  else if (address >= 0xE000 && address <= 0xFDFF)
+  {
     return memory[address - 0x1000];
   }
 
   // Joypad
-  else if (address == 0xFF00) {
+  else if (address == 0xFF00)
+  {
     return joypad->read(memory[0xFF00]);
   }
 
   // Default
-  return memory[address];
+  else
+  {
+    return memory[address];
+  }
 }
 
-u16 MMU::read_u16(u16 address) {
+u16 MMU::read_u16(u16 address)
+{
   u16 result = read_u8(address + 1);
   result <<= 8;
   result |= read_u8(address);
   return result;
 }
 
-void MMU::write_u8(u16 address, u8 value) {
+void MMU::write_u8(u16 address, u8 value)
+{
   // External RAM switch
-  if (address <= 0x1FFF) {
+  if (address <= 0x1FFF)
+  {
   }
 
   // ROM
-  else if (address >= 0x2000 && address <= 0x3FFF) {
-    switch (mbc.type) {
-      case 1:
-      case 2:
-      case 3:
-        value &= 0x0F;
-        if (!value) {
-          value = 1;
-        }
-        mbc.romBank = (mbc.romBank & 0x60) + value;
-        mbc.romOffset = mbc.romBank * 0x4000;
-        break;
-      default:
-        break;
+  else if (address >= 0x2000 && address <= 0x3FFF)
+  {
+    switch (mbc.type)
+    {
+    case 1:
+    case 2:
+    case 3:
+      value &= 0x0F;
+      if (!value)
+      {
+        value = 1;
+      }
+      mbc.romBank = (mbc.romBank & 0x60) + value;
+      mbc.romOffset = mbc.romBank * 0x4000;
+      break;
+    default:
+      break;
     }
   }
 
   // RAM
-  else if (address >= 0x4000 && address <= 0x5FFF) {
-    switch (mbc.type) {
-      case 1:
-      case 2:
-      case 3:
-        // RAM bank
-        if (mbc.mode) {
-          
-          mbc.ramOffset = (value & 3) * 0x2000;
-        } else {
-          // ROM bank
-          mbc.romBank = (mbc.romBank & 0x1F) + ((value & 3) << 5);
-          mbc.romOffset = mbc.romBank * 0x4000;
-        }
-        break;
-      default:
-        break;
+  else if (address >= 0x4000 && address <= 0x5FFF)
+  {
+    switch (mbc.type)
+    {
+    case 1:
+    case 2:
+    case 3:
+      // RAM bank
+      if (mbc.mode)
+      {
+
+        mbc.ramOffset = (value & 3) * 0x2000;
+      }
+      else
+      {
+        // ROM bank
+        mbc.romBank = (mbc.romBank & 0x1F) + ((value & 3) << 5);
+        mbc.romOffset = mbc.romBank * 0x4000;
+      }
+      break;
+    default:
+      break;
     }
-  } 
-  
-  else if (address >= 0x6000 && address <= 0x7FFF) {
-    switch (mbc.type) {
-      case 2:
-      case 3:
-        mbc.mode = value & 1;
-        break;
-      default:
-        break;
+  }
+
+  else if (address >= 0x6000 && address <= 0x7FFF)
+  {
+    switch (mbc.type)
+    {
+    case 2:
+    case 3:
+      mbc.mode = value & 1;
+      break;
+    default:
+      break;
     }
-  } 
-  
+  }
+
   // RAM, external
-  else if (address >= 0xA000 && address <= 0xBFFF) {
+  else if (address >= 0xA000 && address <= 0xBFFF)
+  {
     ram[mbc.ramOffset + (address & 0x1FFF)] = value;
-  } 
-  
+  }
+
   // WRAM shadow
-  else if (address >= 0xE000 && address <= 0xFDFF) {
+  else if (address >= 0xE000 && address <= 0xFDFF)
+  {
     memory[address - 0x1000] = value;
   }
 
-   else if (address == DIV) {
+  else if (address == DIV)
+  {
     memory[DIV] = 0;
   }
+  else
+  {
 
-  // Other cases
-  switch (address) {
+    // Other cases
+    switch (address)
+    {
     // Joypad
     case 0xFF00:
       memory[address] = joypad->read(value);
@@ -200,19 +231,22 @@ void MMU::write_u8(u16 address, u8 value) {
       break;
 
     // unmap bootrom
-    case 0xFF50: {
-      memory.assign(rom.begin(), rom.begin() + 0x8000);  
-      memMapChanged = true;                              
+    case 0xFF50:
+    {
+      memory.assign(rom.begin(), rom.begin() + 0x8000);
+      memMapChanged = true;
       break;
     }
 
     default:
       memory[address] = value;
       break;
+    }
   }
 }
 
-void MMU::write_u16(u16 address, u16 value) {
+void MMU::write_u16(u16 address, u16 value)
+{
   u8 byte1 = (u8)(value & 0x00FF);
   u8 byte2 = (u8)((value & 0xFF00) >> 8);
   write_u8(address, byte1);
@@ -221,9 +255,11 @@ void MMU::write_u16(u16 address, u16 value) {
 
 // Source address is: (data that was being written to FF46) / 100 or
 // equivalently, data << 8 Destination is: sprite RAM FE00-FE9F, 0xA0 bytes
-void MMU::DMA(u16 src) {
+void MMU::DMA(u16 src)
+{
   src <<= 8;
-  for (u8 i = 0; i < 0xA0; i++) {
+  for (u8 i = 0; i < 0xA0; i++)
+  {
     memory[OAM_ATTRIB + i] = memory[src + i];
   }
 }
