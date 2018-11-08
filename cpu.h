@@ -8,6 +8,8 @@
 #define GB_CPU
 
 #include <iostream>
+#include <fstream> // for debug > file
+#include <iomanip> // for debug > file
 #include "common.h"
 #include "mmu.h"
 
@@ -56,7 +58,12 @@ class CPU {
 
   MMU mmu;
 
+  // Debug > File
+  bool debugToFile;
+  std::ofstream fout;
+
   CPU();
+  ~CPU();
   void reset();
 
   // Test bit b in register r

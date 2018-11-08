@@ -55,7 +55,7 @@ ImVec4 g_clearColor = ImColor(0, 0, 0);
 
 // State variables for GUI
 bool g_quit = false;
-bool g_running = true;
+bool g_running = false;
 bool g_scrollDisasmToPC = false;
 
 void main_loop() {
