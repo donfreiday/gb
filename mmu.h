@@ -12,9 +12,11 @@
 #include "common.h"
 #include "joypad.h"
 
-class MMU {
- public:
-  struct MBC {
+class MMU
+{
+public:
+  struct MBC
+  {
     u8 type;
     u8 romBank;
     u16 romOffset;
@@ -22,32 +24,28 @@ class MMU {
     u8 mode;
   } mbc;
 
-  bool hleBios;
-
-  std::vector<u8> memory;  // 16bit address bus
+  std::vector<u8> memory;
   std::vector<u8> bios;
   std::vector<u8> rom;
-  std::vector<u8> ram;
+  std::vector<u8> ram; // External RAM
 
   MMU();
-  bool load(char* filename);
+
+  bool load(char *filename);
+  char *romFilename;
+
   void reset();
 
-  u8 read_u8(u16 address);
-  u16 read_u16(u16 address);
-  void write_u8(u16 address, u8 value);
-  void write_u16(u16 address, u16 value);
+  u8 read8(u16 address);
+  u16 read16(u16 address);
+  void write8(u16 address, u8 value);
+  void write16(u16 address, u16 value);
 
-  int getRomSize();
+  // Joypad class handles reads/writes to its register
+  Joypad *joypad;
 
-  bool memMapChanged;  // Flag for debugger
-
-  Joypad* joypad;
-
-  char* romFile;
-
- private:
-  void DMA(u16 src);
+private:
+  void dma(u16 src);
 };
 
 #endif

@@ -353,7 +353,7 @@ void disassemble(u16& pc) {
     g_disassembly.str = g_core.cpu.instructions[opcode].disassembly;
   } else if (g_core.cpu.instructions[opcode].operandLength == 2) {
     operandSize = 2;
-    g_disassembly.operand = g_core.cpu.mmu.read_u16(++pc);
+    g_disassembly.operand = g_core.cpu.mmu.read16(++pc);
     g_disassembly.str = g_core.cpu.instructions[opcode].disassembly;
     pc++;
   } else {

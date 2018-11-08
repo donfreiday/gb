@@ -406,7 +406,7 @@ GPU::COLOR GPU::paletteLookup(u8 colorID, u16 address) {
 void GPU::requestInterrupt(u8 interrupt) {
   u8 cpuInterrupts = mmu->memory[IF];
   bitSet(cpuInterrupts, interrupt);
-  mmu->write_u8(IF, cpuInterrupts);
+  mmu->write8(IF, cpuInterrupts);
 }
 
 void GPU::renderScreen() {
