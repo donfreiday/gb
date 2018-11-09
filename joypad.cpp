@@ -106,11 +106,12 @@ void Joypad::keyReleased(SDL_Keycode key) {
 
 void Joypad::handleControllers(
     SDL_GameController* controllers[MAX_CONTROLLERS]) {
-  /*for (int i = 0; i < MAX_CONTROLLERS; i++) {
+  for (int i = 0; i < MAX_CONTROLLERS; i++) {
     if (controllers[i] && SDL_GameControllerGetAttached(controllers[i])) {
       if (SDL_GameControllerGetButton(controllers[i],
                                       SDL_CONTROLLER_BUTTON_DPAD_DOWN)) {
         bitClear(directions, DOWN);
+        printf("DOWN\n");
       } else {
         bitSet(directions, DOWN);
       }
@@ -118,6 +119,7 @@ void Joypad::handleControllers(
       if (SDL_GameControllerGetButton(controllers[i],
                                       SDL_CONTROLLER_BUTTON_DPAD_UP)) {
         bitClear(directions, UP);
+        printf("UP\n");
       } else {
         bitSet(directions, UP);
       }
@@ -125,6 +127,7 @@ void Joypad::handleControllers(
       if (SDL_GameControllerGetButton(controllers[i],
                                       SDL_CONTROLLER_BUTTON_DPAD_LEFT)) {
         bitClear(directions, LEFT);
+
       } else {
         bitSet(directions, LEFT);
       }
@@ -133,38 +136,38 @@ void Joypad::handleControllers(
                                       SDL_CONTROLLER_BUTTON_DPAD_RIGHT)) {
         bitClear(directions, RIGHT);
       } else {
-        bitSet(directions, RIGHT);
+        //bitSet(directions, RIGHT);
       }
 
       if (SDL_GameControllerGetButton(controllers[i],
                                       SDL_CONTROLLER_BUTTON_START)) {
         bitClear(buttons, START);
       } else {
-        bitSet(directions, START);
+        bitSet(buttons, START);
       }
 
       if (SDL_GameControllerGetButton(controllers[i],
                                       SDL_CONTROLLER_BUTTON_BACK)) {
         bitClear(buttons, SELECT);
       } else {
-        bitSet(directions, SELECT);
+        bitSet(buttons, SELECT);
       }
 
       if (SDL_GameControllerGetButton(controllers[i],
                                       SDL_CONTROLLER_BUTTON_A)) {
         bitClear(buttons, A);
       } else {
-        bitSet(directions, A);
+        bitSet(buttons, A);
       }
 
       if (SDL_GameControllerGetButton(controllers[i],
                                       SDL_CONTROLLER_BUTTON_B)) {
         bitClear(buttons, B);
       } else {
-        bitSet(directions, B);
+        bitSet(buttons, B);
       }
     }
-  }*/
+  }
 }
 
 u8 Joypad::read(u8 request) {
