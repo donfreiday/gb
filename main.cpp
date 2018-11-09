@@ -146,9 +146,10 @@ int main(int argc, char** argv) {
   // These settings stick with the texture that's bound. Only need to set them
   // once.
   glBindTexture(GL_TEXTURE_2D, g_lcdTexture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
   // allocate memory on the graphics card for the texture. It's fine if
   // texture_data doesn't have any data in it, the texture will just appear
@@ -199,6 +200,8 @@ void handleSDLEvents() {
         g_quit = true;
         break;
 
+      case SDL_JOYBUTTONDOWN:
+
       default:
         break;
     }
@@ -210,9 +213,8 @@ void imguiLCD() {
   // Update texture
   // bind the texture again when you want to update it.
   glBindTexture(GL_TEXTURE_2D, g_lcdTexture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, g_core.gpu.width, g_core.gpu.height, 0, GL_RGB,
-               GL_UNSIGNED_BYTE, g_core.gpu.screenData);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, g_core.gpu.width, g_core.gpu.height, 0,
+               GL_RGB, GL_UNSIGNED_BYTE, g_core.gpu.screenData);
 
   // Set up window flags
   ImGuiWindowFlags windowFlags = 0;
