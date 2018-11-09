@@ -7,47 +7,46 @@
 #include "cpu.h"
 #include "mmu.h"
 
-#define FLAG_CARRY \
-  4  // set if a carry occurred from the last arithmetic operation or if \
-      // register A is the smaller value when executing the CP instruction
-#define FLAG_HALF_CARRY \
-  5  // set if a carry occurred from the lower nibble in the last math \
-      // operation.
-#define FLAG_SUBTRACT \
-  6  // set if a subtraction was performed in the last math instruction.
-#define FLAG_ZERO \
-  7  // set when the result of an arithmetic operation is zero or two values \
-      // match when using the CP
+// Set if a carry occurred from the last arithmetic operation or if
+// register A is the smaller value when executing the CP instruction
+#define FLAG_CARRY 4
+
+// Set if a carry occurred from the lower nibble in the last math operation.
+#define FLAG_HALF_CARRY 5
+
+// Set if a subtraction was performed in the last math instruction.
+#define FLAG_SUBTRACT 6  
+
+// Set when the result of an arithmetic operation is zero or two values match when using CP
+#define FLAG_ZERO 7  
 
 CPU::CPU() { reset(); }
 
 CPU::~CPU() { fout.close(); }
 
 void CPU::reset() {
-  // Set all registers to zero before executing boot ROM.
-  // Real GB hardware behavior is undefined; the boot ROM explicitly
-  // sets each register as needed
-  reg.a = 0;
-  reg.b = 0;
-  reg.c = 0;
-  reg.d = 0;
-  reg.e = 0;
-  reg.h = 0;
-  reg.l = 0;
-  reg.f = 0;
-  reg.pc = 0x000;
-  reg.sp = 0;
-
+  // These values would ordinarily be set by the boot ROM
+  reg.a = 0x01;
+  reg.b = 0x00;
+  reg.c = 0x13;
+  reg.d = 0x00;
+  reg.e = 0xD8;
+  reg.h = 0x01;
+  reg.l = 0x4D;
+  reg.f = 0xB0;
+  reg.pc = 0x100;
+  reg.sp = 0xFFFE;
   cpu_clock_t = 0;
   ime = false;
-  mmu.reset();
-  mmu.write8(IF, 0xE1);
+  eiDelay = false;
   dividerCounter = 0;
   timerCounter = 0;
   timerMode = 0;       // Clock rate determined by lowest 2 bits of TAC register
   timerCycles = 1024;  // Initial TAC 00 so GB-Z80 clock speed / inc rate ==
                        // 4194304÷4096 == 1024 cycles
-  eiDelay = false;
+  
+  mmu.reset();
+  mmu.memory[IF] = 0xE1;
 
   debugToFile = false;
   if (debugToFile) {
