@@ -24,10 +24,9 @@
 
 void main_loop();
   // These are global because emscripten's main_loop() can't have parameters
-  // I know they should be g_ prefixed... todo: figure out a better way
-  CPU cpu;
-  GPU gpu;
-  Joypad joypad;
+  CPU g_cpu;
+  GPU g_gpu;
+  Joypad g_joypad;
 
 // Window rendering functions
 void imguiLCD(GPU& gpu);
@@ -55,33 +54,26 @@ SDL_Window* g_window;
 // LCD will be rendered to this texture
 GLuint g_lcdTexture;
 
-// Imgui window flags and stats
-bool g_showLcdWindow = true;
-ImVec2 g_LcdWindowSize;
-bool g_showRegWindow = true;
-bool g_showDisassemblyWindow = true;
-ImVec4 g_clearColor = ImColor(0, 0, 0);
-
 // Main event loop
 void main_loop() {
   // Setup SDL and start new ImGui frame
   ImGui_ImplSdl_NewFrame(g_window);
 
   // Run the emulator until vsync or breakpoint
-  while ((g_running || g_stepping) && !gpu.vsync) {
+  while ((g_running || g_stepping) && !g_gpu.vsync) {
     g_stepping = false;
 
-    cpu.checkInterrupts();
-    cpu.execute();
-    gpu.step(cpu.cpu_clock_t);
+    g_cpu.checkInterrupts();
+    g_cpu.execute();
+    g_gpu.step(g_cpu.cpu_clock_t);
 
     // Check for breakpoint
-    if (g_breakpoints.find(cpu.reg.pc) != g_breakpoints.end()) {
+    if (g_breakpoints.find(g_cpu.reg.pc) != g_breakpoints.end()) {
       g_running = false;
       g_scrollDisasmToPC = true;
     }
   }
-  gpu.vsync = false;
+  g_gpu.vsync = false;
 
   // Handle keydown, window close, etc
   SDL_Event event;
@@ -98,7 +90,7 @@ void main_loop() {
           case SDLK_x:
           case SDLK_RETURN:
           case SDLK_SPACE:
-            joypad.keyPressed(event.key.keysym.sym);
+            g_joypad.keyPressed(event.key.keysym.sym);
             break;
 
           default:
@@ -116,7 +108,7 @@ void main_loop() {
           case SDLK_x:
           case SDLK_RETURN:
           case SDLK_SPACE:
-            joypad.keyReleased(event.key.keysym.sym);
+            g_joypad.keyReleased(event.key.keysym.sym);
             break;
           default:
             break;
@@ -136,16 +128,16 @@ void main_loop() {
   }
 
   // Render GUI windows
-  imguiLCD(gpu);
-  imguiRegisters(cpu);
-  imguiDisassembly(cpu);
+  imguiLCD(g_gpu);
+  imguiRegisters(g_cpu);
+  imguiDisassembly(g_cpu);
 
   // ImGui::ShowTestWindow();
 
   // Rendering
   glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x,
              (int)ImGui::GetIO().DisplaySize.y);
-  glClearColor(g_clearColor.x, g_clearColor.y, g_clearColor.z, g_clearColor.w);
+  glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
   ImGui::Render();
   SDL_GL_SwapWindow(g_window);
@@ -154,13 +146,13 @@ void main_loop() {
 // Load ROM, set up SDL/ImGui, main loop till quit, cleanup ImGui/SDL
 int main(int argc, char** argv) {
     // Initialize emulator components
-  gpu.mmu = &cpu.mmu;
-  cpu.mmu.joypad = &joypad;
-  gpu.reset();
+  g_gpu.mmu = &g_cpu.mmu;
+  g_cpu.mmu.joypad = &g_joypad;
+  g_gpu.reset();
 
   // Load ROM
 #ifdef __EMSCRIPTEN__
-  if (!cpu.mmu.load("roms/tetris.gb")) {
+  if (!g_cpu.mmu.load("roms/tetris.gb")) {
     printf("Invalid ROM file: roms/tetris.gb\n");
     return -1;
   }
@@ -169,7 +161,7 @@ int main(int argc, char** argv) {
     printf("Please specify a ROM file.\n");
     return -1;
   }
-  if (!cpu.mmu.load(argv[1])) {
+  if (!g_cpu.mmu.load(argv[1])) {
     printf("Invalid ROM file: %s\n", argv[1]);
     return -1;
   }
@@ -211,8 +203,8 @@ int main(int argc, char** argv) {
   // allocate memory on the graphics card for the texture. It's fine if
   // texture_data doesn't have any data in it, the texture will just appear
   // black until you update it.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gpu.width, gpu.height, 0, GL_RGB,
-               GL_UNSIGNED_BYTE, gpu.screenData);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, g_gpu.width, g_gpu.height, 0, GL_RGB,
+               GL_UNSIGNED_BYTE, g_gpu.screenData);
 
   // Main loop
 #ifdef __EMSCRIPTEN__
@@ -260,9 +252,8 @@ void imguiLCD(GPU& gpu) {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
   // Render window
-  ImGui::Begin("lcd", &g_showLcdWindow, windowFlags);
-  g_LcdWindowSize = ImGui::GetWindowSize();
-  ImGui::Image((void*)g_lcdTexture, g_LcdWindowSize);
+  ImGui::Begin("lcd", nullptr, windowFlags);
+  ImGui::Image((void*)g_lcdTexture, ImGui::GetWindowSize());
 
   // Done, clean up
   ImGui::End();
@@ -271,7 +262,7 @@ void imguiLCD(GPU& gpu) {
 
 // Display registers in a window
 void imguiRegisters(CPU& cpu) {
-  ImGui::Begin("reg", &g_showRegWindow);
+  ImGui::Begin("reg");
 
   ImGui::Text(
       "af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X",
@@ -282,7 +273,7 @@ void imguiRegisters(CPU& cpu) {
 // Display disassembly in a window
 void imguiDisassembly(CPU& cpu) {
   ImGui::SetNextWindowSize(ImVec2(300.0f, 768.0f), ImGuiSetCond_FirstUseEver);
-  ImGui::Begin("disassembly", &g_showDisassemblyWindow);
+  ImGui::Begin("disassembly");
 
   // Button to run or pause emulator
   if (ImGui::Button(g_running ? "Pause" : " Run ")) {
