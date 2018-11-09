@@ -22,7 +22,12 @@
                                   // integer type 'int'
 #endif
 
-void main_loop(CPU& cpu, GPU& gpu, Joypad& joypad);
+void main_loop();
+  // These are global because emscripten's main_loop() can't have parameters
+  // I know they should be g_ prefixed... todo: figure out a better way
+  CPU cpu;
+  GPU gpu;
+  Joypad joypad;
 
 // Window rendering functions
 void imguiLCD(GPU& gpu);
@@ -58,7 +63,7 @@ bool g_showDisassemblyWindow = true;
 ImVec4 g_clearColor = ImColor(0, 0, 0);
 
 // Main event loop
-void main_loop(CPU& cpu, GPU& gpu, Joypad& joypad) {
+void main_loop() {
   // Setup SDL and start new ImGui frame
   ImGui_ImplSdl_NewFrame(g_window);
 
@@ -148,10 +153,7 @@ void main_loop(CPU& cpu, GPU& gpu, Joypad& joypad) {
 
 // Load ROM, set up SDL/ImGui, main loop till quit, cleanup ImGui/SDL
 int main(int argc, char** argv) {
-  // Initialize emulator components
-  CPU cpu;
-  GPU gpu;
-  Joypad joypad;
+    // Initialize emulator components
   gpu.mmu = &cpu.mmu;
   cpu.mmu.joypad = &joypad;
   gpu.reset();
@@ -216,8 +218,8 @@ int main(int argc, char** argv) {
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(main_loop, 0, 1);
 #else
-  while (!g_quit) {
-    main_loop(cpu, gpu, joypad);
+  while(!g_quit) {
+    main_loop();
   }
 #endif
 
@@ -279,7 +281,7 @@ void imguiRegisters(CPU& cpu) {
 
 // Display disassembly in a window
 void imguiDisassembly(CPU& cpu) {
-  ImGui::SetNextWindowSize(ImVec2(400.0f, 500.0f), ImGuiSetCond_Once);
+  ImGui::SetNextWindowSize(ImVec2(300.0f, 768.0f), ImGuiSetCond_FirstUseEver);
   ImGui::Begin("disassembly", &g_showDisassemblyWindow);
 
   // Button to run or pause emulator
