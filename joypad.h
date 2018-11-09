@@ -11,9 +11,7 @@
 class Joypad {
  public:
   Joypad();
-  void keyPressed(SDL_Keycode key);
-  void keyReleased(SDL_Keycode key);
-  void handleControllers(SDL_GameController* controllers[MAX_CONTROLLERS]);
+  void handleEvent(SDL_Event e);
   u8 read(u8 request);
   u8 write();
 

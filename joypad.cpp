@@ -32,140 +32,164 @@ Joypad::Joypad() {
   directions = 0xEF;  // 1110 1111
 }
 
-void Joypad::keyPressed(SDL_Keycode key) {
-  switch (key) {
-    case SDLK_DOWN:
-      bitClear(directions, DOWN);
-      break;
-
-    case SDLK_UP:
-      bitClear(directions, UP);
-      break;
-
-    case SDLK_LEFT:
-      bitClear(directions, LEFT);
-      break;
-
-    case SDLK_RIGHT:
-      bitClear(directions, RIGHT);
-      break;
-
-    case SDLK_RETURN:
-      bitClear(buttons, START);
-      break;
-
-    case SDLK_SPACE:
-      bitClear(buttons, SELECT);
-      break;
-
-    case SDLK_z:
-      bitClear(buttons, A);
-      break;
-
-    case SDLK_x:
-      bitClear(buttons, B);
-      break;
-  }
-}
-
-void Joypad::keyReleased(SDL_Keycode key) {
-  switch (key) {
-    case SDLK_DOWN:
-      bitSet(directions, DOWN);
-      break;
-
-    case SDLK_UP:
-      bitSet(directions, UP);
-      break;
-
-    case SDLK_LEFT:
-      bitSet(directions, LEFT);
-      break;
-
-    case SDLK_RIGHT:
-      bitSet(directions, RIGHT);
-      break;
-
-    case SDLK_RETURN:
-      bitSet(buttons, START);
-      break;
-
-    case SDLK_SPACE:
-      bitSet(buttons, SELECT);
-      break;
-
-    case SDLK_z:
-      bitSet(buttons, A);
-      break;
-
-    case SDLK_x:
-      bitSet(buttons, B);
-      break;
-  }
-}
-
-void Joypad::handleControllers(
-    SDL_GameController* controllers[MAX_CONTROLLERS]) {
-  for (int i = 0; i < MAX_CONTROLLERS; i++) {
-    if (controllers[i] && SDL_GameControllerGetAttached(controllers[i])) {
-      if (SDL_GameControllerGetButton(controllers[i],
-                                      SDL_CONTROLLER_BUTTON_DPAD_DOWN)) {
+void Joypad::handleEvent(SDL_Event e) {
+  if (e.type == SDL_KEYDOWN) {
+    switch (e.key.keysym.sym) {
+      case SDLK_DOWN:
         bitClear(directions, DOWN);
-        printf("DOWN\n");
-      } else {
-        bitSet(directions, DOWN);
-      }
+        break;
 
-      if (SDL_GameControllerGetButton(controllers[i],
-                                      SDL_CONTROLLER_BUTTON_DPAD_UP)) {
+      case SDLK_UP:
         bitClear(directions, UP);
-        printf("UP\n");
-      } else {
-        bitSet(directions, UP);
-      }
+        break;
 
-      if (SDL_GameControllerGetButton(controllers[i],
-                                      SDL_CONTROLLER_BUTTON_DPAD_LEFT)) {
+      case SDLK_LEFT:
         bitClear(directions, LEFT);
+        break;
 
-      } else {
-        bitSet(directions, LEFT);
-      }
-
-      if (SDL_GameControllerGetButton(controllers[i],
-                                      SDL_CONTROLLER_BUTTON_DPAD_RIGHT)) {
+      case SDLK_RIGHT:
         bitClear(directions, RIGHT);
-      } else {
-        //bitSet(directions, RIGHT);
-      }
+        break;
 
-      if (SDL_GameControllerGetButton(controllers[i],
-                                      SDL_CONTROLLER_BUTTON_START)) {
+      case SDLK_RETURN:
         bitClear(buttons, START);
-      } else {
-        bitSet(buttons, START);
-      }
+        break;
 
-      if (SDL_GameControllerGetButton(controllers[i],
-                                      SDL_CONTROLLER_BUTTON_BACK)) {
+      case SDLK_SPACE:
         bitClear(buttons, SELECT);
-      } else {
-        bitSet(buttons, SELECT);
-      }
+        break;
 
-      if (SDL_GameControllerGetButton(controllers[i],
-                                      SDL_CONTROLLER_BUTTON_A)) {
+      case SDLK_z:
         bitClear(buttons, A);
-      } else {
-        bitSet(buttons, A);
-      }
+        break;
 
-      if (SDL_GameControllerGetButton(controllers[i],
-                                      SDL_CONTROLLER_BUTTON_B)) {
+      case SDLK_x:
         bitClear(buttons, B);
-      } else {
+        break;
+
+      default:
+        break;
+    }
+  } else if (e.type == SDL_CONTROLLERBUTTONDOWN) {
+    switch (e.cbutton.button) {
+      case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+        bitClear(directions, DOWN);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_DPAD_UP:
+        bitClear(directions, UP);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+        bitClear(directions, LEFT);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+        bitClear(directions, RIGHT);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_START:
+        bitClear(buttons, START);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_BACK:
+        bitClear(buttons, SELECT);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_A:
+        bitClear(buttons, A);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_B:
+        bitClear(buttons, B);
+        break;
+
+      // I prefer square button for B :-D
+      case 2:
+        bitClear(buttons, B);
+        break;
+
+      default:
+        break;
+    }
+  } else if (e.type == SDL_KEYUP) {
+    switch (e.key.keysym.sym) {
+      case SDLK_DOWN:
+        bitSet(directions, DOWN);
+        break;
+
+      case SDLK_UP:
+        bitSet(directions, UP);
+        break;
+
+      case SDLK_LEFT:
+        bitSet(directions, LEFT);
+        break;
+
+      case SDLK_RIGHT:
+        bitSet(directions, RIGHT);
+        break;
+
+      case SDLK_RETURN:
+        bitSet(buttons, START);
+        break;
+
+      case SDLK_SPACE:
+        bitSet(buttons, SELECT);
+        break;
+
+      case SDLK_z:
+        bitSet(buttons, A);
+        break;
+
+      case SDLK_x:
         bitSet(buttons, B);
-      }
+        break;
+
+      default:
+        break;
+    }
+  } else if (e.type == SDL_CONTROLLERBUTTONUP) {
+    switch (e.cbutton.button) {
+      case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+        bitSet(directions, DOWN);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_DPAD_UP:
+        bitSet(directions, UP);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+        bitSet(directions, LEFT);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+        bitSet(directions, RIGHT);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_START:
+        bitSet(buttons, START);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_BACK:
+        bitSet(buttons, SELECT);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_A:
+        bitSet(buttons, A);
+        break;
+
+      case SDL_CONTROLLER_BUTTON_B:
+        bitSet(buttons, B);
+        break;
+
+        // I prefer square button for B :-D
+      case 2:
+        bitSet(buttons, B);
+        break;
+
+      default:
+        break;
     }
   }
 }

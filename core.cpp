@@ -51,10 +51,6 @@ bool g_scrollDisasmToPC = false;
 
 SDL_Window* g_window;
 
-// Gamepad handles
-// MAX_CONTROLLERS is defined in common.h
-SDL_GameController* g_controllers[MAX_CONTROLLERS];
-
 // LCD will be rendered to this texture
 GLuint g_lcdTexture;
 
@@ -85,50 +81,18 @@ void main_loop() {
     ImGui_ImplSdl_ProcessEvent(&event);
     switch (event.type) {
       case SDL_KEYDOWN:
-        switch (event.key.keysym.sym) {
-          case SDLK_UP:
-          case SDLK_DOWN:
-          case SDLK_RIGHT:
-          case SDLK_LEFT:
-          case SDLK_z:
-          case SDLK_x:
-          case SDLK_RETURN:
-          case SDLK_SPACE:
-            g_joypad.keyPressed(event.key.keysym.sym);
-            break;
-          default:
-            break;
-        }
-        break;
-
+      case SDL_CONTROLLERBUTTONDOWN:
       case SDL_KEYUP:
-        switch (event.key.keysym.sym) {
-          case SDLK_UP:
-          case SDLK_DOWN:
-          case SDLK_RIGHT:
-          case SDLK_LEFT:
-          case SDLK_z:
-          case SDLK_x:
-          case SDLK_RETURN:
-          case SDLK_SPACE:
-            g_joypad.keyReleased(event.key.keysym.sym);
-            break;
-          default:
-            break;
-        }
+      case SDL_CONTROLLERBUTTONUP:
+        g_joypad.handleEvent(event);
         break;
-
       case SDL_QUIT:
         g_quit = true;
         break;
-
       default:
         break;
     }
   }
-
-  // Handle controller input
-  g_joypad.handleControllers(g_controllers);
 
   // Render GUI windows
   imguiLCD(g_gpu);
@@ -176,7 +140,16 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  // Setup up to four game controllers
+  // Setup MAX_CONTROLLERS game controllers
+  //  MAX_CONTROLLERS (defined in common.h)
+  SDL_GameController* controllers[MAX_CONTROLLERS];
+
+  // Initialize array of controllers with nullptrs
+  for (int i = 0; i < MAX_CONTROLLERS; i++) {
+    controllers[i] = nullptr;
+  }
+
+  // Open game controllers
   if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0) {
     printf("SDL Error initializing gamepad support: %s\n", SDL_GetError());
   } else {
@@ -184,7 +157,7 @@ int main(int argc, char** argv) {
     int controllerID = 0;
     for (int i = 0; i < maxJoysticks && controllerID < MAX_CONTROLLERS; ++i) {
       if (SDL_IsGameController(i)) {
-        g_controllers[i] = SDL_GameControllerOpen(i);
+        controllers[i] = SDL_GameControllerOpen(i);
         controllerID++;
       }
     }
@@ -240,10 +213,10 @@ int main(int argc, char** argv) {
   // you close the application.
   glDeleteTextures(1, &g_lcdTexture);
 
-  // Close any game controllers
+  // Close game controllers
   for (int i = 0; i < MAX_CONTROLLERS; ++i) {
-    if (g_controllers[i]) {
-      SDL_GameControllerClose(g_controllers[i]);
+    if (controllers[i]) {
+      SDL_GameControllerClose(controllers[i]);
     }
   }
 
