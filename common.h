@@ -82,4 +82,5 @@ const u8 STAT_LYC_FLAG = 2;  // 0: LYC != LY, 1: LYC=LY
 const u8 STAT_MODE_HIGH = 1;
 const u8 STAT_MODE_LOW = 0;
 
+const u8 MAX_CONTROLLERS = 4;
 #endif

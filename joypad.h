@@ -13,6 +13,7 @@ class Joypad {
   Joypad();
   void keyPressed(SDL_Keycode key);
   void keyReleased(SDL_Keycode key);
+  void handleControllers(SDL_GameController* controllers[MAX_CONTROLLERS]);
   u8 read(u8 request);
   u8 write();
 

@@ -23,10 +23,10 @@
 #endif
 
 void main_loop();
-  // These are global because emscripten's main_loop() can't have parameters
-  CPU g_cpu;
-  GPU g_gpu;
-  Joypad g_joypad;
+// These are global because emscripten's main_loop() can't have parameters
+CPU g_cpu;
+GPU g_gpu;
+Joypad g_joypad;
 
 // Window rendering functions
 void imguiLCD(GPU& gpu);
@@ -50,6 +50,10 @@ bool g_stepping = false;
 bool g_scrollDisasmToPC = false;
 
 SDL_Window* g_window;
+
+// Gamepad handles
+// MAX_CONTROLLERS is defined in common.h
+SDL_GameController* g_controllers[MAX_CONTROLLERS];
 
 // LCD will be rendered to this texture
 GLuint g_lcdTexture;
@@ -92,7 +96,6 @@ void main_loop() {
           case SDLK_SPACE:
             g_joypad.keyPressed(event.key.keysym.sym);
             break;
-
           default:
             break;
         }
@@ -119,13 +122,13 @@ void main_loop() {
         g_quit = true;
         break;
 
-      case SDL_JOYBUTTONDOWN:
-        break;
-
       default:
         break;
     }
   }
+
+  // Handle controller input
+  g_joypad.handleControllers(g_controllers);
 
   // Render GUI windows
   imguiLCD(g_gpu);
@@ -145,7 +148,7 @@ void main_loop() {
 
 // Load ROM, set up SDL/ImGui, main loop till quit, cleanup ImGui/SDL
 int main(int argc, char** argv) {
-    // Initialize emulator components
+  // Initialize emulator components
   g_gpu.mmu = &g_cpu.mmu;
   g_cpu.mmu.joypad = &g_joypad;
   g_gpu.reset();
@@ -168,9 +171,23 @@ int main(int argc, char** argv) {
 #endif
 
   // Setup SDL
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    printf("Error: %s\n", SDL_GetError());
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    printf("SDL Error: %s\n", SDL_GetError());
     return -1;
+  }
+
+  // Setup up to four game controllers
+  if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0) {
+    printf("SDL Error initializing gamepad support: %s\n", SDL_GetError());
+  } else {
+    int maxJoysticks = SDL_NumJoysticks();
+    int controllerID = 0;
+    for (int i = 0; i < maxJoysticks && controllerID < MAX_CONTROLLERS; ++i) {
+      if (SDL_IsGameController(i)) {
+        g_controllers[i] = SDL_GameControllerOpen(i);
+        controllerID++;
+      }
+    }
   }
 
   // Setup window
@@ -210,7 +227,7 @@ int main(int argc, char** argv) {
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(main_loop, 0, 1);
 #else
-  while(!g_quit) {
+  while (!g_quit) {
     main_loop();
   }
 #endif
@@ -222,6 +239,13 @@ int main(int argc, char** argv) {
   // don't call this method, the texture will stay in graphics card memory until
   // you close the application.
   glDeleteTextures(1, &g_lcdTexture);
+
+  // Close any game controllers
+  for (int i = 0; i < MAX_CONTROLLERS; ++i) {
+    if (g_controllers[i]) {
+      SDL_GameControllerClose(g_controllers[i]);
+    }
+  }
 
   ImGui_ImplSdl_Shutdown();
   SDL_GL_DeleteContext(glcontext);
@@ -246,7 +270,8 @@ void imguiLCD(GPU& gpu) {
   windowFlags |= ImGuiWindowFlags_NoCollapse;
 
   // Set the window size to Gameboy LCD dimensions
-  ImGui::SetNextWindowSize(ImVec2(gpu.width*2, gpu.height*2), ImGuiSetCond_Once);
+  ImGui::SetNextWindowSize(ImVec2(gpu.width * 2, gpu.height * 2),
+                           ImGuiSetCond_Once);
 
   // No padding
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));

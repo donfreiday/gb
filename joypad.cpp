@@ -104,6 +104,69 @@ void Joypad::keyReleased(SDL_Keycode key) {
   }
 }
 
+void Joypad::handleControllers(
+    SDL_GameController* controllers[MAX_CONTROLLERS]) {
+  /*for (int i = 0; i < MAX_CONTROLLERS; i++) {
+    if (controllers[i] && SDL_GameControllerGetAttached(controllers[i])) {
+      if (SDL_GameControllerGetButton(controllers[i],
+                                      SDL_CONTROLLER_BUTTON_DPAD_DOWN)) {
+        bitClear(directions, DOWN);
+      } else {
+        bitSet(directions, DOWN);
+      }
+
+      if (SDL_GameControllerGetButton(controllers[i],
+                                      SDL_CONTROLLER_BUTTON_DPAD_UP)) {
+        bitClear(directions, UP);
+      } else {
+        bitSet(directions, UP);
+      }
+
+      if (SDL_GameControllerGetButton(controllers[i],
+                                      SDL_CONTROLLER_BUTTON_DPAD_LEFT)) {
+        bitClear(directions, LEFT);
+      } else {
+        bitSet(directions, LEFT);
+      }
+
+      if (SDL_GameControllerGetButton(controllers[i],
+                                      SDL_CONTROLLER_BUTTON_DPAD_RIGHT)) {
+        bitClear(directions, RIGHT);
+      } else {
+        bitSet(directions, RIGHT);
+      }
+
+      if (SDL_GameControllerGetButton(controllers[i],
+                                      SDL_CONTROLLER_BUTTON_START)) {
+        bitClear(buttons, START);
+      } else {
+        bitSet(directions, START);
+      }
+
+      if (SDL_GameControllerGetButton(controllers[i],
+                                      SDL_CONTROLLER_BUTTON_BACK)) {
+        bitClear(buttons, SELECT);
+      } else {
+        bitSet(directions, SELECT);
+      }
+
+      if (SDL_GameControllerGetButton(controllers[i],
+                                      SDL_CONTROLLER_BUTTON_A)) {
+        bitClear(buttons, A);
+      } else {
+        bitSet(directions, A);
+      }
+
+      if (SDL_GameControllerGetButton(controllers[i],
+                                      SDL_CONTROLLER_BUTTON_B)) {
+        bitClear(buttons, B);
+      } else {
+        bitSet(directions, B);
+      }
+    }
+  }*/
+}
+
 u8 Joypad::read(u8 request) {
   // Directions
   if (!bitTest(request, 5)) {
