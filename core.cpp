@@ -86,9 +86,19 @@ void main_loop() {
       case SDL_CONTROLLERBUTTONUP:
         g_joypad.handleEvent(event);
         break;
+
+      case SDL_CONTROLLERDEVICEADDED:
+        // todo
+        break;
+
+      case SDL_CONTROLLERDEVICEREMOVED:
+        // todo
+        break;
+
       case SDL_QUIT:
         g_quit = true;
         break;
+
       default:
         break;
     }
@@ -141,7 +151,7 @@ int main(int argc, char** argv) {
   }
 
   // Setup MAX_CONTROLLERS game controllers
-  //  MAX_CONTROLLERS (defined in common.h)
+  // MAX_CONTROLLERS is (defined in common.h)
   SDL_GameController* controllers[MAX_CONTROLLERS];
 
   // Initialize array of controllers with nullptrs
@@ -206,8 +216,7 @@ int main(int argc, char** argv) {
 #endif
 
   // Cleanup
-  // When you're done using the texture, delete it. This will set texname to 0
-  // and
+  // When you're done using the texture, delete it. This will set texname to 0 &
   // delete all of the graphics card memory associated with the texture. If you
   // don't call this method, the texture will stay in graphics card memory until
   // you close the application.
