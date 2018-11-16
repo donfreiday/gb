@@ -40,6 +40,7 @@ struct disassembly {
   u8 opcode;
   u16 operand;
   u8 operandSize;
+  std::set<u16> knownEntryPoints;
 } g_disasm;
 void disassemble(CPU& cpu, u16& pc);
 
@@ -315,6 +316,7 @@ void imguiDisassembly(CPU& cpu) {
     // We missed the PC
     if (!pcDisassembled && index > g_cpu.reg.pc) {
       index = g_cpu.reg.pc;
+      g_disasm.knownEntryPoints.insert(g_cpu.reg.pc);
     }
 
     // Is the current index a breakpoint?
@@ -381,7 +383,7 @@ void imguiDisassembly(CPU& cpu) {
 
   // Scroll to current PC if warranted
   if (!g_running && g_scrollDisasmToPC) {
-    float target = (g_cpu.reg.pc - 20) * ImGui::GetTextLineHeight()* 0.5f;
+    float target = (g_cpu.reg.pc - 20) * ImGui::GetTextLineHeight() * 0.5f;
     if (fabsf(target - ImGui::GetScrollY()) > 20) {
       ImGui::SetScrollY(target);
     }
@@ -419,5 +421,15 @@ void disassemble(CPU& cpu, u16& pc) {
     g_disasm.operandSize = 0;
     g_disasm.str = cpu.instructions[g_disasm.opcode].disassembly;
   }
-  pc += g_disasm.operandSize;
+
+  // Make sure we don't skip over any code entry points
+  bool skippedEntry = false;
+  for (u16 address : g_disasm.knownEntryPoints) {
+    if (pc < address && pc + g_disasm.operandSize > address) {
+      skippedEntry = true;
+    }
+  }
+  if (!skippedEntry) {
+    pc += g_disasm.operandSize;
+  }
 }
