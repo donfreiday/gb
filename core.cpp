@@ -22,6 +22,8 @@
                                   // integer type 'int'
 #endif
 
+#define DISASM_WINDOW_WIDTH 300.0f
+
 void main_loop();
 // These are global because emscripten's main_loop() can't have parameters
 CPU g_cpu;
@@ -52,6 +54,7 @@ bool g_quit = false;
 bool g_running = false;
 bool g_stepping = false;
 bool g_scrollDisasmToPC = true;
+bool g_fullscreenLcd = false;
 
 SDL_Window* g_window;
 
@@ -80,6 +83,7 @@ void main_loop() {
     if (g_breakpoints.find(g_cpu.reg.pc) != g_breakpoints.end()) {
       g_running = false;
       g_scrollDisasmToPC = true;
+      g_fullscreenLcd = false;
     }
   }
   g_gpu.vsync = false;
@@ -90,6 +94,9 @@ void main_loop() {
     ImGui_ImplSdl_ProcessEvent(&event);
     switch (event.type) {
       case SDL_KEYDOWN:
+        if (event.key.keysym.sym == SDLK_f) {
+          g_fullscreenLcd = !g_fullscreenLcd;
+        }
       case SDL_CONTROLLERBUTTONDOWN:
       case SDL_KEYUP:
       case SDL_CONTROLLERBUTTONUP:
@@ -115,8 +122,10 @@ void main_loop() {
 
   // Render GUI windows
   imguiLCD(g_gpu);
-  imguiRegisters(g_cpu);
-  imguiDisassembly(g_cpu);
+  if (!g_fullscreenLcd) {
+    imguiRegisters(g_cpu);
+    imguiDisassembly(g_cpu);
+  }
 
   // ImGui::ShowTestWindow();
 
@@ -259,10 +268,36 @@ void imguiLCD(GPU& gpu) {
   windowFlags |= ImGuiWindowFlags_NoTitleBar;
   windowFlags |= ImGuiWindowFlags_NoScrollbar;
   windowFlags |= ImGuiWindowFlags_NoCollapse;
+  windowFlags |= ImGuiWindowFlags_NoResize;
+  windowFlags |= ImGuiWindowFlags_NoMove;
 
-  // Set the window size to Gameboy LCD dimensions
-  ImGui::SetNextWindowSize(ImVec2(gpu.width * 2, gpu.height * 2),
-                           ImGuiSetCond_Once);
+  // Get window dimensions
+  float winWidth = ImGui::GetIO().DisplaySize.x;
+  float winHeight = ImGui::GetIO().DisplaySize.y;
+
+  // Fullscreen
+  if (g_fullscreenLcd) {
+    // Scale while maintaining approximate aspect ratio
+    // Todo: calculate proper scale factor
+    float width = g_gpu.width;
+    float height = g_gpu.height;
+    while (width*1.1f < winWidth && height*1.1f < winHeight) {
+      width *= 1.1;
+      height *= 1.1;
+    }
+    ImGui::SetNextWindowSize(ImVec2(width, height));
+
+    // Position centered
+    ImGui::SetNextWindowPosCenter();
+  }
+
+  // Windowed
+  else {
+    // Set the window size to Gameboy LCD dimensions
+    ImGui::SetNextWindowSize(ImVec2(gpu.width * 2, gpu.height * 2));
+    // Position top right
+    ImGui::SetNextWindowPos(ImVec2(winWidth - gpu.width * 2, 0.0f));
+  }
 
   // No padding
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -278,7 +313,11 @@ void imguiLCD(GPU& gpu) {
 
 // Display registers in a window
 void imguiRegisters(CPU& cpu) {
-  ImGui::Begin("reg");
+  // Position to the right of disassembly window
+  ImGui::SetNextWindowPos(ImVec2(DISASM_WINDOW_WIDTH, 0.0f));
+
+  ImGui::Begin("reg", nullptr,
+               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
   ImGui::Text(
       "af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X",
@@ -288,12 +327,15 @@ void imguiRegisters(CPU& cpu) {
 
 // Display disassembly in a window
 void imguiDisassembly(CPU& cpu) {
-  int winWidth, winHeight;
-  SDL_GetWindowSize(g_window, &winWidth, &winHeight);
+  // Get window dimensions
+  ImGui::SetNextWindowSize(
+      ImVec2(DISASM_WINDOW_WIDTH, ImGui::GetIO().DisplaySize.y));
 
+  // Position in top left corner
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(300.0f, winHeight));
-  ImGui::Begin("disassembly");
+
+  ImGui::Begin("disassembly", nullptr,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
   // Button to run or pause emulator
   if (ImGui::Button(g_running ? "Pause" : " Run ")) {
@@ -434,7 +476,7 @@ void disassemble(CPU& cpu, u16& pc) {
     g_disasm.knownEntryPoints.insert(pc);
     skippedEntry = true;
   }
-  
+
   if (!skippedEntry) {
     pc += g_disasm.operandSize;
   }
