@@ -36,8 +36,11 @@ void imguiDisassembly(CPU& cpu);
 // Disassembler
 struct disassembly {
   std::string str;
+  u16 address;
+  u8 opcode;
   u16 operand;
-} g_disassembly;
+  u8 operandSize;
+} g_disasm;
 void disassemble(CPU& cpu, u16& pc);
 
 // Breakpoints
@@ -47,7 +50,7 @@ std::set<u16> g_breakpoints;
 bool g_quit = false;
 bool g_running = false;
 bool g_stepping = false;
-bool g_scrollDisasmToPC = false;
+bool g_scrollDisasmToPC = true;
 
 SDL_Window* g_window;
 
@@ -61,7 +64,10 @@ void main_loop() {
 
   // Run the emulator until vsync or breakpoint
   while ((g_running || g_stepping) && !g_gpu.vsync) {
-    g_stepping = false;
+    if (g_stepping) {
+      g_stepping = false;
+      g_scrollDisasmToPC = true;
+    }
 
     g_cpu.checkInterrupts();
     g_cpu.execute();
@@ -297,10 +303,20 @@ void imguiDisassembly(CPU& cpu) {
   }
 
   ImGui::BeginChild("disasm", ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
   ImGuiListClipper clipper(0x7FFF, ImGui::GetTextLineHeight());
   u16 index = clipper.DisplayStart * 2;
 
+  // Data sections are mixed in with code. So we need to make sure
+  // that we don't skip right over the PC by blindly disassembling
+  bool pcDisassembled = false;
   while (index < clipper.DisplayEnd * 2) {
+    // We missed the PC
+    if (!pcDisassembled && index > g_cpu.reg.pc) {
+      index = g_cpu.reg.pc;
+    }
+
     // Is the current index a breakpoint?
     bool breakpoint = g_breakpoints.find(index) != g_breakpoints.end();
 
@@ -319,6 +335,7 @@ void imguiDisassembly(CPU& cpu) {
     // Color currently executing line
     ImVec4 color;
     if (index == cpu.reg.pc) {
+      pcDisassembled = true;
       color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
     } else {
       color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -334,50 +351,73 @@ void imguiDisassembly(CPU& cpu) {
     }
     ImGui::PopStyleVar();
 
-    // Display current address and opcode
+    // This will increment index by size of opcode+operand
+    disassemble(cpu, index);
+
+    // Display current address, opcode, and operand (if any)
     ImGui::SameLine();
-    ImGui::TextColored(color, "%04X:%02X", index, cpu.mmu.memory[index]);
+    if (g_disasm.operandSize > 0) {
+      // One byte operand
+      if (g_disasm.operandSize == 1) {
+        ImGui::TextColored(color, "%04X:%02X %02X    ", g_disasm.address,
+                           g_disasm.opcode, (u8)g_disasm.operand);
+      }
+      // Two byte operand
+      else {
+        ImGui::TextColored(color, "%04X:%02X %04X  ", g_disasm.address,
+                           g_disasm.opcode, g_disasm.operand);
+      }
+    }
+    // No operand
+    else {
+      ImGui::TextColored(color, "%04X:%02X       ", g_disasm.address,
+                         g_disasm.opcode);
+    }
 
     // Display disassembly
     ImGui::SameLine();
-    disassemble(cpu, index);
-    ImGui::TextColored(color, g_disassembly.str.c_str(), g_disassembly.operand);
+    ImGui::TextColored(color, g_disasm.str.c_str(), g_disasm.operand);
   }
 
   // Scroll to current PC if warranted
   if (!g_running && g_scrollDisasmToPC) {
-    ImGui::SetScrollY(cpu.reg.pc * ImGui::GetTextLineHeight() * 0.5f);
+    float target = (g_cpu.reg.pc - 20) * ImGui::GetTextLineHeight()* 0.5f;
+    if (fabsf(target - ImGui::GetScrollY()) > 20) {
+      ImGui::SetScrollY(target);
+    }
     g_scrollDisasmToPC = false;
   }
 
   clipper.End();
+  ImGui::PopStyleVar();
   ImGui::EndChild();
   ImGui::End();
 }
 
 // This is a ugly, ugly hack
 void disassemble(CPU& cpu, u16& pc) {
-  u8 opcode = cpu.mmu.memory[pc];
-  u8 operandSize = 0;
-  g_disassembly.operand = 0;
+  g_disasm.address = pc;
+  g_disasm.opcode = cpu.mmu.memory[pc];
+  g_disasm.operandSize = 0;
+  g_disasm.operand = 0;
 
-  if (opcode == 0xCB) {
-    operandSize = 1;
-    g_disassembly.operand = cpu.mmu.memory[++pc];
-    g_disassembly.str = cpu.instructions_CB[g_disassembly.operand].disassembly;
-  } else if (cpu.instructions[opcode].operandLength == 1) {
-    operandSize = 1;
-    g_disassembly.operand = cpu.mmu.memory[++pc];
-    g_disassembly.str = cpu.instructions[opcode].disassembly;
-  } else if (cpu.instructions[opcode].operandLength == 2) {
-    operandSize = 2;
-    g_disassembly.operand = cpu.mmu.read16(++pc);
-    g_disassembly.str = cpu.instructions[opcode].disassembly;
+  if (g_disasm.opcode == 0xCB) {
+    g_disasm.operandSize = 1;
+    g_disasm.operand = cpu.mmu.memory[++pc];
+    g_disasm.str = cpu.instructions_CB[g_disasm.operand].disassembly;
+  } else if (cpu.instructions[g_disasm.opcode].operandLength == 1) {
+    g_disasm.operandSize = 1;
+    g_disasm.operand = cpu.mmu.memory[++pc];
+    g_disasm.str = cpu.instructions[g_disasm.opcode].disassembly;
+  } else if (cpu.instructions[g_disasm.opcode].operandLength == 2) {
+    g_disasm.operandSize = 2;
+    g_disasm.operand = cpu.mmu.read16(++pc);
+    g_disasm.str = cpu.instructions[g_disasm.opcode].disassembly;
     pc++;
   } else {
     ++pc;
-    operandSize = 0;
-    g_disassembly.str = cpu.instructions[opcode].disassembly;
+    g_disasm.operandSize = 0;
+    g_disasm.str = cpu.instructions[g_disasm.opcode].disassembly;
   }
-  pc += operandSize;
+  pc += g_disasm.operandSize;
 }
