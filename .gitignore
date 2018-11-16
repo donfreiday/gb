@@ -8,6 +8,6 @@ tetris.gb.bak
 *gch
 roms/*
 emscripten/*data
-emscripten/*html
+emscripten/gb.html
 emscripten/*wasm
 emscripten/*js

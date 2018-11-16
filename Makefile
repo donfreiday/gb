@@ -11,7 +11,7 @@ js: CC = em++
 
 # COMPILER_FLAGS =
 native: COMPILER_FLAGS = -g -Wall `sdl2-config --cflags` -I ./
-js: COMPILER_FLAGS = --preload-file roms -s USE_SDL=2 --emrun -I ./
+js: COMPILER_FLAGS = --shell-file emscripten/shell.html --preload-file roms -s USE_SDL=2 --emrun -I ./
 
 native: LINKER_FLAGS = `sdl2-config --libs` -lGL
 
