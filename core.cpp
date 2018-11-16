@@ -423,6 +423,7 @@ void disassemble(CPU& cpu, u16& pc) {
   for (u16 address : g_disasm.knownEntryPoints) {
     if (pc < address && pc + g_disasm.operandSize > address) {
       skippedEntry = true;
+      pc = address;
     }
   }
 
@@ -431,7 +432,10 @@ void disassemble(CPU& cpu, u16& pc) {
   if (pc < g_cpu.reg.pc && pc + g_disasm.operandSize > g_cpu.reg.pc) {
     pc = g_cpu.reg.pc;
     g_disasm.knownEntryPoints.insert(pc);
-  } else if (!skippedEntry) {
+    skippedEntry = true;
+  }
+  
+  if (!skippedEntry) {
     pc += g_disasm.operandSize;
   }
 }
