@@ -35,6 +35,9 @@ void imguiLCD(GPU& gpu);
 void imguiRegisters(CPU& cpu);
 void imguiDisassembly(CPU& cpu);
 
+// Handle keyboard events (fullscreen, step, etc)
+void handleKeyPress(SDL_Keycode key);
+
 // Disassembler
 struct disassembly {
   std::string str;
@@ -94,9 +97,7 @@ void main_loop() {
     ImGui_ImplSdl_ProcessEvent(&event);
     switch (event.type) {
       case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_f) {
-          g_fullscreenLcd = !g_fullscreenLcd;
-        }
+        handleKeyPress(event.key.keysym.sym);
       case SDL_CONTROLLERBUTTONDOWN:
       case SDL_KEYUP:
       case SDL_CONTROLLERBUTTONUP:
@@ -281,7 +282,7 @@ void imguiLCD(GPU& gpu) {
     // Todo: calculate proper scale factor
     float width = g_gpu.width;
     float height = g_gpu.height;
-    while (width*1.1f < winWidth && height*1.1f < winHeight) {
+    while (width * 1.1f < winWidth && height * 1.1f < winHeight) {
       width *= 1.1;
       height *= 1.1;
     }
@@ -338,17 +339,23 @@ void imguiDisassembly(CPU& cpu) {
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
   // Button to run or pause emulator
-  if (ImGui::Button(g_running ? "Pause" : " Run ")) {
+  if (ImGui::Button(g_running ? "Pause(r)" : " Run(r) ")) {
     g_scrollDisasmToPC = g_running;
     g_running = !g_running;
   }
 
   // Button for step. Only works when emulation is paused
   ImGui::SameLine();
-  if (ImGui::Button("Step")) {
+  if (ImGui::Button("Step(s)")) {
     if (!g_running) {
       g_stepping = true;
     }
+  }
+
+  // Button for jump to PC
+  ImGui::SameLine();
+  if (ImGui::Button("Goto PC(p)")) {
+    g_scrollDisasmToPC = true;
   }
 
   ImGui::BeginChild("disasm", ImVec2(0.0f, 0.0f));
@@ -432,6 +439,37 @@ void imguiDisassembly(CPU& cpu) {
   ImGui::PopStyleVar();
   ImGui::EndChild();
   ImGui::End();
+}
+
+// Handle keyboard events (fullscreen, step, etc)
+void handleKeyPress(SDL_Keycode key) {
+  switch (key) {
+    // Fullscreen
+    case SDLK_f:
+      g_fullscreenLcd = !g_fullscreenLcd;
+      break;
+
+    // Step
+    case SDLK_s:
+      if (!g_running) {
+        g_stepping = true;
+      }
+      break;
+
+    // Toggle running state
+    case SDLK_r:
+      g_scrollDisasmToPC = g_running;
+      g_running = !g_running;
+      break;
+
+    // Scroll to PC
+    case SDLK_p:
+      g_scrollDisasmToPC = true;
+      break;
+
+    default:
+      break;
+  }
 }
 
 // This is a ugly, ugly hack
