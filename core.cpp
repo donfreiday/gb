@@ -65,6 +65,8 @@ void main_loop() {
 
   // Run the emulator until vsync or breakpoint
   while ((g_running || g_stepping) && !g_gpu.vsync) {
+    g_disasm.knownEntryPoints.insert(g_cpu.reg.pc);
+
     if (g_stepping) {
       g_stepping = false;
       g_scrollDisasmToPC = true;
@@ -286,7 +288,11 @@ void imguiRegisters(CPU& cpu) {
 
 // Display disassembly in a window
 void imguiDisassembly(CPU& cpu) {
-  ImGui::SetNextWindowSize(ImVec2(300.0f, 768.0f), ImGuiSetCond_FirstUseEver);
+  int winWidth, winHeight;
+  SDL_GetWindowSize(g_window, &winWidth, &winHeight);
+
+  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(300.0f, winHeight));
   ImGui::Begin("disassembly");
 
   // Button to run or pause emulator
@@ -309,16 +315,7 @@ void imguiDisassembly(CPU& cpu) {
   ImGuiListClipper clipper(0x7FFF, ImGui::GetTextLineHeight());
   u16 index = clipper.DisplayStart * 2;
 
-  // Data sections are mixed in with code. So we need to make sure
-  // that we don't skip right over the PC by blindly disassembling
-  bool pcDisassembled = false;
   while (index < clipper.DisplayEnd * 2) {
-    // We missed the PC
-    if (!pcDisassembled && index > g_cpu.reg.pc) {
-      index = g_cpu.reg.pc;
-      g_disasm.knownEntryPoints.insert(g_cpu.reg.pc);
-    }
-
     // Is the current index a breakpoint?
     bool breakpoint = g_breakpoints.find(index) != g_breakpoints.end();
 
@@ -337,7 +334,6 @@ void imguiDisassembly(CPU& cpu) {
     // Color currently executing line
     ImVec4 color;
     if (index == cpu.reg.pc) {
-      pcDisassembled = true;
       color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
     } else {
       color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -429,7 +425,13 @@ void disassemble(CPU& cpu, u16& pc) {
       skippedEntry = true;
     }
   }
-  if (!skippedEntry) {
+
+  // Data sections are mixed in with code. So we need to make sure
+  // that we don't skip right over the PC by blindly disassembling
+  if (pc < g_cpu.reg.pc && pc + g_disasm.operandSize > g_cpu.reg.pc) {
+    pc = g_cpu.reg.pc;
+    g_disasm.knownEntryPoints.insert(pc);
+  } else if (!skippedEntry) {
     pc += g_disasm.operandSize;
   }
 }
