@@ -316,15 +316,16 @@ void imguiLCD(GPU& gpu) {
 void imguiRegisters(CPU& cpu) {
   // Position to the right of disassembly window
   ImGui::SetNextWindowPos(ImVec2(DISASM_WINDOW_WIDTH, 0.0f));
-
   ImGui::Begin("reg", nullptr,
                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-
   ImGui::Text(
       "af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X",
       cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
   ImGui::End();
 }
+
+// Display stack in a window
+
 
 // Display disassembly in a window
 void imguiDisassembly(CPU& cpu) {
@@ -399,7 +400,16 @@ void imguiDisassembly(CPU& cpu) {
     ImGui::PopStyleVar();
 
     // This will increment index by size of opcode+operand
+    int prevIndex = index;
     disassemble(cpu, index);
+
+    // Don't skip the current PC
+    if (prevIndex < g_cpu.reg.pc && index > g_cpu.reg.pc) {
+      index = g_cpu.reg.pc;
+      g_disasm.knownEntryPoints.insert(index);
+      color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
+      disassemble(cpu, index);
+    }
 
     // Display current address, opcode, and operand (if any)
     ImGui::SameLine();
