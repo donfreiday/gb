@@ -40,7 +40,8 @@ void imguiRegisters();
 void imguiLcdStatus();
 void imguiDisassembly();
 
-// Handle keyboard events (fullscreen, step, etc)
+// Event handling
+void handleSdlEvents();
 void handleKeyPress(SDL_Keycode key);
 
 // Disassembler
@@ -74,6 +75,8 @@ void main_loop() {
   // Setup SDL and start new ImGui frame
   ImGui_ImplSdl_NewFrame(g_window);
 
+  handleSdlEvents();
+
   // Run the emulator until vsync or breakpoint
   while ((g_running || g_stepping) && !g_gpu.vsync) {
     g_disasm.knownEntryPoints.insert(g_cpu.reg.pc);
@@ -95,36 +98,6 @@ void main_loop() {
     }
   }
   g_gpu.vsync = false;
-
-  // Handle keydown, window close, etc
-  SDL_Event event;
-  while (SDL_PollEvent(&event)) {
-    ImGui_ImplSdl_ProcessEvent(&event);
-    switch (event.type) {
-      case SDL_KEYDOWN:
-        handleKeyPress(event.key.keysym.sym);
-      case SDL_CONTROLLERBUTTONDOWN:
-      case SDL_KEYUP:
-      case SDL_CONTROLLERBUTTONUP:
-        g_joypad.handleEvent(event);
-        break;
-
-      case SDL_CONTROLLERDEVICEADDED:
-        // todo
-        break;
-
-      case SDL_CONTROLLERDEVICEREMOVED:
-        // todo
-        break;
-
-      case SDL_QUIT:
-        g_quit = true;
-        break;
-
-      default:
-        break;
-    }
-  }
 
   // Render GUI windows
   imguiLCD();
@@ -322,12 +295,13 @@ void imguiLCD() {
 void imguiRegisters() {
   // Position to the right of disassembly window
   ImGui::SetNextWindowPos(ImVec2(DISASM_WINDOW_WIDTH, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(REG_WINDOW_WIDTH,REG_WINDOW_HEIGHT));
+  ImGui::SetNextWindowSize(ImVec2(REG_WINDOW_WIDTH, REG_WINDOW_HEIGHT));
   ImGui::Begin("reg", nullptr,
                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
   ImGui::Text(
       "af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X",
-      g_cpu.reg.af, g_cpu.reg.bc, g_cpu.reg.de, g_cpu.reg.hl, g_cpu.reg.sp, g_cpu.reg.pc);
+      g_cpu.reg.af, g_cpu.reg.bc, g_cpu.reg.de, g_cpu.reg.hl, g_cpu.reg.sp,
+      g_cpu.reg.pc);
   ImGui::End();
 }
 
@@ -335,7 +309,7 @@ void imguiRegisters() {
 void imguiLcdStatus() {
   // Position to the right of disassembly window, below register window
   ImGui::SetNextWindowPos(ImVec2(DISASM_WINDOW_WIDTH, REG_WINDOW_HEIGHT));
-  ImGui::SetNextWindowSize(ImVec2(REG_WINDOW_WIDTH,LCD_STATUS_WINDOW_HEIGHT));
+  ImGui::SetNextWindowSize(ImVec2(REG_WINDOW_WIDTH, LCD_STATUS_WINDOW_HEIGHT));
   ImGui::Begin("lcd stat", nullptr,
                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
   ImGui::Text(
@@ -351,19 +325,12 @@ void imguiLcdStatus() {
       "%02X FF49 OBP1\n"
       "%02X FF4A WY\n"
       "%02X FF4B WX\n",
-      g_cpu.mmu.memory[0xFF40],
-      g_cpu.mmu.memory[0xFF41],
-      g_cpu.mmu.memory[0xFF42],
-      g_cpu.mmu.memory[0xFF43],
-      g_cpu.mmu.memory[0xFF44],
-      g_cpu.mmu.memory[0xFF45],
-      g_cpu.mmu.memory[0xFF46],
-      g_cpu.mmu.memory[0xFF47],
-      g_cpu.mmu.memory[0xFF48],
-      g_cpu.mmu.memory[0xFF49],
-      g_cpu.mmu.memory[0xFF4A],
-      g_cpu.mmu.memory[0xFF4B]
-  );
+      g_cpu.mmu.memory[0xFF40], g_cpu.mmu.memory[0xFF41],
+      g_cpu.mmu.memory[0xFF42], g_cpu.mmu.memory[0xFF43],
+      g_cpu.mmu.memory[0xFF44], g_cpu.mmu.memory[0xFF45],
+      g_cpu.mmu.memory[0xFF46], g_cpu.mmu.memory[0xFF47],
+      g_cpu.mmu.memory[0xFF48], g_cpu.mmu.memory[0xFF49],
+      g_cpu.mmu.memory[0xFF4A], g_cpu.mmu.memory[0xFF4B]);
   ImGui::End();
 }
 
@@ -489,6 +456,38 @@ void imguiDisassembly() {
   ImGui::PopStyleVar();
   ImGui::EndChild();
   ImGui::End();
+}
+
+void handleSdlEvents() {
+  // Handle keydown, window close, etc
+  SDL_Event event;
+  while (SDL_PollEvent(&event)) {
+    ImGui_ImplSdl_ProcessEvent(&event);
+    switch (event.type) {
+      case SDL_KEYDOWN:
+        handleKeyPress(event.key.keysym.sym);
+      case SDL_CONTROLLERBUTTONDOWN:
+      case SDL_KEYUP:
+      case SDL_CONTROLLERBUTTONUP:
+        g_joypad.handleEvent(event);
+        break;
+
+      case SDL_CONTROLLERDEVICEADDED:
+        // todo
+        break;
+
+      case SDL_CONTROLLERDEVICEREMOVED:
+        // todo
+        break;
+
+      case SDL_QUIT:
+        g_quit = true;
+        break;
+
+      default:
+        break;
+    }
+  }
 }
 
 // Handle keyboard events (fullscreen, step, etc)
