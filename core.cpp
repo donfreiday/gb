@@ -22,7 +22,11 @@
                                   // integer type 'int'
 #endif
 
+// Window sizes for relative positioning
 #define DISASM_WINDOW_WIDTH 300.0f
+#define REG_WINDOW_HEIGHT 120.0f
+#define REG_WINDOW_WIDTH 100.0f
+#define LCD_STATUS_WINDOW_HEIGHT 200.0f
 
 void main_loop();
 // These are global because emscripten's main_loop() can't have parameters
@@ -31,9 +35,10 @@ GPU g_gpu;
 Joypad g_joypad;
 
 // Window rendering functions
-void imguiLCD(GPU& gpu);
-void imguiRegisters(CPU& cpu);
-void imguiDisassembly(CPU& cpu);
+void imguiLCD();
+void imguiRegisters();
+void imguiLcdStatus();
+void imguiDisassembly();
 
 // Handle keyboard events (fullscreen, step, etc)
 void handleKeyPress(SDL_Keycode key);
@@ -122,10 +127,11 @@ void main_loop() {
   }
 
   // Render GUI windows
-  imguiLCD(g_gpu);
+  imguiLCD();
   if (!g_fullscreenLcd) {
-    imguiRegisters(g_cpu);
-    imguiDisassembly(g_cpu);
+    imguiRegisters();
+    imguiLcdStatus();
+    imguiDisassembly();
   }
 
   // ImGui::ShowTestWindow();
@@ -257,12 +263,12 @@ int main(int argc, char** argv) {
 }
 
 // Display LCD in a window
-void imguiLCD(GPU& gpu) {
+void imguiLCD() {
   // Update texture
   // bind the texture again when you want to update it.
   glBindTexture(GL_TEXTURE_2D, g_lcdTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gpu.width, gpu.height, 0, GL_RGB,
-               GL_UNSIGNED_BYTE, gpu.screenData);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, g_gpu.width, g_gpu.height, 0, GL_RGB,
+               GL_UNSIGNED_BYTE, g_gpu.screenData);
 
   // Set up window flags
   ImGuiWindowFlags windowFlags = 0;
@@ -295,9 +301,9 @@ void imguiLCD(GPU& gpu) {
   // Windowed
   else {
     // Set the window size to Gameboy LCD dimensions
-    ImGui::SetNextWindowSize(ImVec2(gpu.width * 2, gpu.height * 2));
+    ImGui::SetNextWindowSize(ImVec2(g_gpu.width * 2, g_gpu.height * 2));
     // Position top right
-    ImGui::SetNextWindowPos(ImVec2(winWidth - gpu.width * 2, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(winWidth - g_gpu.width * 2, 0.0f));
   }
 
   // No padding
@@ -313,22 +319,56 @@ void imguiLCD(GPU& gpu) {
 }
 
 // Display registers in a window
-void imguiRegisters(CPU& cpu) {
+void imguiRegisters() {
   // Position to the right of disassembly window
   ImGui::SetNextWindowPos(ImVec2(DISASM_WINDOW_WIDTH, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(REG_WINDOW_WIDTH,REG_WINDOW_HEIGHT));
   ImGui::Begin("reg", nullptr,
                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
   ImGui::Text(
       "af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X",
-      cpu.reg.af, cpu.reg.bc, cpu.reg.de, cpu.reg.hl, cpu.reg.sp, cpu.reg.pc);
+      g_cpu.reg.af, g_cpu.reg.bc, g_cpu.reg.de, g_cpu.reg.hl, g_cpu.reg.sp, g_cpu.reg.pc);
   ImGui::End();
 }
 
-// Display stack in a window
-
+// Display LCD status in a window
+void imguiLcdStatus() {
+  // Position to the right of disassembly window, below register window
+  ImGui::SetNextWindowPos(ImVec2(DISASM_WINDOW_WIDTH, REG_WINDOW_HEIGHT));
+  ImGui::SetNextWindowSize(ImVec2(REG_WINDOW_WIDTH,LCD_STATUS_WINDOW_HEIGHT));
+  ImGui::Begin("lcd stat", nullptr,
+               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+  ImGui::Text(
+      "%02X FF40 LCDC\n"
+      "%02X FF41 STAT\n"
+      "%02X FF42 SCY\n"
+      "%02X FF43 SCX\n"
+      "%02X FF44 LY\n"
+      "%02X FF45 LYC\n"
+      "%02X FF46 DMA\n"
+      "%02X FF47 BGP\n"
+      "%02X FF48 OBP0\n"
+      "%02X FF49 OBP1\n"
+      "%02X FF4A WY\n"
+      "%02X FF4B WX\n",
+      g_cpu.mmu.memory[0xFF40],
+      g_cpu.mmu.memory[0xFF41],
+      g_cpu.mmu.memory[0xFF42],
+      g_cpu.mmu.memory[0xFF43],
+      g_cpu.mmu.memory[0xFF44],
+      g_cpu.mmu.memory[0xFF45],
+      g_cpu.mmu.memory[0xFF46],
+      g_cpu.mmu.memory[0xFF47],
+      g_cpu.mmu.memory[0xFF48],
+      g_cpu.mmu.memory[0xFF49],
+      g_cpu.mmu.memory[0xFF4A],
+      g_cpu.mmu.memory[0xFF4B]
+  );
+  ImGui::End();
+}
 
 // Display disassembly in a window
-void imguiDisassembly(CPU& cpu) {
+void imguiDisassembly() {
   // Get window dimensions
   ImGui::SetNextWindowSize(
       ImVec2(DISASM_WINDOW_WIDTH, ImGui::GetIO().DisplaySize.y));
@@ -383,7 +423,7 @@ void imguiDisassembly(CPU& cpu) {
 
     // Color currently executing line
     ImVec4 color;
-    if (index == cpu.reg.pc) {
+    if (index == g_cpu.reg.pc) {
       color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
     } else {
       color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -401,14 +441,14 @@ void imguiDisassembly(CPU& cpu) {
 
     // This will increment index by size of opcode+operand
     int prevIndex = index;
-    disassemble(cpu, index);
+    disassemble(g_cpu, index);
 
     // Don't skip the current PC
     if (prevIndex < g_cpu.reg.pc && index > g_cpu.reg.pc) {
       index = g_cpu.reg.pc;
       g_disasm.knownEntryPoints.insert(index);
       color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
-      disassemble(cpu, index);
+      disassemble(g_cpu, index);
     }
 
     // Display current address, opcode, and operand (if any)
