@@ -6,16 +6,14 @@ An unfinished cross-platform Gameboy emulator written in C++ using SDL2. Can be 
 
 **Currently refactoring and implementing a GUI using dear imgui and this PR for emscripten support:**
 
-https://github.com/ocornut/imgui
-https://github.com/ocornut/imgui/pull/336/commits/a592303b70789ffb53a768201f83e1d97fc8cd41
 
 **This readme is badly out of date**
 
 **What works**: 
-Enough to play Tetris!!!
+Enough to play Tetris, Super Mario Land, and probably other games too.
 
 **What doesn't (yet):**: 
-MBC support, window layer of graphics, sound, other stuff
+window layer of graphics, sound, other stuff
 
 ## Usage ##
 
@@ -23,16 +21,12 @@ MBC support, window layer of graphics, sound, other stuff
 gb rom.gb
 
 **Javascript:**
-emrun gb.html
-
-## Boot ROM ##
-
-The boot ROM is responsible for scrolling the Nintendo logo when the DMG is powered on.
-The emulator will look for ./roms/bios.gb and, if found, execute it prior to the game ROM.
+emrun emscripten/gb.html
 
 ## Dependencies ##
 
-SDL2, ncurses, make, clang, emscripten and LLVM for javascript build
+SDL2, make, clang.
+Emscripten and LLVM for Javascript build target.
 
 ## Building ##
 
@@ -48,9 +42,6 @@ Javascript:
 ```shell
 git clone https://github.com/donfreiday/gb.git && cd gb && make js
 ```
-
-Dependencies TBA
-
 - - - -
 
 ### Ubuntu ###
@@ -59,19 +50,25 @@ Native:
 
 ```shell
 sudo apt update && sudo apt upgrade
-sudo apt install git make clang++ libsdl2-dev libncurses5-dev libncursesw5-dev
+sudo apt install git make clang++ libsdl2-dev
 git clone https://github.com/donfreiday/gb.git && cd gb && make
 ```
 
 Javascript:
+
 The version of emscripten in Ubuntu's repository is from 2014 (stability ftw).
-You'll have to compile emscripten, as well as LLVM most likely.
+You'll have to find a PPA or compile Emscripten (and LLVM probably).
 
 - - - -
 
 ### Windows: ###
 
-TBD
+Install Microsoft Visual Studio.
+Install [git](https://git-scm.com/downloads)
+Download and extract the [SDL2 development libraries](https://www.libsdl.org/download-2.0.php) for Visual C++.
+Note: if the Visual Studio CLI is not in your PATH, you'll need to specify the full path to cl.exe.
+Note: sdl2path refers to the directory where you extracted the SDL2 development libs.
+
 
 
 # Resources:
@@ -95,3 +92,10 @@ TBD
 <https://github.com/CTurt/Cinoop/tree/master/source>
 
 <http://www.codeslinger.co.uk/pages/projects/gameboy.html>
+
+<https://github.com/zanders3/gb>
+
+<https://github.com/ocornut/imgui>
+
+<https://github.com/ocornut/imgui/pull/336/commits/a592303b70789ffb53a768201f83e1d97fc8cd41>
+
