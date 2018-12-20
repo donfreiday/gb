@@ -39,6 +39,7 @@ void imguiLCD();
 void imguiRegisters();
 void imguiLcdStatus();
 void imguiDisassembly();
+void imguiHelp();
 
 // Event handling
 void handleSdlEvents();
@@ -105,6 +106,7 @@ void main_loop() {
     imguiRegisters();
     imguiLcdStatus();
     imguiDisassembly();
+    imguiHelp();
   }
 
   // ImGui::ShowTestWindow();
@@ -455,6 +457,20 @@ void imguiDisassembly() {
   clipper.End();
   ImGui::PopStyleVar();
   ImGui::EndChild();
+  ImGui::End();
+}
+
+void imguiHelp() {
+  ImGui::SetNextWindowPos(ImVec2(DISASM_WINDOW_WIDTH+REG_WINDOW_WIDTH, 0.0f));
+  ImGui::Begin("controls", nullptr,
+               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+  ImGui::Text(
+      "A: z\n"
+      "B: x\n"
+      "Select: space\n"
+      "Start: enter\n"
+      "Directions: arrows\n"
+      "Fullscreen: f\n");
   ImGui::End();
 }
 
