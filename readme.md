@@ -1,16 +1,12 @@
 # A Gameboy Emulator #
 
-![screenshot](https://github.com/donfreiday/gb/blob/master/screenshot.png)
+![screenshot](https://github.com/donfreiday/gb/blob/master/screencap.gif)
 
-An unfinished cross-platform Gameboy emulator written in C++ using SDL2. Can be compiled to Javascript and run in a browser by way of LLVM and Emscripten.
-
-**Currently refactoring and implementing a GUI using dear imgui and this PR for emscripten support:**
-
-
-**This readme is badly out of date**
+A cross-platform Gameboy emulator written in C++ using SDL2. Can be compiled to Javascript and run in a browser via Emscripten.
 
 **What works**: 
 Enough to play Tetris, Super Mario Land, and probably other games too.
+Controller support.
 
 **What doesn't (yet):**: 
 window layer of graphics, sound, other stuff
@@ -61,7 +57,7 @@ You'll have to find a PPA or compile Emscripten (and LLVM probably).
 
 - - - -
 
-### Windows: ###
+### Windows: TODO: finish this###
 
 Install Microsoft Visual Studio.
 Install [git](https://git-scm.com/downloads)
