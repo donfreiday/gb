@@ -57,12 +57,16 @@ You'll have to find a PPA or compile Emscripten (and LLVM probably).
 
 - - - -
 
-### Windows: TODO: finish this###
+### Windows: TODO: finish this ###
 
 Install Microsoft Visual Studio.
+
 Install [git](https://git-scm.com/downloads)
+
 Download and extract the [SDL2 development libraries](https://www.libsdl.org/download-2.0.php) for Visual C++.
+
 Note: if the Visual Studio CLI is not in your PATH, you'll need to specify the full path to cl.exe.
+
 Note: sdl2path refers to the directory where you extracted the SDL2 development libs.
 
 
