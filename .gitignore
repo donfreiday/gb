@@ -11,3 +11,4 @@ emscripten/*data
 emscripten/gb.html
 emscripten/*wasm
 emscripten/*js
+tmp
