@@ -61,7 +61,7 @@ std::set<u16> g_breakpoints;
 
 // State variables
 bool g_quit = false;
-bool g_running = false;
+bool g_running = true;
 bool g_stepping = false;
 bool g_scrollDisasmToPC = true;
 bool g_fullscreenLcd = false;
