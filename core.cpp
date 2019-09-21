@@ -111,12 +111,18 @@ void main_loop() {
 
   // ImGui::ShowTestWindow();
 
+  // Append FPS to window title
+  std::stringstream windowTitle;
+  windowTitle << "gb: A Gameboy Emulator    FPS: " << std::fixed
+              << std::setprecision(2) << ImGui::GetIO().Framerate;
+
   // Rendering
   glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x,
              (int)ImGui::GetIO().DisplaySize.y);
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
   ImGui::Render();
+  SDL_SetWindowTitle(g_window, windowTitle.str().c_str());
   SDL_GL_SwapWindow(g_window);
 }
 
