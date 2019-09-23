@@ -5,12 +5,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <set>
-#include "common.h"
-#include "cpu.h"
-#include "gpu.h"
+#include "common.hpp"
+#include "cpu.hpp"
+#include "gpu.hpp"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
-#include "joypad.h"
+#include "joypad.hpp"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -108,7 +108,7 @@ void main_loop() {
   // Append FPS to window title
   std::stringstream windowTitle;
   windowTitle << "gb: A Gameboy Emulator    FPS: " << std::fixed
-              << std::setprecision(2) << ImGui::GetIO().Framerate;
+              << std::setprecision(0) << ImGui::GetIO().Framerate;
 
   // Rendering
   glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x,
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
   }
 
   // Setup MAX_CONTROLLERS game controllers
-  // MAX_CONTROLLERS is (defined in common.h)
+  // MAX_CONTROLLERS is (defined in common.hpp)
   SDL_GameController* controllers[MAX_CONTROLLERS];
 
   // Initialize array of controllers with nullptrs

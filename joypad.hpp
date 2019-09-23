@@ -5,7 +5,7 @@
 #ifndef GB_JOYPAD
 #define GB_JOYPAD
 
-#include "common.h"
+#include "common.hpp"
 #include <SDL2/SDL.h>
 
 class Joypad {

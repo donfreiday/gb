@@ -4,7 +4,7 @@
 //
 // Graphics are rendered using the Simple DirectMedia Layer library (SDL 2.0)
 
-#include "gpu.h"
+#include "gpu.hpp"
 
 GPU::GPU() {}
 

@@ -4,7 +4,7 @@
 //
 // Memory map, BIOS and ROM file loading, DMA
 
-#include "mmu.h"
+#include "mmu.hpp"
 
 MMU::MMU() { reset(); }
 

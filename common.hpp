@@ -1,5 +1,5 @@
 // gb: a Gameboy Emulator by Don Freiday 
-// File: common.h
+// File: common.hpp
 // Description: Typedefs, template bit functions, and constant addresses for memory mapped IO
 
 #ifndef COMMON

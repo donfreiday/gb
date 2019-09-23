@@ -1,5 +1,5 @@
 // gb: a Gameboy Emulator by Don Freiday
-// File: gpu.h
+// File: gpu.hpp
 // Description: Emulates the PPU and LCD
 //
 // Graphics are rendered using the Simple DirectMedia Layer library (SDL 2.0)
@@ -9,8 +9,8 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include "common.h"
-#include "mmu.h"
+#include "common.hpp"
+#include "mmu.hpp"
 
 #include "imgui/imgui.h"
 

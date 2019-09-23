@@ -4,8 +4,8 @@
 //
 // GB-Z80 interpreter, timers, interrupt handling
 
-#include "cpu.h"
-#include "mmu.h"
+#include "cpu.hpp"
+#include "mmu.hpp"
 
 // Set if a carry occurred from the last arithmetic operation or if
 // register A is the smaller value when executing the CP instruction

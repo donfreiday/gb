@@ -1,5 +1,5 @@
 // gb: a Gameboy Emulator by Don Freiday
-// File: mmu.h
+// File: mmu.hpp
 // Description: Memory management unit
 //
 // Memory map, BIOS and ROM file loading, DMA
@@ -9,8 +9,8 @@
 
 #include <fstream>
 #include <vector>
-#include "common.h"
-#include "joypad.h"
+#include "common.hpp"
+#include "joypad.hpp"
 
 class MMU
 {

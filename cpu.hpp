@@ -1,5 +1,5 @@
 // gb: a Gameboy Emulator by Don Freiday
-// File: cpu.h
+// File: cpu.hpp
 // Description: CPU implementation
 //
 // GB-Z80 interpreter, timers, interrupt handling
@@ -10,8 +10,8 @@
 #include <iostream>
 #include <fstream> // for debug > file
 #include <iomanip> // for debug > file
-#include "common.h"
-#include "mmu.h"
+#include "common.hpp"
+#include "mmu.hpp"
 
 class CPU {
  public:
