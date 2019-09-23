@@ -22,12 +22,6 @@
                                   // integer type 'int'
 #endif
 
-// Window sizes for relative positioning
-#define DISASM_WINDOW_WIDTH 300.0f
-#define REG_WINDOW_HEIGHT 120.0f
-#define REG_WINDOW_WIDTH 100.0f
-#define LCD_STATUS_WINDOW_HEIGHT 200.0f
-
 void main_loop();
 // These are global because emscripten's main_loop() can't have parameters
 CPU g_cpu;

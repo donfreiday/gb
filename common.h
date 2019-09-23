@@ -83,4 +83,10 @@ const u8 STAT_MODE_HIGH = 1;
 const u8 STAT_MODE_LOW = 0;
 
 const u8 MAX_CONTROLLERS = 4;
+
+// Window sizes for relative positioning
+const float DISASM_WINDOW_WIDTH = 300.0f;
+const float REG_WINDOW_HEIGHT = 120.0f;
+const float REG_WINDOW_WIDTH = 100.0f;
+const float LCD_STATUS_WINDOW_HEIGHT = 200.0f;
 #endif
