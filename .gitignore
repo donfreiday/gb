@@ -12,3 +12,4 @@ emscripten/gb.html
 emscripten/*wasm
 emscripten/*js
 tmp
+imgui.ini
