@@ -1055,7 +1055,7 @@ bool CPU::execute() {
 
     // HALT
     case 0x76:
-      std::cout << "Todo: 0x76 Halt\n";
+      //std::cout << "Todo: 0x76 Halt\n";
       return false;
       break;
 
