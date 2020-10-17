@@ -286,7 +286,7 @@ void GPU::renderSprites() {
       }
     }
 
-    // Is sprite located on the current scanline?
+    // Is sprite located on the current scanline? Draw it.
     if (scanline >= yPos && scanline < (yPos + ySize)) {
       u8 line = scanline - yPos;
       if (yFlip) {
